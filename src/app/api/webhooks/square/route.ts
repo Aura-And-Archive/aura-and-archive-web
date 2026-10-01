@@ -1,12 +1,14 @@
 import { WebhooksHelper } from 'square';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   const bodyText = await req.text();
   const signature = req.headers.get('x-square-hmacsha256-signature') || '';
   const notificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/square`;
