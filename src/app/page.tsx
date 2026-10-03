@@ -1,69 +1,132 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useRef } from "react";
 
 export default function Home() {
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
+  const [investorModalOpen, setInvestorModalOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const openDemoModal = () => {
+    setDemoModalOpen(true);
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(() => {});
+      }
+    }, 100);
+  };
+
+  const closeDemoModal = () => {
+    setDemoModalOpen(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    alert("Thank you for your request. Our executive team will reach out shortly.");
+    setInvestorModalOpen(false);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="app-viewport">
+      <nav className="app-nav">
+        <div>
+          <div className="brand-title">AURA &amp; ARCHIVE</div>
+          <span className="brand-subtitle">LIFETIME DIGITAL MEMORIAL SYSTEMS</span>
+        </div>
+        <div className="nav-actions">
+          <button onClick={openDemoModal} className="btn btn-outline">Watch Platform Demo</button>
+          <button onClick={() => setInvestorModalOpen(true)} className="btn btn-gold">Request Access</button>
+        </div>
+      </nav>
+
+      <main>
+        <section className="hero-section">
+          <div className="hero-badge">THE PREMIUM DIGITAL KEEPSAKE PLATFORM</div>
+          <h1 className="hero-title">Preserve Every Memory.<br />Forever.</h1>
+          <p className="hero-desc">
+            A custom-crafted physical keepsake paired with a secure, eternal digital shrine for your loved ones.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <div className="hero-buttons">
+            <button onClick={() => setInvestorModalOpen(true)} className="btn btn-gold">Request Access</button>
+            <button onClick={openDemoModal} className="btn btn-outline">Watch Platform Demo</button>
+          </div>
+        </section>
+
+        <section className="enterprise-briefing">
+          <div className="briefing-header">
+            <h2>Architected for Eternity</h2>
+            <div className="subtitle">Enterprise-grade longevity for digital legacies</div>
+          </div>
+          <div className="briefing-grid">
+            <div className="briefing-card">
+              <div className="card-icon">🏛️</div>
+              <h3>Decentralized Archival Storage</h3>
+              <p>Redundant storage infrastructure guarantees your high-resolution media, video, and audio remain accessible across generations.</p>
+            </div>
+            <div className="briefing-card">
+              <div className="card-icon">🔒</div>
+              <h3>Granular Privacy Controls</h3>
+              <p>Complete authority over who can view, contribute to, or interact with your digital memorial vault.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="investor-cta-box">
+          <div className="cta-content">
+            <h3>Enterprise &amp; Institutional Partnerships</h3>
+            <p>Inquire about custom enterprise white-label solutions and memorial garden integrations.</p>
+          </div>
+          <button onClick={() => setInvestorModalOpen(true)} className="btn btn-gold">Inquire Now</button>
+        </section>
       </main>
+
+      {/* DEMO MODAL */}
+      <div className="modal-overlay" style={{ display: demoModalOpen ? "flex" : "none" }}>
+        <div className="modal-card">
+          <span className="modal-close" onClick={closeDemoModal}>&times;</span>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: "var(--gold-primary)", fontSize: "20px", textTransform: "uppercase" }}>
+            Platform Video Demo
+          </h2>
+          <div className="demo-video-container">
+            <video ref={videoRef} controls playsInline preload="metadata">
+              <source src="/demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <button onClick={closeDemoModal} className="btn btn-outline">Close</button>
+        </div>
+      </div>
+
+      {/* INVESTOR MODAL */}
+      <div className="modal-overlay" style={{ display: investorModalOpen ? "flex" : "none" }}>
+        <div className="modal-card">
+          <span className="modal-close" onClick={() => setInvestorModalOpen(false)}>&times;</span>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", color: "var(--gold-primary)", fontSize: "20px", textTransform: "uppercase" }}>
+            Request Access
+          </h2>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <input type="text" placeholder="Full Name" required />
+            <input type="email" placeholder="Email Address" required />
+            <input type="text" placeholder="Organization / Institution (Optional)" />
+            <textarea placeholder="Tell us about your interest in Aura &amp; Archive..." rows={3}></textarea>
+            <button type="submit" className="btn btn-gold">Submit Request</button>
+          </form>
+        </div>
+      </div>
+
+      <footer>
+        <div className="footer-grid">
+          <div>
+            <div className="brand-title" style={{ fontSize: "16px" }}>AURA &amp; ARCHIVE</div>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px" }}>
+              &copy; {new Date().getFullYear()} Aura &amp; Archive Inc. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
