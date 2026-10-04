@@ -12,6 +12,15 @@ export default async function CardRedirectPage({
 }) {
   const cardId = params.id;
 
+  if (!supabase) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h1>Supabase Not Configured</h1>
+        <p>Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.</p>
+      </div>
+    );
+  }
+
   // Query Supabase for the card by ID or matching URL string
   const { data: card, error } = await supabase
     .from('cards')
