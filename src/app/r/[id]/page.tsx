@@ -1,37 +1,37 @@
 import { createClient } from '@supabase/supabase-js';
+import { redirect, notFound } from 'next/navigation';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default async function CardRedirectPage({
+export default async function RedirectPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const cardId = params.id;
+  const resolvedParams = await params;
+  const rawId = resolvedParams?.id;
 
-  // Query Supabase for the card by ID or matching URL string
-  const { data: card, error } = await supabase
-    .from('cards')
-    .select('content_url')
-    .or(`id.eq.${cardId},content_url.ilike.%${cardId}%`)
-    .single();
-
-  if (error || !card) {
-    return (
-      <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>
-        <h1>Card Not Found</h1>
-        <p>Could not locate keepsake ID: {cardId}</p>
-      </div>
-    );
+  if (!rawId) {
+    notFound();
   }
 
-  return (
-    <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>
-      <h1>Aura & Archive Card: {cardId}</h1>
-      <p>Card content loaded successfully.</p>
-    </div>
-  );
+  const cleanId = rawId.trim().toLowerCase();
+
+  // Query Supabase for the card record using case-insensitive match
+  const { data: card, error } = await supabase
+    .from('cards') // Change 'cards' to your table name if different (e.g., 'keepsakes')
+    .select('id, redirect_url')
+    .ilike('id', cleanId)
+    .maybeSingle();
+
+  if (error || !card) {
+    // If not found in database, fallback to the view page with the clean ID or trigger 404
+    redirect(`/v/${encodeURIComponent(cleanId)}`);
+  }
+
+  // If a custom target URL exists in DB, redirect there; otherwise default to /v/[id]
+  const targetUrl = card.redirect_url || `/v/${card.id}`;
+  redirect(targetUrl);
 }
