@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
-// Required for Next.js output: 'export' on dynamic routes
-export async function generateStaticParams() {
+// NON-ASYNC: Required for Next.js output: 'export' on 'use client' dynamic routes
+export function generateStaticParams() {
   return [{ id: 'DEMO-GOLD-GRAFFITI' }];
 }
 
