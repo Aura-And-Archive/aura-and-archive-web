@@ -3,15 +3,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
+// Route segment configurations for fast client streaming
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default function ExperiencePage({ params }: { params: Promise<{ id: string }> }) {
-  // Unwrap the params promise using React.use
   const resolvedParams = React.use(params);
   const cardId = resolvedParams?.id || 'DEMO-GOLD-GRAFFITI';
 
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Trigger Gold Confetti Effect using HTML5 Canvas
   const triggerGoldConfetti = () => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
@@ -66,8 +68,8 @@ export default function ExperiencePage({ params }: { params: Promise<{ id: strin
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.25; // gravity
-        p.vx *= 0.98; // drag
+        p.vy += 0.25;
+        p.vx *= 0.98;
         p.rotation += p.rotSpeed;
 
         if (elapsed > 1800) {
@@ -98,151 +100,22 @@ export default function ExperiencePage({ params }: { params: Promise<{ id: strin
   };
 
   useEffect(() => {
-    // Automatically trigger confetti when the page loads
     triggerGoldConfetti();
   }, []);
 
   return (
-    <div className="experience-container">
-      <style jsx global>{`
-        *, *::before, *::after {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
-
-        body {
-          background: radial-gradient(circle at 50% 30%, #2a220d 0%, #0c0b07 50%, #050506 100%);
-          min-height: 100vh;
-          font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
-          color: #f3f3f7;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow-x: hidden;
-        }
-
-        .experience-container {
-          width: 100%;
-          max-width: 680px;
-          padding: 24px 16px;
-          margin: 0 auto;
-        }
-
-        .experience-card {
-          background: rgba(16, 16, 20, 0.92);
-          border: 1px solid #d4af37;
-          border-radius: 12px;
-          padding: 32px 24px;
-          text-align: center;
-          box-shadow: 0 0 35px rgba(212, 175, 55, 0.2);
-          backdrop-filter: blur(12px);
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .badge {
-          display: inline-block;
-          align-self: center;
-          padding: 6px 16px;
-          border: 1px solid rgba(212, 175, 55, 0.4);
-          border-radius: 30px;
-          font-size: 10px;
-          letter-spacing: 2.5px;
-          text-transform: uppercase;
-          color: #f4e6b0;
-          background: rgba(212, 175, 55, 0.08);
-        }
-
-        .title {
-          font-family: 'Playfair Display', serif;
-          font-size: 24px;
-          text-transform: uppercase;
-          color: #d4af37;
-          letter-spacing: 2px;
-        }
-
-        .card-id-sub {
-          font-size: 12px;
-          color: #b0aebf;
-          letter-spacing: 1px;
-          margin-top: 6px;
-        }
-
-        .video-wrapper {
-          position: relative;
-          width: 100%;
-          border-radius: 8px;
-          overflow: hidden;
-          border: 1px solid rgba(212, 175, 55, 0.4);
-          background: #000;
-          aspect-ratio: 16 / 9;
-        }
-
-        .video-wrapper video {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          display: block;
-        }
-
-        .btn-group {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-top: 8px;
-        }
-
-        .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          padding: 14px 20px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          border-radius: 4px;
-          text-decoration: none;
-          cursor: pointer;
-          border: none;
-          transition: all 0.3s ease;
-        }
-
-        .btn-gold {
-          background: linear-gradient(135deg, #f4e6b0 0%, #d4af37 50%, #96760e 100%);
-          color: #000;
-          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
-        }
-
-        .btn-gold:hover {
-          box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
-          transform: translateY(-1px);
-        }
-
-        .btn-outline {
-          background: rgba(0, 0, 0, 0.4);
-          color: #f4e6b0;
-          border: 1px solid rgba(212, 175, 55, 0.35);
-        }
-
-        .btn-outline:hover {
-          border-color: #d4af37;
-          background: rgba(212, 175, 55, 0.1);
-        }
-      `}</style>
-
-      <div className="experience-card">
-        <div className="badge">✦ Aura & Archive Experience ✦</div>
+    <div className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen">
+      <div className="bg-[#101014]/92 border border-[#d4af37] rounded-xl p-6 md:p-8 text-center shadow-[0_0_35px_rgba(212,175,55,0.2)] backdrop-blur-md flex flex-col gap-5">
+        <div className="inline-block self-center px-4 py-1.5 border border-[#d4af37]/40 rounded-[30px] text-[10px] tracking-[2.5px] uppercase text-[#f4e6b0] bg-[#d4af37]/10">
+          ✦ Aura & Archive Experience ✦
+        </div>
         
         <div>
-          <h1 className="title">Unsealing Experience</h1>
-          <p className="card-id-sub">CARD ID: {cardId}</p>
+          <h1 className="font-serif text-[24px] uppercase text-[#d4af37] tracking-[2px]">Unsealing Experience</h1>
+          <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
         </div>
 
-        <div className="video-wrapper">
+        <div className="relative w-full rounded-lg overflow-hidden border border-[#d4af37]/40 bg-black aspect-video">
           <video
             ref={videoRef}
             src="/AA-Demo.mp4"
@@ -250,15 +123,16 @@ export default function ExperiencePage({ params }: { params: Promise<{ id: strin
             playsInline
             preload="metadata"
             onPlay={() => setIsPlaying(true)}
+            className="w-full h-full object-contain block"
           />
         </div>
 
-        <div className="btn-group">
-          <button className="btn btn-gold" onClick={triggerGoldConfetti}>
+        <div className="flex flex-col gap-3 mt-2">
+          <button className="btn btn-gold w-full py-3.5 text-[11px]" onClick={triggerGoldConfetti}>
             ✦ Trigger Gold Confetti Burst ✦
           </button>
           
-          <Link href="/" className="btn btn-outline">
+          <Link href="/" className="btn btn-outline w-full py-3.5 text-[11px]">
             Return to Storefront
           </Link>
         </div>
