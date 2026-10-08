@@ -3,17 +3,20 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
-// Route segment configurations for fast client streaming
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+// Required for Next.js output: 'export' on dynamic routes
+export async function generateStaticParams() {
+  return [{ id: 'DEMO-GOLD-GRAFFITI' }];
+}
 
 export default function ExperiencePage({ params }: { params: Promise<{ id: string }> }) {
+  // Unwrap the params promise using React.use
   const resolvedParams = React.use(params);
   const cardId = resolvedParams?.id || 'DEMO-GOLD-GRAFFITI';
 
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Trigger Gold Confetti Effect using HTML5 Canvas
   const triggerGoldConfetti = () => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
