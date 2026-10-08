@@ -1,0 +1,32 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "destination": "https://aura-and-archive.com/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/telegram",
+      "destination": "/telegram.html"
+    },
+    {
+      "source": "/dispatcher",
+      "destination": "/dispatcher.html"
+    },
+    {
+      "source": "/admin-reset",
+      "destination": "/admin-reset.html"
+    },
+    {
+      "source": "/r/:path+",
+      "destination": "/r.html"
+    },
+    {
+      "source": "/v/:path+",
+      "destination": "/v.html"
+    }
+  ]
+}
