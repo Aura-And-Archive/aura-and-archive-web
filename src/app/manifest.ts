@@ -1,4 +1,7 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next';
+
+// REQUIRED for Next.js output: 'export'
+export const dynamic = 'force-static';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -7,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Luxury Smart Cards & Interactive Media',
     start_url: '/',
     display: 'standalone',
-    background_color: '#040406',
-    theme_color: '#d4af37',
+    background_color: '#070709',
+    theme_color: '#070709',
     icons: [
       {
         src: '/favicon.ico',
