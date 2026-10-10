@@ -20,21 +20,28 @@ export default async function RedirectPage({
   const cleanId = rawId.trim();
 
   try {
-    // Query Supabase for the card record matching the ID (case-insensitive)
+    // Query Supabase for activation status and custom redirect
     const { data: card, error } = await supabase
       .from('cards')
-      .select('id, redirect_url')
+      .select('id, is_activated, redirect_url')
       .ilike('id', cleanId)
       .maybeSingle();
 
-    if (!error && card?.redirect_url) {
-      redirect(card.redirect_url);
+    if (!error && card) {
+      // 1. If not activated, send to activation flow
+      if (!card.is_activated) {
+        redirect(`/activate?id=${encodeURIComponent(card.id)}`);
+      }
+
+      // 2. If activated and has a custom redirect URL, use it
+      if (card.redirect_url) {
+        redirect(card.redirect_url);
+      }
     }
   } catch (err) {
-    // Fail silently on database error and proceed to the fallback route
     console.error('Redirect lookup error:', err);
   }
 
-  // Fallback to viewing the card directly on the main application route
+  // 3. Default fallback for activated cards (or if lookup fails)
   redirect(`/v/${encodeURIComponent(cleanId)}`);
 }
