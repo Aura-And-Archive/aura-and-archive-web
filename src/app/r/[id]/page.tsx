@@ -1,9 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { redirect, notFound } from 'next/navigation';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const dynamic = 'force-dynamic';
 
 export default async function RedirectPage({
   params,
@@ -19,29 +17,41 @@ export default async function RedirectPage({
 
   const cleanId = rawId.trim();
 
-  try {
-    // Query Supabase for activation status and custom redirect
-    const { data: card, error } = await supabase
-      .from('cards')
-      .select('id, is_activated, redirect_url')
-      .ilike('id', cleanId)
-      .maybeSingle();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!error && card) {
-      // 1. If not activated, send to activation flow
-      if (!card.is_activated) {
-        redirect(`/activate?id=${encodeURIComponent(card.id)}`);
-      }
+  if (supabaseUrl && supabaseAnonKey) {
+    try {
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-      // 2. If activated and has a custom redirect URL, use it
-      if (card.redirect_url) {
-        redirect(card.redirect_url);
+      // Query Supabase for activation status, custom redirect, and content_url
+      const { data: card, error } = await supabase
+        .from('cards')
+        .select('id, is_activated, redirect_url, content_url')
+        .ilike('id', cleanId)
+        .maybeSingle();
+
+      if (!error && card) {
+        // 1. If not activated, send directly to activation flow
+        if (!card.is_activated) {
+          redirect(`/activate?id=${encodeURIComponent(card.id)}`);
+        }
+
+        // 2. If activated and has a custom redirect URL, use it
+        if (card.redirect_url) {
+          redirect(card.redirect_url);
+        }
+
+        // 3. If activated and has a content_url, ensure it isn't a self-referencing /r/ link before redirecting
+        if (card.content_url && !card.content_url.includes('/r/')) {
+          redirect(card.content_url);
+        }
       }
+    } catch (err) {
+      console.error('Redirect lookup error:', err);
     }
-  } catch (err) {
-    console.error('Redirect lookup error:', err);
   }
 
-  // 3. Default fallback for activated cards (or if lookup fails)
+  // 4. Fallback for activated cards without an external link (or if lookup fails)
   redirect(`/v/${encodeURIComponent(cleanId)}`);
 }
