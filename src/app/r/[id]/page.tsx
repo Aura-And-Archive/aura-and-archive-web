@@ -37,12 +37,12 @@ export default async function RedirectPage({
           redirect(`/activate?id=${encodeURIComponent(card.id)}`);
         }
 
-        // 2. If activated and has a custom redirect URL, use it
+        // 2. If activated and has a custom external redirect URL, use it
         if (card.redirect_url) {
           redirect(card.redirect_url);
         }
 
-        // 3. If activated and has a content_url, ensure it isn't a self-referencing /r/ link before redirecting
+        // 3. If content_url exists and is NOT a self-referencing /r/ link, use it
         if (card.content_url && !card.content_url.includes('/r/')) {
           redirect(card.content_url);
         }
@@ -52,6 +52,6 @@ export default async function RedirectPage({
     }
   }
 
-  // 4. Fallback for activated cards without an external link (or if lookup fails)
+  // 4. Fallback for activated cards without an external link -> goes to viewer page
   redirect(`/v/${encodeURIComponent(cleanId)}`);
 }
