@@ -24,7 +24,7 @@ export default async function RedirectPage({
     try {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-      // Query Supabase for activation status, custom redirect, and content_url using serial_number
+      // Query Supabase for activation status, custom redirect, and content_url
       const { data: card, error } = await supabase
         .from('cards')
         .select('serial_number, is_activated, redirect_url, content_url')
@@ -32,17 +32,17 @@ export default async function RedirectPage({
         .maybeSingle();
 
       if (!error && card) {
-        // 1. If not activated, send directly to activation flow
-        if (!card.is_activated) {
+        // STEP 1: FORCE ACTIVATION FLOW FIRST IF NOT ACTIVATED
+        if (card.is_activated === false || !card.is_activated) {
           redirect(`/activate?id=${encodeURIComponent(card.serial_number)}`);
         }
 
-        // 2. If activated and has a custom external redirect URL, use it
+        // STEP 2: IF ACTIVATED, CHECK CUSTOM EXTERNAL REDIRECT URL
         if (card.redirect_url) {
           redirect(card.redirect_url);
         }
 
-        // 3. If content_url exists and is NOT a self-referencing /r/ link, use it
+        // STEP 3: IF ACTIVATED AND HAS CUSTOM CONTENT_URL THAT IS NOT SELF-REFERENCING /r/
         if (card.content_url && !card.content_url.includes('/r/')) {
           redirect(card.content_url);
         }
@@ -52,6 +52,6 @@ export default async function RedirectPage({
     }
   }
 
-  // 4. Fallback for activated cards (or if lookup fails) -> goes to viewer page
+  // STEP 4: FALLBACK FOR ACTIVATED CARDS WITHOUT EXTERNAL LINK -> VIEWER PAGE
   redirect(`/v/${encodeURIComponent(cleanId)}`);
 }
