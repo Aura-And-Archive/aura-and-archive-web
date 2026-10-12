@@ -10,7 +10,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [loading, setLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Fetch card data from Supabase using the dynamic cardId
+  // Fetch card data from Supabase using the dynamic cardId against serial_number
   useEffect(() => {
     async function fetchCardData() {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,7 +22,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           const { data, error } = await supabase
             .from('cards')
             .select('*')
-            .ilike('id', cardId)
+            .ilike('serial_number', cardId)
             .maybeSingle();
 
           if (!error && data) {
