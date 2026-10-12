@@ -21,37 +21,42 @@ function ActivateForm() {
 
   useEffect(() => {
     const idParam = searchParams.get('id') || searchParams.get('serial') || searchParams.get('s');
-    if (idParam) {
-      const cleaned = idParam.trim().toUpperCase();
-      setSerialNumber(cleaned);
+    if (!idParam) {
+      setIsReady(true);
+      return;
+    }
 
-      // Check activation status via Supabase
+    const cleaned = idParam.trim().toUpperCase();
+    setSerialNumber(cleaned);
+
+    const checkCardStatus = async () => {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      if (supabaseUrl && supabaseAnonKey) {
+      if (!supabaseUrl || !supabaseAnonKey) {
+        setIsReady(true);
+        return;
+      }
+
+      try {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        supabase
+        const { data, error } = await supabase
           .from('cards')
           .select('is_activated')
           .ilike('serial_number', cleaned)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data && data.is_activated) {
-              router.replace(`/v/${cleaned}`);
-            } else {
-              setIsReady(true);
-            }
-          })
-          .catch(() => {
-            setIsReady(true);
-          });
-      } else {
+          .maybeSingle();
+
+        if (!error && data && data.is_activated) {
+          router.replace(`/v/${cleaned}`);
+        } else {
+          setIsReady(true);
+        }
+      } catch {
         setIsReady(true);
       }
-    } else {
-      setIsReady(true);
-    }
+    };
+
+    checkCardStatus();
   }, [searchParams, router]);
 
   const handleActivation = async (e: React.FormEvent) => {
