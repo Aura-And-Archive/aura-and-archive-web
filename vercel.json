@@ -13,10 +13,6 @@
       "destination": "/admin-reset.html"
     },
     {
-      "source": "/r/:path+",
-      "destination": "/r.html"
-    },
-    {
       "source": "/v/:path+",
       "destination": "/v.html"
     }
