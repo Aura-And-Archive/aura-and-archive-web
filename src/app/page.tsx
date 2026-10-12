@@ -1,8 +1,9 @@
-export default function Page() {
+import StorefrontContent from './StorefrontContent';
+
+export default function StorefrontPage() {
   return (
-    <div style={{ padding: '40px', color: '#fff', textAlign: 'center' }}>
-      <h1>Aura & Archive Storefront</h1>
-      <p>Site is live and rendering correctly.</p>
-    </div>
+    <main className="min-h-screen w-full bg-transparent">
+      <StorefrontContent />
+    </main>
   );
 }
