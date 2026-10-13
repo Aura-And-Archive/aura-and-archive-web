@@ -4,11 +4,58 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
-// Default mock data for demo previews using local public folder video[cite: 6]
 const DEMO_PREVIEW_DATA = {
   message_text: "Welcome to the Aura & Archive Experience. A seamless fusion of physical luxury and digital narrative.",
   media_url: "/AA-Demo.mp4",
   effect_type: "gold-confetti",
+};
+
+const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string }> = {
+  'gold-confetti': {
+    name: 'Aura Gold',
+    border: 'border-[#d4af37]',
+    glow: 'shadow-[0_0_35px_rgba(212,175,55,0.2)]',
+    text: 'text-[#d4af37]',
+    badgeBg: 'bg-[#d4af37]/10',
+    badgeBorder: 'border-[#d4af37]/40',
+    buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black',
+  },
+  'executive-light': {
+    name: 'Corporate Lumina',
+    border: 'border-[#e5e4e2]',
+    glow: 'shadow-[0_0_35px_rgba(229,228,226,0.2)]',
+    text: 'text-[#e5e4e2]',
+    badgeBg: 'bg-[#e5e4e2]/10',
+    badgeBorder: 'border-[#e5e4e2]/40',
+    buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] text-black',
+  },
+  'eternal-dove': {
+    name: 'Eternal Remembrance',
+    border: 'border-[#f0f8ff]',
+    glow: 'shadow-[0_0_35px_rgba(240,248,255,0.15)]',
+    text: 'text-[#f0f8ff]',
+    badgeBg: 'bg-white/10',
+    badgeBorder: 'border-white/30',
+    buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] text-black',
+  },
+  'gender-reveal': {
+    name: 'New Arrival',
+    border: 'border-[#ffb6c1]',
+    glow: 'shadow-[0_0_35px_rgba(255,182,193,0.25)]',
+    text: 'text-[#ffb6c1]',
+    badgeBg: 'bg-[#ffb6c1]/10',
+    badgeBorder: 'border-[#ffb6c1]/40',
+    buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#87ceeb] text-black',
+  },
+  'ruby-petal': {
+    name: 'Crimson Romance',
+    border: 'border-[#dc143c]',
+    glow: 'shadow-[0_0_35px_rgba(220,20,60,0.25)]',
+    text: 'text-[#ff69b4]',
+    badgeBg: 'bg-[#dc143c]/15',
+    badgeBorder: 'border-[#dc143c]/40',
+    buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] text-white',
+  },
 };
 
 export default function ExperienceClient({ cardId }: { cardId: string }) {
@@ -17,13 +64,11 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [loading, setLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Fetch card data from Supabase using dynamic cardId, or fallback to DEMO data[cite: 6]
   useEffect(() => {
     async function fetchCardData() {
       const cleanId = (cardId || '').trim().toUpperCase();
       const isDemo = cleanId.startsWith('DEMO');
 
-      // If accessing a preview/demo route, bypass Supabase and load local demo data[cite: 6]
       if (isDemo) {
         setCardData(DEMO_PREVIEW_DATA);
         setLoading(false);
@@ -55,8 +100,61 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     fetchCardData();
   }, [cardId]);
 
-  // Modular Multi-Effect Canvas Particle Engine supporting all 5 Themes
-  const triggerUnsealingEffect = (theme = 'gold-confetti') => {
+  const activeThemeKey = cardData?.effect_type || 'gold-confetti';
+  const theme = THEME_STYLES[activeThemeKey] || THEME_STYLES['gold-confetti'];
+
+  // Custom Shape Drawer Engine
+  const drawCustomShape = (ctx: CanvasRenderingContext2D, type: string, size: number, color: string) => {
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+
+    if (type === 'ruby-petal') {
+      // Organic Rose Petal Shape 🌹
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.bezierCurveTo(size * 1.2, -size * 0.8, size * 1.5, size * 0.5, 0, size * 1.2);
+      ctx.bezierCurveTo(-size * 1.5, size * 0.5, -size * 1.2, -size * 0.8, 0, -size);
+      ctx.fill();
+    } else if (type === 'eternal-dove') {
+      // White Peace Dove Wings Shape 🕊️
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(size * 0.8, -size * 1.2, size * 1.4, -size * 0.4);
+      ctx.quadraticCurveTo(size * 0.6, size * 0.2, 0, size * 0.5);
+      ctx.quadraticCurveTo(-size * 0.6, size * 0.2, -size * 1.4, -size * 0.4);
+      ctx.quadraticCurveTo(-size * 0.8, -size * 1.2, 0, 0);
+      ctx.fill();
+    } else if (type === 'gender-reveal') {
+      // Baby Bottle / Rattle Silhouette 🍼
+      ctx.beginPath();
+      ctx.roundRect(-size * 0.4, -size * 0.6, size * 0.8, size * 1.2, [size * 0.2]);
+      ctx.fill();
+      // Nipple top
+      ctx.beginPath();
+      ctx.arc(0, -size * 0.8, size * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (type === 'executive-light') {
+      // Sleek Platinum Ray / Prism
+      ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.fillRect(-size * 0.2, -size * 1.6, size * 0.4, size * 3.2);
+    } else {
+      // Classic Gold Foil Shimmer ✦
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.lineTo(size * 0.3, -size * 0.3);
+      ctx.lineTo(size, 0);
+      ctx.lineTo(size * 0.3, size * 0.3);
+      ctx.lineTo(0, size);
+      ctx.lineTo(-size * 0.3, size * 0.3);
+      ctx.lineTo(-size, 0);
+      ctx.lineTo(-size * 0.3, -size * 0.3);
+      ctx.closePath();
+      ctx.fill();
+    }
+  };
+
+  const triggerUnsealingEffect = (themeKey = 'gold-confetti') => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -73,27 +171,26 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = theme === 'executive-light' ? 60 : 140;
+    const count = themeKey === 'executive-light' ? 50 : 120;
 
-    // Define Color Palettes based on Theme
-    let colors = ['#d4af37', '#f4e6b0', '#96760e', '#fff6cd', '#e6ca65'];
-    if (theme === 'ruby-petal') colors = ['#8b0000', '#dc143c', '#ff1493', '#b22222', '#ff69b4'];
-    if (theme === 'eternal-dove') colors = ['#ffffff', '#f0f8ff', '#e0ffff', '#dcdcdc'];
-    if (theme === 'gender-reveal') colors = ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4', '#add8e6'];
-    if (theme === 'executive-light') colors = ['#d4af37', '#ffffff', '#e5e4e2', '#cfb53b'];
+    let colors = ['#d4af37', '#f4e6b0', '#96760e'];
+    if (themeKey === 'ruby-petal') colors = ['#8b0000', '#dc143c', '#ff1493', '#e60049'];
+    if (themeKey === 'eternal-dove') colors = ['#ffffff', '#f0f8ff', '#e6f2ff'];
+    if (themeKey === 'gender-reveal') colors = ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4', '#70d6ff'];
+    if (themeKey === 'executive-light') colors = ['#ffffff', '#e5e4e2', '#d4af37'];
 
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: theme === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
-        y: theme === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * (theme === 'executive-light' ? 2 : 20),
-        vy: theme === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 18 - 4,
-        size: Math.random() * 8 + 4,
+        x: themeKey === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
+        y: themeKey === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 18),
+        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 16 - 4,
+        size: Math.random() * 7 + 6,
         color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.2,
+        rotSpeed: (Math.random() - 0.5) * 0.15,
         opacity: 1,
-        sway: Math.random() * 2,
+        sway: Math.random() * 3,
       });
     }
 
@@ -105,18 +202,18 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((p) => {
-        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
+        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.6;
         p.y += p.vy;
 
-        if (theme !== 'executive-light') {
-          p.vy += 0.25; // Gravity
+        if (themeKey !== 'executive-light') {
+          p.vy += 0.22;
           p.vx *= 0.98;
         }
 
         p.rotation += p.rotSpeed;
 
-        if (elapsed > 1800) {
-          p.opacity -= 0.02;
+        if (elapsed > 2000) {
+          p.opacity -= 0.018;
         }
 
         if (p.opacity > 0) {
@@ -124,35 +221,14 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           ctx.globalAlpha = Math.max(0, p.opacity);
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
-          ctx.fillStyle = p.color;
-
-          if (theme === 'ruby-petal') {
-            // Draw Organic Petal Shape
-            ctx.beginPath();
-            ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (theme === 'eternal-dove') {
-            // Soft Feather Circles
-            ctx.beginPath();
-            ctx.arc(0, 0, p.size * 0.8, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (theme === 'executive-light') {
-            // Sleek Light Streaks with Glow
-            ctx.shadowColor = 'rgba(212, 175, 55, 0.9)';
-            ctx.shadowBlur = 10;
-            ctx.fillRect(-p.size / 4, -p.size * 1.5, p.size / 2, p.size * 3);
-          } else {
-            // Default Gold Confetti Squares / Ribbons
-            ctx.shadowColor = 'rgba(212, 175, 55, 0.8)';
-            ctx.shadowBlur = 6;
-            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
-          }
+          
+          drawCustomShape(ctx, themeKey, p.size, p.color);
 
           ctx.restore();
         }
       });
 
-      if (elapsed < 3000) {
+      if (elapsed < 3500) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
@@ -162,7 +238,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     animationFrameId = requestAnimationFrame(render);
   };
 
-  // Automatically trigger the correct theme effect once card data loads
   useEffect(() => {
     if (cardData) {
       triggerUnsealingEffect(cardData?.effect_type || 'gold-confetti');
@@ -171,33 +246,41 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
   return (
     <div className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen">
-      <div className="bg-[#101014]/92 border border-[#d4af37] rounded-xl p-6 md:p-8 text-center shadow-[0_0_35px_rgba(212,175,55,0.2)] backdrop-blur-md flex flex-col gap-5">
-        <div className="inline-block self-center px-4 py-1.5 border border-[#d4af37]/40 rounded-[30px] text-[10px] tracking-[2.5px] uppercase text-[#f4e6b0] bg-[#d4af37]/10">
-          ✦ Aura & Archive Experience ✦
+      <div className={`bg-[#101014]/92 border ${theme.border} rounded-xl p-6 md:p-8 text-center ${theme.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500`}>
+        <div className={`inline-block self-center px-4 py-1.5 border ${theme.badgeBorder} rounded-[30px] text-[10px] tracking-[2.5px] uppercase ${theme.text} ${theme.badgeBg}`}>
+          ✦ {theme.name} Ceremony ✦
         </div>
         
         <div>
-          <h1 className="font-serif text-[24px] uppercase text-[#d4af37] tracking-[2px]">Unsealing Experience</h1>
+          <h1 className={`font-serif text-[24px] uppercase ${theme.text} tracking-[2px]`}>Unsealing Experience</h1>
           <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
         </div>
 
         {/* Dynamic Content Section */}
-        <div className="text-left bg-black/40 border border-[#d4af37]/30 p-5 rounded-lg text-[#f4e6b0]">
+        <div className={`text-left bg-black/40 border ${theme.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
           {loading ? (
             <p className="text-center text-sm text-[#b0aebf]">Loading card message...</p>
           ) : cardData?.message_text ? (
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-widest text-[#d4af37]">Message:</p>
+              <p className={`text-xs uppercase tracking-widest ${theme.text}`}>Message:</p>
               <p className="text-base font-light leading-relaxed">{cardData.message_text}</p>
             </div>
           ) : (
-            <p className="text-center text-sm text-[#b0aebf]">No custom message stored for this card yet.</p>
+            <div className="text-center space-y-2">
+              <p className="text-sm text-[#b0aebf]">No custom message stored for this card yet.</p>
+              <Link 
+                href={`/activate?id=${encodeURIComponent(cardId)}`}
+                className="inline-block text-xs text-[#d4af37] underline tracking-wider uppercase mt-1"
+              >
+                Configure This Card Now ↗
+              </Link>
+            </div>
           )}
         </div>
 
-        {/* Optional Video / Media Container if media URL exists[cite: 6] */}
+        {/* Media Container */}
         {cardData?.media_url && (
-          <div className="relative w-full rounded-lg overflow-hidden border border-[#d4af37]/40 bg-black aspect-video">
+          <div className={`relative w-full rounded-lg overflow-hidden border ${theme.badgeBorder} bg-black aspect-video`}>
             <video
               ref={videoRef}
               src={cardData.media_url}
@@ -212,12 +295,19 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
         <div className="flex flex-col gap-3 mt-2">
           <button 
-            className="btn btn-gold w-full py-3.5 text-[11px]" 
+            className={`w-full py-3.5 text-[11px] font-semibold uppercase tracking-[1.5px] rounded transition-all cursor-pointer ${theme.buttonBg}`} 
             onClick={() => triggerUnsealingEffect(cardData?.effect_type || 'gold-confetti')}
           >
             ✦ Replay Unsealing Ceremony ✦
           </button>
           
+          <Link 
+            href={`/activate?id=${encodeURIComponent(cardId)}`}
+            className="w-full py-3 text-[11px] border border-[#d4af37]/50 text-[#f4e6b0] hover:border-[#d4af37] rounded uppercase tracking-wider text-center"
+          >
+            Configure / Edit This Card
+          </Link>
+
           <Link href="/" className="btn btn-outline w-full py-3.5 text-[11px]">
             Return to Storefront
           </Link>
