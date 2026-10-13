@@ -4,10 +4,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
-// Default mock data for demo previews so they render sample media without Supabase records
+// Default mock data for demo previews using your local public folder video
 const DEMO_PREVIEW_DATA = {
   message_text: "Welcome to the Aura & Archive Gold Graffiti Experience. A seamless fusion of physical luxury and digital narrative.",
-  media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  media_url: "/AA-Demo.mp4",
 };
 
 export default function ExperienceClient({ cardId }: { cardId: string }) {
@@ -22,7 +22,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       const cleanId = (cardId || '').trim().toUpperCase();
       const isDemo = cleanId.startsWith('DEMO');
 
-      // If accessing a preview/demo route, bypass Supabase and load sample data
+      // If accessing a preview/demo route, bypass Supabase and load local demo data
       if (isDemo) {
         setCardData(DEMO_PREVIEW_DATA);
         setLoading(false);
@@ -154,46 +154,3 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           <h1 className="font-serif text-[24px] uppercase text-[#d4af37] tracking-[2px]">Unsealing Experience</h1>
           <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
         </div>
-
-        {/* Dynamic Content Section */}
-        <div className="text-left bg-black/40 border border-[#d4af37]/30 p-5 rounded-lg text-[#f4e6b0]">
-          {loading ? (
-            <p className="text-center text-sm text-[#b0aebf]">Loading card message...</p>
-          ) : cardData?.message_text ? (
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-widest text-[#d4af37]">Message:</p>
-              <p className="text-base font-light leading-relaxed">{cardData.message_text}</p>
-            </div>
-          ) : (
-            <p className="text-center text-sm text-[#b0aebf]">No custom message stored for this card yet.</p>
-          )}
-        </div>
-
-        {/* Optional Video / Media Container if media URL exists */}
-        {cardData?.media_url && (
-          <div className="relative w-full rounded-lg overflow-hidden border border-[#d4af37]/40 bg-black aspect-video">
-            <video
-              ref={videoRef}
-              src={cardData.media_url}
-              controls
-              playsInline
-              preload="metadata"
-              onPlay={() => setIsPlaying(true)}
-              className="w-full h-full object-contain block"
-            />
-          </div>
-        )}
-
-        <div className="flex flex-col gap-3 mt-2">
-          <button className="btn btn-gold w-full py-3.5 text-[11px]" onClick={triggerGoldConfetti}>
-            ✦ Trigger Gold Confetti Burst ✦
-          </button>
-          
-          <Link href="/" className="btn btn-outline w-full py-3.5 text-[11px]">
-            Return to Storefront
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
