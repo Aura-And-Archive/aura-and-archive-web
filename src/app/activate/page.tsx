@@ -8,7 +8,7 @@ function ActivateForm() {
   const searchParams = useSearchParams();
   const [serialNumber, setSerialNumber] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [mediaUrl, setMediaUrl] = useState('/AA-Demo.mp4');
+  const [mediaUrl, setMediaUrl] = useState(''); // Starts unpopulated/blank
   const [effectType, setEffectType] = useState('gold-confetti');
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -21,7 +21,7 @@ function ActivateForm() {
     }
   }, [searchParams]);
 
-  // Handle direct video file upload to Supabase Storage
+  // Handle direct file upload for Pictures, Audio, and Video to Supabase Storage
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -45,7 +45,7 @@ function ActivateForm() {
       const filePath = `card-media/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('media') // Ensure you have a public bucket named 'media' in Supabase
+        .from('media') // Ensure your Supabase 'media' bucket is public
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
@@ -57,7 +57,7 @@ function ActivateForm() {
       setMediaUrl(publicUrlData.publicUrl);
     } catch (err: any) {
       console.error('Upload error:', err);
-      setErrorMessage('Failed to upload video file. You can also paste a direct URL below.');
+      setErrorMessage('Upload failed. Note: Check Supabase storage bucket policies or file size limits.');
     } finally {
       setUploading(false);
     }
@@ -149,22 +149,23 @@ function ActivateForm() {
           />
         </div>
 
-        {/* Dual Media Option: File Upload OR URL */}
+        {/* Multi-Media Option: Pictures, Audio, Video File Upload OR URL */}
         <div className="space-y-2">
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37]">
-            Video Destination (Upload File or Paste URL)
+            Media Destination (Photos, Audio, Video, or URL)
           </label>
           <div className="flex gap-2 items-center">
             <label className="flex-1 cursor-pointer bg-black/60 border border-[#d4af37]/35 hover:border-[#d4af37] p-3 text-center text-xs text-[#f4e6b0] rounded transition-colors">
-              {uploading ? 'Uploading Video...' : '📁 Upload Video File'}
-              <input type="file" accept="video/*" onChange={handleFileUpload} className="hidden" />
+              {uploading ? 'Uploading File...' : '📁 Attach Photo, Audio, or Video'}
+              {/* Accept all media types: images, audio, and video */}
+              <input type="file" accept="image/*,audio/*,video/*" onChange={handleFileUpload} className="hidden" />
             </label>
           </div>
           <input
             type="text"
             value={mediaUrl}
             onChange={(e) => setMediaUrl(e.target.value)}
-            placeholder="Or enter direct video URL (/AA-Demo.mp4)"
+            placeholder="Or paste media URL (YouTube, image/audio/video link)..."
             className="w-full bg-black/60 border border-[#d4af37]/35 p-3 text-white rounded text-[12px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37]"
           />
         </div>
@@ -202,6 +203,7 @@ function ActivateForm() {
   );
 }
 
+Inexperienced note/fallback:
 export default function ActivatePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center p-4">
