@@ -10,7 +10,7 @@ const DEMO_PREVIEW_DATA = {
   effect_type: "gold-confetti",
 };
 
-const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string; colors: string[] }> = {
+const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string }> = {
   'gold-confetti': {
     name: 'Aura Gold',
     border: 'border-[#d4af37]',
@@ -19,7 +19,6 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#d4af37]/10',
     badgeBorder: 'border-[#d4af37]/40',
     buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black',
-    colors: ['#d4af37', '#f4e6b0', '#96760e'],
   },
   'executive-light': {
     name: 'Corporate Lumina',
@@ -29,7 +28,6 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#e5e4e2]/10',
     badgeBorder: 'border-[#e5e4e2]/40',
     buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] text-black',
-    colors: ['#ffffff', '#e5e4e2', '#d4af37'],
   },
   'eternal-dove': {
     name: 'Eternal Remembrance',
@@ -39,7 +37,6 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-white/10',
     badgeBorder: 'border-white/30',
     buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] text-black',
-    colors: ['#ffffff', '#f0f8ff', '#e6f2ff'],
   },
   'gender-reveal': {
     name: 'New Arrival',
@@ -49,7 +46,6 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#ffb6c1]/10',
     badgeBorder: 'border-[#ffb6c1]/40',
     buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#87ceeb] text-black',
-    colors: ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4'],
   },
   'ruby-petal': {
     name: 'Crimson Romance',
@@ -59,7 +55,6 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#dc143c]/15',
     badgeBorder: 'border-[#dc143c]/40',
     buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] text-white',
-    colors: ['#8b0000', '#dc143c', '#ff1493', '#e60049'],
   },
 };
 
@@ -108,53 +103,20 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const activeThemeKey = cardData?.effect_type || 'gold-confetti';
   const theme = THEME_STYLES[activeThemeKey] || THEME_STYLES['gold-confetti'];
 
-  // Refined Luxury Shape Drawer for Live Viewer
-  const drawRefinedShape = (ctx: CanvasRenderingContext2D, type: string, size: number, color: string) => {
-    ctx.fillStyle = color;
-    ctx.strokeStyle = color;
+  // Crisp Emoji Particle Engine (Guarantees distinct roses, bottles, doves, and stars)
+  const drawEmojiParticle = (ctx: CanvasRenderingContext2D, type: string, size: number) => {
+    ctx.font = `${Math.max(20, size * 2.8)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-    if (type === 'ruby-petal') {
-      // Elegant Rose Petal 🌹
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 1.2);
-      ctx.bezierCurveTo(size * 1.2, -size * 0.5, size * 1.4, size * 0.8, 0, size * 1.4);
-      ctx.bezierCurveTo(-size * 1.4, size * 0.8, -size * 1.2, -size * 0.5, 0, -size * 1.2);
-      ctx.fill();
-    } else if (type === 'eternal-dove') {
-      // Minimalist Dove / Wing Silhouette 🕊️
-      ctx.beginPath();
-      ctx.moveTo(-size * 1.2, -size * 0.2);
-      ctx.quadraticCurveTo(0, -size * 1.5, size * 1.2, -size * 0.2);
-      ctx.quadraticCurveTo(size * 0.4, size * 0.2, 0, size * 0.8);
-      ctx.quadraticCurveTo(-size * 0.4, size * 0.2, -size * 1.2, -size * 0.2);
-      ctx.fill();
-    } else if (type === 'gender-reveal') {
-      // Distinct Baby Bottle Silhouette 🍼
-      ctx.beginPath();
-      ctx.rect(-size * 0.35, -size * 0.3, size * 0.7, size * 1.1);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.rect(-size * 0.2, -size * 0.7, size * 0.4, size * 0.4);
-      ctx.fill();
-    } else if (type === 'executive-light') {
-      // Sleek Platinum Prism Bar
-      ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
-      ctx.shadowBlur = 10;
-      ctx.fillRect(-size * 0.25, -size * 1.5, size * 0.5, size * 3);
-    } else {
-      // Crisp Luxury Star Sparkle ✦
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 1.3);
-      ctx.lineTo(size * 0.35, -size * 0.35);
-      ctx.lineTo(size * 1.3, 0);
-      ctx.lineTo(size * 0.35, size * 0.35);
-      ctx.lineTo(0, size * 1.3);
-      ctx.lineTo(-size * 0.35, size * 0.35);
-      ctx.lineTo(-size * 1.3, 0);
-      ctx.lineTo(-size * 0.35, -size * 0.35);
-      ctx.closePath();
-      ctx.fill();
-    }
+    let emoji = '✨';
+    if (type === 'ruby-petal') emoji = '🌹';
+    else if (type === 'eternal-dove') emoji = '🕊️';
+    else if (type === 'gender-reveal') emoji = '🍼';
+    else if (type === 'executive-light') emoji = '💎';
+    else emoji = '✦';
+
+    ctx.fillText(emoji, 0, 0);
   };
 
   const triggerUnsealingEffect = (themeKey = 'gold-confetti') => {
@@ -174,19 +136,17 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = 90;
-    const colors = THEME_STYLES[themeKey]?.colors || ['#d4af37', '#f4e6b0'];
+    const count = 45; // Perfect density for emoji particles
 
     for (let i = 0; i < count; i++) {
       particles.push({
         x: window.innerWidth / 2,
         y: window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * 16,
-        vy: (Math.random() - 0.7) * 14 - 3,
-        size: Math.random() * 8 + 6,
-        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 14,
+        vy: (Math.random() - 0.7) * 12 - 3,
+        size: Math.random() * 8 + 8,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.12,
+        rotSpeed: (Math.random() - 0.5) * 0.08,
         opacity: 1,
         sway: Math.random() * 3,
       });
@@ -202,7 +162,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       particles.forEach((p) => {
         p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
         p.y += p.vy;
-        p.vy += 0.22;
+        p.vy += 0.18;
         p.vx *= 0.98;
         p.rotation += p.rotSpeed;
 
@@ -214,13 +174,13 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
           
-          drawRefinedShape(ctx, themeKey, p.size, p.color);
+          drawEmojiParticle(ctx, themeKey, p.size);
 
           ctx.restore();
         }
       });
 
-      if (elapsed < 3000) {
+      if (elapsed < 3200) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
