@@ -103,6 +103,56 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const activeThemeKey = cardData?.effect_type || 'gold-confetti';
   const theme = THEME_STYLES[activeThemeKey] || THEME_STYLES['gold-confetti'];
 
+  // Custom Shape Drawer Engine
+  const drawCustomShape = (ctx: CanvasRenderingContext2D, type: string, size: number, color: string) => {
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+
+    if (type === 'ruby-petal') {
+      // Organic Rose Petal Shape 🌹
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.bezierCurveTo(size * 1.2, -size * 0.8, size * 1.5, size * 0.5, 0, size * 1.2);
+      ctx.bezierCurveTo(-size * 1.5, size * 0.5, -size * 1.2, -size * 0.8, 0, -size);
+      ctx.fill();
+    } else if (type === 'eternal-dove') {
+      // White Peace Dove Wings Shape 🕊️
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(size * 0.8, -size * 1.2, size * 1.4, -size * 0.4);
+      ctx.quadraticCurveTo(size * 0.6, size * 0.2, 0, size * 0.5);
+      ctx.quadraticCurveTo(-size * 0.6, size * 0.2, -size * 1.4, -size * 0.4);
+      ctx.quadraticCurveTo(-size * 0.8, -size * 1.2, 0, 0);
+      ctx.fill();
+    } else if (type === 'gender-reveal') {
+      // Baby Bottle Silhouette 🍼
+      ctx.beginPath();
+      ctx.roundRect(-size * 0.4, -size * 0.6, size * 0.8, size * 1.2, [size * 0.2]);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, -size * 0.8, size * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (type === 'executive-light') {
+      // Sleek Platinum Ray / Prism
+      ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.fillRect(-size * 0.2, -size * 1.6, size * 0.4, size * 3.2);
+    } else {
+      // Classic Gold Foil Shimmer ✦
+      ctx.beginPath();
+      ctx.moveTo(0, -size);
+      ctx.lineTo(size * 0.3, -size * 0.3);
+      ctx.lineTo(size, 0);
+      ctx.lineTo(size * 0.3, size * 0.3);
+      ctx.lineTo(0, size);
+      ctx.lineTo(-size * 0.3, size * 0.3);
+      ctx.lineTo(-size, 0);
+      ctx.lineTo(-size * 0.3, -size * 0.3);
+      ctx.closePath();
+      ctx.fill();
+    }
+  };
+
   const triggerUnsealingEffect = (themeKey = 'gold-confetti') => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
@@ -120,26 +170,26 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = themeKey === 'executive-light' ? 60 : 140;
+    const count = themeKey === 'executive-light' ? 50 : 120;
 
     let colors = ['#d4af37', '#f4e6b0', '#96760e'];
-    if (themeKey === 'ruby-petal') colors = ['#8b0000', '#dc143c', '#ff1493', '#b22222'];
-    if (themeKey === 'eternal-dove') colors = ['#ffffff', '#f0f8ff', '#e0ffff'];
-    if (themeKey === 'gender-reveal') colors = ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4'];
-    if (themeKey === 'executive-light') colors = ['#d4af37', '#ffffff', '#e5e4e2'];
+    if (themeKey === 'ruby-petal') colors = ['#8b0000', '#dc143c', '#ff1493', '#e60049'];
+    if (themeKey === 'eternal-dove') colors = ['#ffffff', '#f0f8ff', '#e6f2ff'];
+    if (themeKey === 'gender-reveal') colors = ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4', '#70d6ff'];
+    if (themeKey === 'executive-light') colors = ['#ffffff', '#e5e4e2', '#d4af37'];
 
     for (let i = 0; i < count; i++) {
       particles.push({
         x: themeKey === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
         y: themeKey === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 20),
-        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 18 - 4,
-        size: Math.random() * 8 + 4,
+        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 18),
+        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 16 - 4,
+        size: Math.random() * 7 + 6,
         color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.2,
+        rotSpeed: (Math.random() - 0.5) * 0.15,
         opacity: 1,
-        sway: Math.random() * 2,
+        sway: Math.random() * 3,
       });
     }
 
@@ -151,18 +201,18 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((p) => {
-        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
+        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.6;
         p.y += p.vy;
 
         if (themeKey !== 'executive-light') {
-          p.vy += 0.25;
+          p.vy += 0.22;
           p.vx *= 0.98;
         }
 
         p.rotation += p.rotSpeed;
 
-        if (elapsed > 1800) {
-          p.opacity -= 0.02;
+        if (elapsed > 2000) {
+          p.opacity -= 0.018;
         }
 
         if (p.opacity > 0) {
@@ -170,29 +220,14 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           ctx.globalAlpha = Math.max(0, p.opacity);
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
-          ctx.fillStyle = p.color;
-
-          if (themeKey === 'ruby-petal') {
-            ctx.beginPath();
-            ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (themeKey === 'eternal-dove') {
-            ctx.beginPath();
-            ctx.arc(0, 0, p.size * 0.8, 0, Math.PI * 2);
-            ctx.fill();
-          } else if (themeKey === 'executive-light') {
-            ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
-            ctx.shadowBlur = 10;
-            ctx.fillRect(-p.size / 4, -p.size * 1.5, p.size / 2, p.size * 3);
-          } else {
-            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
-          }
+          
+          drawCustomShape(ctx, themeKey, p.size, p.color);
 
           ctx.restore();
         }
       });
 
-      if (elapsed < 3000) {
+      if (elapsed < 3500) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
@@ -242,7 +277,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           )}
         </div>
 
-        {/* Video Container */}
+        {/* Media Container */}
         {cardData?.media_url && (
           <div className={`relative w-full rounded-lg overflow-hidden border ${theme.badgeBorder} bg-black aspect-video`}>
             <video
