@@ -157,7 +157,6 @@ function ActivateForm() {
           <div className="flex gap-2 items-center">
             <label className="flex-1 cursor-pointer bg-black/60 border border-[#d4af37]/35 hover:border-[#d4af37] p-3 text-center text-xs text-[#f4e6b0] rounded transition-colors">
               {uploading ? 'Uploading File...' : '📁 Attach Photo, Audio, or Video'}
-              {/* Accept all media types: images, audio, and video */}
               <input type="file" accept="image/*,audio/*,video/*" onChange={handleFileUpload} className="hidden" />
             </label>
           </div>
@@ -203,7 +202,6 @@ function ActivateForm() {
   );
 }
 
-Inexperienced note/fallback:
 export default function ActivatePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center p-4">
