@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useRef } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
@@ -234,7 +234,10 @@ function ActivateForm() {
         <div className="flex gap-3 pt-1">
           <button
             type="button"
-            onClick={() => setShowPreview(true)}
+            onClick={(e) => {
+              e.preventDefault();
+              setShowPreview(true);
+            }}
             className="flex-1 bg-black/60 border border-[#d4af37]/60 hover:border-[#d4af37] text-[#f4e6b0] font-semibold py-3.5 px-4 rounded text-[11px] uppercase tracking-[1.5px] transition-all cursor-pointer"
           >
             Preview Ceremony

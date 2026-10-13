@@ -103,7 +103,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const activeThemeKey = cardData?.effect_type || 'gold-confetti';
   const theme = THEME_STYLES[activeThemeKey] || THEME_STYLES['gold-confetti'];
 
-  // Custom Shape Drawer Engine
+  // Bulletproof Custom Shape Drawer Engine (Universal Browser Compatibility)
   const drawCustomShape = (ctx: CanvasRenderingContext2D, type: string, size: number, color: string) => {
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
@@ -125,9 +125,9 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       ctx.quadraticCurveTo(-size * 0.8, -size * 1.2, 0, 0);
       ctx.fill();
     } else if (type === 'gender-reveal') {
-      // Baby Bottle Silhouette 🍼
+      // Baby Bottle Silhouette 🍼 (Using universal ctx.rect)
       ctx.beginPath();
-      ctx.roundRect(-size * 0.4, -size * 0.6, size * 0.8, size * 1.2, [size * 0.2]);
+      ctx.rect(-size * 0.4, -size * 0.6, size * 0.8, size * 1.2);
       ctx.fill();
       ctx.beginPath();
       ctx.arc(0, -size * 0.8, size * 0.25, 0, Math.PI * 2);
@@ -255,7 +255,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
         </div>
 
-        {/* Dynamic Content Section */}
+        {/* Dynamic Content Section with Theme-Aware Outline */}
         <div className={`text-left bg-black/40 border ${theme.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
           {loading ? (
             <p className="text-center text-sm text-[#b0aebf]">Loading card message...</p>
