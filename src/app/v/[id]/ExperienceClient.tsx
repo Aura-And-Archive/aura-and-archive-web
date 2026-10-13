@@ -10,7 +10,7 @@ const DEMO_PREVIEW_DATA = {
   effect_type: "gold-confetti",
 };
 
-const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string }> = {
+const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string; colors: string[] }> = {
   'gold-confetti': {
     name: 'Aura Gold',
     border: 'border-[#d4af37]',
@@ -19,6 +19,7 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#d4af37]/10',
     badgeBorder: 'border-[#d4af37]/40',
     buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black',
+    colors: ['#d4af37', '#f4e6b0', '#96760e'],
   },
   'executive-light': {
     name: 'Corporate Lumina',
@@ -28,6 +29,7 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#e5e4e2]/10',
     badgeBorder: 'border-[#e5e4e2]/40',
     buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] text-black',
+    colors: ['#ffffff', '#e5e4e2', '#d4af37'],
   },
   'eternal-dove': {
     name: 'Eternal Remembrance',
@@ -37,6 +39,7 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-white/10',
     badgeBorder: 'border-white/30',
     buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] text-black',
+    colors: ['#ffffff', '#f0f8ff', '#e6f2ff'],
   },
   'gender-reveal': {
     name: 'New Arrival',
@@ -46,6 +49,7 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#ffb6c1]/10',
     badgeBorder: 'border-[#ffb6c1]/40',
     buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#87ceeb] text-black',
+    colors: ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4'],
   },
   'ruby-petal': {
     name: 'Crimson Romance',
@@ -55,6 +59,7 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBg: 'bg-[#dc143c]/15',
     badgeBorder: 'border-[#dc143c]/40',
     buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] text-white',
+    colors: ['#8b0000', '#dc143c', '#ff1493', '#e60049'],
   },
 };
 
@@ -103,51 +108,50 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const activeThemeKey = cardData?.effect_type || 'gold-confetti';
   const theme = THEME_STYLES[activeThemeKey] || THEME_STYLES['gold-confetti'];
 
-  // Bulletproof Custom Shape Drawer Engine (Universal Browser Compatibility)
-  const drawCustomShape = (ctx: CanvasRenderingContext2D, type: string, size: number, color: string) => {
+  // Refined Luxury Shape Drawer for Live Viewer
+  const drawRefinedShape = (ctx: CanvasRenderingContext2D, type: string, size: number, color: string) => {
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
 
     if (type === 'ruby-petal') {
-      // Organic Rose Petal Shape 🌹
+      // Elegant Rose Petal 🌹
       ctx.beginPath();
-      ctx.moveTo(0, -size);
-      ctx.bezierCurveTo(size * 1.2, -size * 0.8, size * 1.5, size * 0.5, 0, size * 1.2);
-      ctx.bezierCurveTo(-size * 1.5, size * 0.5, -size * 1.2, -size * 0.8, 0, -size);
+      ctx.moveTo(0, -size * 1.2);
+      ctx.bezierCurveTo(size * 1.2, -size * 0.5, size * 1.4, size * 0.8, 0, size * 1.4);
+      ctx.bezierCurveTo(-size * 1.4, size * 0.8, -size * 1.2, -size * 0.5, 0, -size * 1.2);
       ctx.fill();
     } else if (type === 'eternal-dove') {
-      // White Peace Dove Wings Shape 🕊️
+      // Minimalist Dove / Wing Silhouette 🕊️
       ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(size * 0.8, -size * 1.2, size * 1.4, -size * 0.4);
-      ctx.quadraticCurveTo(size * 0.6, size * 0.2, 0, size * 0.5);
-      ctx.quadraticCurveTo(-size * 0.6, size * 0.2, -size * 1.4, -size * 0.4);
-      ctx.quadraticCurveTo(-size * 0.8, -size * 1.2, 0, 0);
+      ctx.moveTo(-size * 1.2, -size * 0.2);
+      ctx.quadraticCurveTo(0, -size * 1.5, size * 1.2, -size * 0.2);
+      ctx.quadraticCurveTo(size * 0.4, size * 0.2, 0, size * 0.8);
+      ctx.quadraticCurveTo(-size * 0.4, size * 0.2, -size * 1.2, -size * 0.2);
       ctx.fill();
     } else if (type === 'gender-reveal') {
-      // Baby Bottle Silhouette 🍼 (Using universal ctx.rect)
+      // Distinct Baby Bottle Silhouette 🍼
       ctx.beginPath();
-      ctx.rect(-size * 0.4, -size * 0.6, size * 0.8, size * 1.2);
+      ctx.rect(-size * 0.35, -size * 0.3, size * 0.7, size * 1.1);
       ctx.fill();
       ctx.beginPath();
-      ctx.arc(0, -size * 0.8, size * 0.25, 0, Math.PI * 2);
+      ctx.rect(-size * 0.2, -size * 0.7, size * 0.4, size * 0.4);
       ctx.fill();
     } else if (type === 'executive-light') {
-      // Sleek Platinum Ray / Prism
+      // Sleek Platinum Prism Bar
       ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
-      ctx.shadowBlur = 12;
-      ctx.fillRect(-size * 0.2, -size * 1.6, size * 0.4, size * 3.2);
+      ctx.shadowBlur = 10;
+      ctx.fillRect(-size * 0.25, -size * 1.5, size * 0.5, size * 3);
     } else {
-      // Classic Gold Foil Shimmer ✦
+      // Crisp Luxury Star Sparkle ✦
       ctx.beginPath();
-      ctx.moveTo(0, -size);
-      ctx.lineTo(size * 0.3, -size * 0.3);
-      ctx.lineTo(size, 0);
-      ctx.lineTo(size * 0.3, size * 0.3);
-      ctx.lineTo(0, size);
-      ctx.lineTo(-size * 0.3, size * 0.3);
-      ctx.lineTo(-size, 0);
-      ctx.lineTo(-size * 0.3, -size * 0.3);
+      ctx.moveTo(0, -size * 1.3);
+      ctx.lineTo(size * 0.35, -size * 0.35);
+      ctx.lineTo(size * 1.3, 0);
+      ctx.lineTo(size * 0.35, size * 0.35);
+      ctx.lineTo(0, size * 1.3);
+      ctx.lineTo(-size * 0.35, size * 0.35);
+      ctx.lineTo(-size * 1.3, 0);
+      ctx.lineTo(-size * 0.35, -size * 0.35);
       ctx.closePath();
       ctx.fill();
     }
@@ -170,24 +174,19 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = themeKey === 'executive-light' ? 50 : 120;
-
-    let colors = ['#d4af37', '#f4e6b0', '#96760e'];
-    if (themeKey === 'ruby-petal') colors = ['#8b0000', '#dc143c', '#ff1493', '#e60049'];
-    if (themeKey === 'eternal-dove') colors = ['#ffffff', '#f0f8ff', '#e6f2ff'];
-    if (themeKey === 'gender-reveal') colors = ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4', '#70d6ff'];
-    if (themeKey === 'executive-light') colors = ['#ffffff', '#e5e4e2', '#d4af37'];
+    const count = 90;
+    const colors = THEME_STYLES[themeKey]?.colors || ['#d4af37', '#f4e6b0'];
 
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: themeKey === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
-        y: themeKey === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 18),
-        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 16 - 4,
-        size: Math.random() * 7 + 6,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * 16,
+        vy: (Math.random() - 0.7) * 14 - 3,
+        size: Math.random() * 8 + 6,
         color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.15,
+        rotSpeed: (Math.random() - 0.5) * 0.12,
         opacity: 1,
         sway: Math.random() * 3,
       });
@@ -201,19 +200,13 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((p) => {
-        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.6;
+        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
         p.y += p.vy;
-
-        if (themeKey !== 'executive-light') {
-          p.vy += 0.22;
-          p.vx *= 0.98;
-        }
-
+        p.vy += 0.22;
+        p.vx *= 0.98;
         p.rotation += p.rotSpeed;
 
-        if (elapsed > 2000) {
-          p.opacity -= 0.018;
-        }
+        if (elapsed > 1800) p.opacity -= 0.02;
 
         if (p.opacity > 0) {
           ctx.save();
@@ -221,13 +214,13 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
           
-          drawCustomShape(ctx, themeKey, p.size, p.color);
+          drawRefinedShape(ctx, themeKey, p.size, p.color);
 
           ctx.restore();
         }
       });
 
-      if (elapsed < 3500) {
+      if (elapsed < 3000) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
@@ -255,7 +248,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
         </div>
 
-        {/* Dynamic Content Section with Theme-Aware Outline */}
+        {/* Dynamic Content Section */}
         <div className={`text-left bg-black/40 border ${theme.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
           {loading ? (
             <p className="text-center text-sm text-[#b0aebf]">Loading card message...</p>
