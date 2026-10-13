@@ -4,10 +4,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
-// Default mock data for demo previews using your local public folder video
+// Default mock data for demo previews using local public folder video[cite: 6]
 const DEMO_PREVIEW_DATA = {
-  message_text: "Welcome to the Aura & Archive Gold Graffiti Experience. A seamless fusion of physical luxury and digital narrative.",
+  message_text: "Welcome to the Aura & Archive Experience. A seamless fusion of physical luxury and digital narrative.",
   media_url: "/AA-Demo.mp4",
+  effect_type: "gold-confetti",
 };
 
 export default function ExperienceClient({ cardId }: { cardId: string }) {
@@ -16,13 +17,13 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [loading, setLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Fetch card data from Supabase using dynamic cardId, or fallback to DEMO data
+  // Fetch card data from Supabase using dynamic cardId, or fallback to DEMO data[cite: 6]
   useEffect(() => {
     async function fetchCardData() {
       const cleanId = (cardId || '').trim().toUpperCase();
       const isDemo = cleanId.startsWith('DEMO');
 
-      // If accessing a preview/demo route, bypass Supabase and load local demo data
+      // If accessing a preview/demo route, bypass Supabase and load local demo data[cite: 6]
       if (isDemo) {
         setCardData(DEMO_PREVIEW_DATA);
         setLoading(false);
@@ -54,7 +55,8 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     fetchCardData();
   }, [cardId]);
 
-  const triggerGoldConfetti = () => {
+  // Modular Multi-Effect Canvas Particle Engine supporting all 5 Themes
+  const triggerUnsealingEffect = (theme = 'gold-confetti') => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -70,31 +72,28 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const particles: Array<{
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      size: number;
-      color: string;
-      rotation: number;
-      rotSpeed: number;
-      opacity: number;
-    }> = [];
+    const particles: Array<any> = [];
+    const count = theme === 'executive-light' ? 60 : 140;
 
-    const goldShades = ['#d4af37', '#f4e6b0', '#96760e', '#fff6cd', '#e6ca65'];
+    // Define Color Palettes based on Theme
+    let colors = ['#d4af37', '#f4e6b0', '#96760e', '#fff6cd', '#e6ca65'];
+    if (theme === 'ruby-petal') colors = ['#8b0000', '#dc143c', '#ff1493', '#b22222', '#ff69b4'];
+    if (theme === 'eternal-dove') colors = ['#ffffff', '#f0f8ff', '#e0ffff', '#dcdcdc'];
+    if (theme === 'gender-reveal') colors = ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4', '#add8e6'];
+    if (theme === 'executive-light') colors = ['#d4af37', '#ffffff', '#e5e4e2', '#cfb53b'];
 
-    for (let i = 0; i < 140; i++) {
+    for (let i = 0; i < count; i++) {
       particles.push({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * 20,
-        vy: (Math.random() - 0.7) * 18 - 4,
+        x: theme === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
+        y: theme === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * (theme === 'executive-light' ? 2 : 20),
+        vy: theme === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 18 - 4,
         size: Math.random() * 8 + 4,
-        color: goldShades[Math.floor(Math.random() * goldShades.length)],
+        color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.2,
         opacity: 1,
+        sway: Math.random() * 2,
       });
     }
 
@@ -106,10 +105,14 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((p) => {
-        p.x += p.vx;
+        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
         p.y += p.vy;
-        p.vy += 0.25;
-        p.vx *= 0.98;
+
+        if (theme !== 'executive-light') {
+          p.vy += 0.25; // Gravity
+          p.vx *= 0.98;
+        }
+
         p.rotation += p.rotSpeed;
 
         if (elapsed > 1800) {
@@ -122,9 +125,29 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
           ctx.fillStyle = p.color;
-          ctx.shadowColor = 'rgba(212, 175, 55, 0.8)';
-          ctx.shadowBlur = 6;
-          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+
+          if (theme === 'ruby-petal') {
+            // Draw Organic Petal Shape
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (theme === 'eternal-dove') {
+            // Soft Feather Circles
+            ctx.beginPath();
+            ctx.arc(0, 0, p.size * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (theme === 'executive-light') {
+            // Sleek Light Streaks with Glow
+            ctx.shadowColor = 'rgba(212, 175, 55, 0.9)';
+            ctx.shadowBlur = 10;
+            ctx.fillRect(-p.size / 4, -p.size * 1.5, p.size / 2, p.size * 3);
+          } else {
+            // Default Gold Confetti Squares / Ribbons
+            ctx.shadowColor = 'rgba(212, 175, 55, 0.8)';
+            ctx.shadowBlur = 6;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          }
+
           ctx.restore();
         }
       });
@@ -139,9 +162,12 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     animationFrameId = requestAnimationFrame(render);
   };
 
+  // Automatically trigger the correct theme effect once card data loads
   useEffect(() => {
-    triggerGoldConfetti();
-  }, []);
+    if (cardData) {
+      triggerUnsealingEffect(cardData?.effect_type || 'gold-confetti');
+    }
+  }, [cardData]);
 
   return (
     <div className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen">
@@ -169,7 +195,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           )}
         </div>
 
-        {/* Optional Video / Media Container if media URL exists */}
+        {/* Optional Video / Media Container if media URL exists[cite: 6] */}
         {cardData?.media_url && (
           <div className="relative w-full rounded-lg overflow-hidden border border-[#d4af37]/40 bg-black aspect-video">
             <video
@@ -185,8 +211,11 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         )}
 
         <div className="flex flex-col gap-3 mt-2">
-          <button className="btn btn-gold w-full py-3.5 text-[11px]" onClick={triggerGoldConfetti}>
-            ✦ Trigger Gold Confetti Burst ✦
+          <button 
+            className="btn btn-gold w-full py-3.5 text-[11px]" 
+            onClick={() => triggerUnsealingEffect(cardData?.effect_type || 'gold-confetti')}
+          >
+            ✦ Replay Unsealing Ceremony ✦
           </button>
           
           <Link href="/" className="btn btn-outline w-full py-3.5 text-[11px]">
