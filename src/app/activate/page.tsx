@@ -10,16 +10,58 @@ function ActivateForm() {
   const [messageText, setMessageText] = useState('');
   const [mediaUrl, setMediaUrl] = useState('/AA-Demo.mp4');
   const [effectType, setEffectType] = useState('gold-confetti');
+  const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Auto-populate serial number from your existing route parameters
   useEffect(() => {
     const urlSerial = searchParams.get('id') || searchParams.get('serial') || searchParams.get('cardId');
     if (urlSerial) {
       setSerialNumber(urlSerial.trim());
     }
   }, [searchParams]);
+
+  // Handle direct video file upload to Supabase Storage
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setErrorMessage('');
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setErrorMessage('Supabase storage not configured.');
+      setUploading(false);
+      return;
+    }
+
+    try {
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `card-media/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media') // Ensure you have a public bucket named 'media' in Supabase
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      setMediaUrl(publicUrlData.publicUrl);
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setErrorMessage('Failed to upload video file. You can also paste a direct URL below.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleActivate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,14 +75,13 @@ function ActivateForm() {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       setStatus('error');
-      setErrorMessage('Supabase credentials are not configured.');
+      setErrorMessage('Supabase credentials missing.');
       return;
     }
 
     try {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
       
-      // Save message, media, and selected effect_type theme to Supabase
       const { error } = await supabase
         .from('cards')
         .update({
@@ -51,9 +92,7 @@ function ActivateForm() {
         })
         .ilike('serial_number', serialNumber.trim());
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       setStatus('success');
       setTimeout(() => {
@@ -73,7 +112,7 @@ function ActivateForm() {
           ✦ Aura & Archive Activation ✦
         </div>
         <h1 className="font-serif text-[22px] uppercase text-[#d4af37] tracking-[2px]">
-          Configure Unsealing Ceremony
+          Configure Ceremony
         </h1>
         {serialNumber && (
           <p className="text-[12px] text-[#b0aebf] tracking-wider">
@@ -83,7 +122,6 @@ function ActivateForm() {
       </div>
 
       <form onSubmit={handleActivate} className="space-y-4">
-        {/* Serial Number Input (Auto-filled or manual) */}
         <div>
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
             Card Serial Number
@@ -98,7 +136,6 @@ function ActivateForm() {
           />
         </div>
 
-        {/* Custom Message */}
         <div>
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
             Written Dedication / Message
@@ -112,21 +149,26 @@ function ActivateForm() {
           />
         </div>
 
-        {/* Media / Video URL */}
-        <div>
-          <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
-            Media Destination URL
+        {/* Dual Media Option: File Upload OR URL */}
+        <div className="space-y-2">
+          <label className="block text-[11px] uppercase tracking-widest text-[#d4af37]">
+            Video Destination (Upload File or Paste URL)
           </label>
+          <div className="flex gap-2 items-center">
+            <label className="flex-1 cursor-pointer bg-black/60 border border-[#d4af37]/35 hover:border-[#d4af37] p-3 text-center text-xs text-[#f4e6b0] rounded transition-colors">
+              {uploading ? 'Uploading Video...' : '📁 Upload Video File'}
+              <input type="file" accept="video/*" onChange={handleFileUpload} className="hidden" />
+            </label>
+          </div>
           <input
             type="text"
             value={mediaUrl}
             onChange={(e) => setMediaUrl(e.target.value)}
-            placeholder="/AA-Demo.mp4"
-            className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-white rounded text-[13px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37]"
+            placeholder="Or enter direct video URL (/AA-Demo.mp4)"
+            className="w-full bg-black/60 border border-[#d4af37]/35 p-3 text-white rounded text-[12px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37]"
           />
         </div>
 
-        {/* Unsealing Ceremony Theme Selector */}
         <div>
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
             Unsealing Ceremony Theme
@@ -156,12 +198,6 @@ function ActivateForm() {
           {status === 'loading' ? 'Activating Card...' : status === 'success' ? 'Activated!' : 'Activate & Save Ceremony'}
         </button>
       </form>
-
-      <div className="text-center pt-2">
-        <a href="/" className="text-[11px] text-[#b0aebf] hover:text-[#d4af37] uppercase tracking-widest transition-colors">
-          Return to Storefront
-        </a>
-      </div>
     </div>
   );
 }
@@ -169,7 +205,7 @@ function ActivateForm() {
 export default function ActivatePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center p-4">
-      <Suspense fallback={<div className="text-[#d4af37] text-sm">Loading activation portal...</div>}>
+      <Suspense fallback={<div className="text-[#d4af37] text-sm animate-pulse">Loading activation portal...</div>}>
         <ActivateForm />
       </Suspense>
     </div>
