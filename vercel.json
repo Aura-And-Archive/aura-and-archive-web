@@ -11,10 +11,6 @@
     {
       "source": "/admin-reset",
       "destination": "/admin-reset.html"
-    },
-    {
-      "source": "/v/:path+",
-      "destination": "/v.html"
     }
   ]
 }
