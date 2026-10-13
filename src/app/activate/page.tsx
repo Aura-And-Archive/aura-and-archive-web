@@ -8,7 +8,8 @@ function ActivateForm() {
   const searchParams = useSearchParams();
   const [serialNumber, setSerialNumber] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [mediaUrl, setMediaUrl] = useState(''); // Starts unpopulated/blank
+  const [mediaUrl, setMediaUrl] = useState(''); // Clean & unpopulated
+  const [uploadedFileName, setUploadedFileName] = useState(''); // Masked status indicator
   const [effectType, setEffectType] = useState('gold-confetti');
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -21,7 +22,7 @@ function ActivateForm() {
     }
   }, [searchParams]);
 
-  // Handle direct file upload for Pictures, Audio, and Video to Supabase Storage
+  // Handle direct file upload for Pictures, Audio, and Video (Hospitality Grade)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -45,7 +46,7 @@ function ActivateForm() {
       const filePath = `card-media/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('media') // Ensure your Supabase 'media' bucket is public
+        .from('media')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
@@ -55,12 +56,18 @@ function ActivateForm() {
         .getPublicUrl(filePath);
 
       setMediaUrl(publicUrlData.publicUrl);
+      setUploadedFileName(file.name);
     } catch (err: any) {
       console.error('Upload error:', err);
-      setErrorMessage('Upload failed. Note: Check Supabase storage bucket policies or file size limits.');
+      setErrorMessage(err?.message || 'Failed to upload media asset.');
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleClearMedia = () => {
+    setMediaUrl('');
+    setUploadedFileName('');
   };
 
   const handleActivate = async (e: React.FormEvent) => {
@@ -101,22 +108,22 @@ function ActivateForm() {
     } catch (err: any) {
       console.error('Activation error:', err);
       setStatus('error');
-      setErrorMessage(err.message || 'Failed to activate card.');
+      setErrorMessage(err.message || 'Failed to activate experience.');
     }
   };
 
   return (
-    <div className="max-w-[520px] w-full bg-[#101014]/92 border border-[#d4af37]/40 rounded-xl p-6 md:p-8 shadow-[0_0_35px_rgba(212,175,55,0.15)] backdrop-blur-md space-y-6">
+    <div className="max-w-[540px] w-full bg-[#101014]/94 border border-[#d4af37]/40 rounded-xl p-6 md:p-8 shadow-[0_0_40px_rgba(212,175,55,0.18)] backdrop-blur-md space-y-6">
       <div className="text-center space-y-2">
         <div className="inline-block px-4 py-1.5 border border-[#d4af37]/40 rounded-[30px] text-[10px] tracking-[2.5px] uppercase text-[#f4e6b0] bg-[#d4af37]/10">
-          ✦ Aura & Archive Activation ✦
+          ✦ Aura & Archive Concierge ✦
         </div>
         <h1 className="font-serif text-[22px] uppercase text-[#d4af37] tracking-[2px]">
-          Configure Ceremony
+          Configure Unsealing Ceremony
         </h1>
         {serialNumber && (
           <p className="text-[12px] text-[#b0aebf] tracking-wider">
-            CARD ID: <span className="text-[#d4af37] font-semibold">{serialNumber}</span>
+            SECURE ACCESS ID: <span className="text-[#d4af37] font-semibold">{serialNumber}</span>
           </p>
         )}
       </div>
@@ -138,51 +145,69 @@ function ActivateForm() {
 
         <div>
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
-            Written Dedication / Message
+            Concierge Dedication / Personal Note
           </label>
           <textarea
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Write your personal dedication..."
+            placeholder="Enter the tailored welcome message or private dedication..."
             rows={3}
             className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-white rounded text-[13px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37] resize-none"
           />
         </div>
 
-        {/* Multi-Media Option: Pictures, Audio, Video File Upload OR URL */}
+        {/* Premium Masked Media Destination UI */}
         <div className="space-y-2">
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37]">
-            Media Destination (Photos, Audio, Video, or URL)
+            Media Asset (Photo, Audio, Video, or Secure URL)
           </label>
-          <div className="flex gap-2 items-center">
-            <label className="flex-1 cursor-pointer bg-black/60 border border-[#d4af37]/35 hover:border-[#d4af37] p-3 text-center text-xs text-[#f4e6b0] rounded transition-colors">
-              {uploading ? 'Uploading File...' : '📁 Attach Photo, Audio, or Video'}
-              <input type="file" accept="image/*,audio/*,video/*" onChange={handleFileUpload} className="hidden" />
-            </label>
-          </div>
-          <input
-            type="text"
-            value={mediaUrl}
-            onChange={(e) => setMediaUrl(e.target.value)}
-            placeholder="Or paste media URL (YouTube, image/audio/video link)..."
-            className="w-full bg-black/60 border border-[#d4af37]/35 p-3 text-white rounded text-[12px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37]"
-          />
+
+          {uploadedFileName ? (
+            <div className="flex items-center justify-between bg-[#102217] border border-[#2e7d32] p-3 rounded text-xs text-[#a5d6a7]">
+              <div className="flex items-center gap-2 truncate pr-2">
+                <span className="text-emerald-400 font-bold text-sm">✓</span>
+                <span className="truncate font-medium">Asset Secured: {uploadedFileName}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearMedia}
+                className="text-[11px] text-red-300 hover:text-red-100 uppercase tracking-wider underline cursor-pointer shrink-0"
+              >
+                Replace
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <label className="block cursor-pointer bg-black/60 border border-[#d4af37]/35 hover:border-[#d4af37] p-3 text-center text-xs text-[#f4e6b0] rounded transition-colors">
+                {uploading ? 'Securing Asset in Vault...' : '📁 Attach Hospitality Asset (Photo, Audio, Video)'}
+                <input type="file" accept="image/*,audio/*,video/*" onChange={handleFileUpload} className="hidden" />
+              </label>
+
+              <input
+                type="text"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                placeholder="Or paste secure media URL (YouTube, Vimeo, direct link)..."
+                className="w-full bg-black/60 border border-[#d4af37]/35 p-3 text-white rounded text-[12px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37]"
+              />
+            </div>
+          )}
         </div>
 
         <div>
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
-            Unsealing Ceremony Theme
+            Occasion Ceremony Theme
           </label>
           <select
             value={effectType}
             onChange={(e) => setEffectType(e.target.value)}
             className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-[#f4e6b0] rounded text-[13px] tracking-wider focus:outline-none focus:border-[#d4af37]"
           >
-            <option value="gold-confetti">✦ Aura Gold (Celebrations & Milestones)</option>
-            <option value="executive-light">✦ Corporate Lumina (Professional & Commercial)</option>
+            <option value="gold-confetti">✦ Aura Gold (Luxury Celebrations & Milestones)</option>
+            <option value="executive-light">✦ Corporate Lumina (Hospitality & Executive)</option>
             <option value="eternal-dove">✦ Eternal Remembrance (Condolences & Memorials)</option>
-            <option value="gender-reveal">✦ New Arrival (Baby Showers & Gender Reveals)</option>
-            <option value="ruby-petal">✦ Crimson Romance (Anniversaries & Proposals)</option>
+            <option value="gender-reveal">✦ New Arrival (Boutique Baby & Family Gifts)</option>
+            <option value="ruby-petal">✦ Crimson Romance (Resort Anniversaries & Proposals)</option>
           </select>
         </div>
 
@@ -190,13 +215,25 @@ function ActivateForm() {
           <p className="text-xs text-red-400 text-center">{errorMessage}</p>
         )}
 
-        <button
-          type="submit"
-          disabled={status === 'loading' || status === 'success'}
-          className="w-full bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] hover:brightness-110 text-black font-semibold py-3.5 px-6 rounded text-[12px] uppercase tracking-[1.5px] transition-all cursor-pointer disabled:opacity-50"
-        >
-          {status === 'loading' ? 'Activating Card...' : status === 'success' ? 'Activated!' : 'Activate & Save Ceremony'}
-        </button>
+        <div className="flex gap-3 pt-1">
+          {serialNumber && (
+            <a
+              href={`/v/${encodeURIComponent(serialNumber.trim())}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 bg-black/60 border border-[#d4af37]/60 hover:border-[#d4af37] text-[#f4e6b0] text-center font-semibold py-3.5 px-4 rounded text-[11px] uppercase tracking-[1.5px] transition-all"
+            >
+              Preview Ceremony ↗
+            </a>
+          )}
+          <button
+            type="submit"
+            disabled={status === 'loading' || status === 'success'}
+            className="flex-2 w-full bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] hover:brightness-110 text-black font-semibold py-3.5 px-6 rounded text-[11px] uppercase tracking-[1.5px] transition-all cursor-pointer disabled:opacity-50"
+          >
+            {status === 'loading' ? 'Encrypting & Saving...' : status === 'success' ? 'Ceremony Live!' : 'Activate & Seal Experience'}
+          </button>
+        </div>
       </form>
     </div>
   );
@@ -205,7 +242,7 @@ function ActivateForm() {
 export default function ActivatePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center p-4">
-      <Suspense fallback={<div className="text-[#d4af37] text-sm animate-pulse">Loading activation portal...</div>}>
+      <Suspense fallback={<div className="text-[#d4af37] text-sm animate-pulse">Loading concierge portal...</div>}>
         <ActivateForm />
       </Suspense>
     </div>
