@@ -67,21 +67,19 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased bg-[#070709] text-slate-100 selection:bg-amber-500/20 selection:text-amber-200`}
-      style={{ backgroundColor: "#070709", colorScheme: "dark" }}
+      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased text-slate-100 selection:bg-amber-500/20 selection:text-amber-200`}
+      style={{ colorScheme: "dark" }}
     >
       <head>
         <meta name="theme-color" content="#070709" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {/* IMMEDIATE ZERO-LATENCY CSS: Prevents Chrome from showing white unstyled content */}
+        {/* IMMEDIATE ZERO-LATENCY CSS: Fallback styles before main CSS loads */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
               :root, html, body {
-                background-color: #070709 !important;
-                background: #070709 !important;
                 color: #f3f3f7 !important;
                 color-scheme: dark !important;
                 margin: 0;
@@ -89,7 +87,7 @@ export default function RootLayout({
                 min-height: 100vh;
               }
 
-              /* Immediate Component Styling Before Main CSS Loads */
+              /* Immediate Component Styling */
               .btn {
                 display: inline-flex !important;
                 align-items: center !important;
@@ -139,8 +137,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col bg-[#070709] text-slate-100 font-sans selection:bg-amber-500/20 selection:text-amber-200`}
-        style={{ backgroundColor: "#070709" }}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col text-slate-100 font-sans selection:bg-amber-500/20 selection:text-amber-200`}
       >
         {children}
       </body>

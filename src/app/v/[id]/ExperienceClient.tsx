@@ -2,10 +2,57 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
+
+// Default mock data for demo previews using your local public folder video
+const DEMO_PREVIEW_DATA = {
+  message_text: "Welcome to the Aura & Archive Gold Graffiti Experience. A seamless fusion of physical luxury and digital narrative.",
+  media_url: "/AA-Demo.mp4",
+};
 
 export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [cardData, setCardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Fetch card data from Supabase using dynamic cardId, or fallback to DEMO data
+  useEffect(() => {
+    async function fetchCardData() {
+      const cleanId = (cardId || '').trim().toUpperCase();
+      const isDemo = cleanId.startsWith('DEMO');
+
+      // If accessing a preview/demo route, bypass Supabase and load local demo data
+      if (isDemo) {
+        setCardData(DEMO_PREVIEW_DATA);
+        setLoading(false);
+        return;
+      }
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (supabaseUrl && supabaseAnonKey) {
+        try {
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+          const { data, error } = await supabase
+            .from('cards')
+            .select('*')
+            .ilike('serial_number', cardId)
+            .maybeSingle();
+
+          if (!error && data) {
+            setCardData(data);
+          }
+        } catch (err) {
+          console.error('Error fetching card data:', err);
+        }
+      }
+      setLoading(false);
+    }
+
+    fetchCardData();
+  }, [cardId]);
 
   const triggerGoldConfetti = () => {
     const canvas = document.createElement('canvas');
@@ -108,17 +155,34 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
         </div>
 
-        <div className="relative w-full rounded-lg overflow-hidden border border-[#d4af37]/40 bg-black aspect-video">
-          <video
-            ref={videoRef}
-            src="/AA-Demo.mp4"
-            controls
-            playsInline
-            preload="metadata"
-            onPlay={() => setIsPlaying(true)}
-            className="w-full h-full object-contain block"
-          />
+        {/* Dynamic Content Section */}
+        <div className="text-left bg-black/40 border border-[#d4af37]/30 p-5 rounded-lg text-[#f4e6b0]">
+          {loading ? (
+            <p className="text-center text-sm text-[#b0aebf]">Loading card message...</p>
+          ) : cardData?.message_text ? (
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-widest text-[#d4af37]">Message:</p>
+              <p className="text-base font-light leading-relaxed">{cardData.message_text}</p>
+            </div>
+          ) : (
+            <p className="text-center text-sm text-[#b0aebf]">No custom message stored for this card yet.</p>
+          )}
         </div>
+
+        {/* Optional Video / Media Container if media URL exists */}
+        {cardData?.media_url && (
+          <div className="relative w-full rounded-lg overflow-hidden border border-[#d4af37]/40 bg-black aspect-video">
+            <video
+              ref={videoRef}
+              src={cardData.media_url}
+              controls
+              playsInline
+              preload="metadata"
+              onPlay={() => setIsPlaying(true)}
+              className="w-full h-full object-contain block"
+            />
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 mt-2">
           <button className="btn btn-gold w-full py-3.5 text-[11px]" onClick={triggerGoldConfetti}>

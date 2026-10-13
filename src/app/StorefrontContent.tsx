@@ -32,7 +32,7 @@ export default function StorefrontContent() {
 
   return (
     <>
-      <div className="app-viewport max-w-[1140px] mx-auto px-4 w-full min-h-screen" id="mainLandingContent">
+      <div className="app-viewport max-w-[1140px] mx-auto px-4 w-full min-h-screen bg-transparent" id="mainLandingContent">
         {/* NAV BAR WITH RESERVED MIN-HEIGHT */}
         <nav className="app-nav grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 py-6 border-b border-[#d4af37]/35 mb-8 items-center min-h-[110px] md:min-h-[82px]">
           <div>
@@ -73,17 +73,17 @@ export default function StorefrontContent() {
 
         {/* THREE CORE FEATURES GRID */}
         <div className="grid-container grid grid-cols-1 md:grid-cols-3 gap-5 my-7 w-full min-h-[180px]">
-          <div className="app-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-7 grid grid-cols-1 gap-3 w-full backdrop-blur-md">
+          <div className="app-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-7 grid grid-cols-1 gap-3 w-full backdrop-blur-md">
             <h3 className="font-serif text-[16px] tracking-[1.5px] uppercase text-[#d4af37]">01. Tactile Craftsmanship</h3>
             <p className="text-[13px] text-[#b0aebf] leading-[1.7]">Crafted from weighted physical material, each card pairs elegant tactile finishes with an embedded QR archway—serving as an instant physical gateway to your digital media.</p>
           </div>
 
-          <div className="app-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-7 grid grid-cols-1 gap-3 w-full backdrop-blur-md">
+          <div className="app-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-7 grid grid-cols-1 gap-3 w-full backdrop-blur-md">
             <h3 className="font-serif text-[16px] tracking-[1.5px] uppercase text-[#d4af37]">02. High-Touch Media Delivery</h3>
             <p className="text-[13px] text-[#b0aebf] leading-[1.7]">Recipients scan the embedded QR archway to instantly launch rich, full-screen audio, HD video messages, and written letters directly on their smartphones—no app download required.</p>
           </div>
 
-          <div className="app-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-7 grid grid-cols-1 gap-3 w-full backdrop-blur-md">
+          <div className="app-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-7 grid grid-cols-1 gap-3 w-full backdrop-blur-md">
             <h3 className="font-serif text-[16px] tracking-[1.5px] uppercase text-[#d4af37]">03. Reusable & Flexible</h3>
             <p className="text-[13px] text-[#b0aebf] leading-[1.7]">Includes complimentary card resets to update your media destination whenever needed, backed by permanent physical media architecture.</p>
           </div>
@@ -96,7 +96,7 @@ export default function StorefrontContent() {
           </h2>
           
           <div className="pricing-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 my-7 w-full items-stretch">
-            <div className="pricing-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md">
+            <div className="pricing-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md">
               <div className="plan-header flex flex-col">
                 <div className="plan-title font-serif text-[15px] text-[#d4af37] uppercase font-extrabold tracking-[1.5px] leading-[1.35] h-[42px] flex items-center">Single Undiscardable Card</div>
                 <div className="plan-price-wrapper h-[52px] flex items-baseline mt-2 whitespace-nowrap">
@@ -113,7 +113,7 @@ export default function StorefrontContent() {
               <button className="btn btn-gold min-h-[44px]" onClick={() => openModal('intakeModal')}>Order Single Card</button>
             </div>
 
-            <div className="pricing-card featured bg-[#d4af37]/10 border border-[#d4af37] rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md shadow-[0_0_25px_rgba(212,175,55,0.15)]">
+            <div className="pricing-card featured bg-[#d4af37]/15 border border-[#d4af37] rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md shadow-[0_0_25px_rgba(212,175,55,0.2)]">
               <div className="plan-header flex flex-col">
                 <div className="plan-title font-serif text-[15px] text-[#d4af37] uppercase font-extrabold tracking-[1.5px] leading-[1.35] h-[42px] flex items-center">Undiscardable VIP Package</div>
                 <div className="plan-price-wrapper h-[52px] flex items-baseline mt-2 whitespace-nowrap">
@@ -130,7 +130,7 @@ export default function StorefrontContent() {
               <button className="btn btn-gold min-h-[44px]" onClick={() => openModal('intakeModal')}>Order VIP Package</button>
             </div>
 
-            <div className="pricing-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md">
+            <div className="pricing-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md">
               <div className="plan-header flex flex-col">
                 <div className="plan-title font-serif text-[15px] text-[#d4af37] uppercase font-extrabold tracking-[1.5px] leading-[1.35] h-[42px] flex items-center">Special Event & Party Tier</div>
                 <div className="plan-price-wrapper h-[52px] flex items-baseline mt-2 whitespace-nowrap">
@@ -147,7 +147,7 @@ export default function StorefrontContent() {
               <button className="btn btn-outline min-h-[44px]" onClick={() => openModal('intakeModal')}>Event Inquiry</button>
             </div>
 
-            <div className="pricing-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md">
+            <div className="pricing-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-8 flex flex-col justify-between h-full backdrop-blur-md">
               <div className="plan-header flex flex-col">
                 <div className="plan-title font-serif text-[15px] text-[#d4af37] uppercase font-extrabold tracking-[1.5px] leading-[1.35] h-[42px] flex items-center">VIP Concierge Delivery</div>
                 <div className="plan-price-wrapper h-[52px] flex items-baseline mt-2 whitespace-nowrap">
@@ -167,7 +167,7 @@ export default function StorefrontContent() {
         </section>
 
         {/* OCCASION SUITE */}
-        <section id="conference-suite" className="enterprise-briefing py-[50px] my-10 bg-[#0a0906]/60 border-y border-[#d4af37]/35 backdrop-blur-md">
+        <section id="conference-suite" className="enterprise-briefing py-[50px] my-10 bg-[#0c0a06]/50 border-y border-[#d4af37]/35 backdrop-blur-md">
           <div className="briefing-header text-center max-w-[700px] mx-auto mb-[40px]">
             <div className="hero-badge inline-block px-4 py-1.5 border border-[#d4af37]/35 rounded-[30px] text-[10px] tracking-[2.5px] uppercase text-[#f4e6b0] bg-[#d4af37]/10 backdrop-blur-sm">
               ✦ Cherished Moments ✦
@@ -177,32 +177,32 @@ export default function StorefrontContent() {
           </div>
 
           <div className="briefing-grid grid grid-cols-1 md:grid-cols-2 gap-5 mb-[40px]">
-            <div className="briefing-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
+            <div className="briefing-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
               <div className="card-icon text-[22px] mb-2">💍</div>
               <h3 className="font-serif text-[15px] text-[#d4af37] mb-2 uppercase tracking-[1px]">Wedding Vows & Proposals</h3>
               <p className="text-[12px] text-[#f3f3f7] leading-[1.6] opacity-85">Pair your ceremony audio, written vows, and proposal footage inside a luxury physical card that presents beautifully on any mantle.</p>
             </div>
 
-            <div className="briefing-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
+            <div className="briefing-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
               <div className="card-icon text-[22px] mb-2">💌</div>
               <h3 className="font-serif text-[15px] text-[#d4af37] mb-2 uppercase tracking-[1px]">Long-Distance Letters</h3>
               <p className="text-[12px] text-[#f3f3f7] leading-[1.6] opacity-85">Bridge the gap across miles with custom voice notes and HD video moments attached to a weighted luxury card sent directly through the mail.</p>
             </div>
 
-            <div className="briefing-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
+            <div className="briefing-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
               <div className="card-icon text-[22px] mb-2">👶</div>
               <h3 className="font-serif text-[15px] text-[#d4af37] mb-2 uppercase tracking-[1px]">Interactive Time Capsules</h3>
               <p className="text-[12px] text-[#f3f3f7] leading-[1.6] opacity-85">Record seasonal messages for birthdays or milestones that your family can scan and replay whenever they choose.</p>
             </div>
 
-            <div className="briefing-card bg-[#101014]/85 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
+            <div className="briefing-card bg-[#0d0c0a]/75 border border-[#d4af37]/35 rounded-lg p-6 transition-transform hover:-translate-y-0.5 hover:border-[#d4af37]">
               <div className="card-icon text-[22px] mb-2">🕊</div>
               <h3 className="font-serif text-[15px] text-[#d4af37] mb-2 uppercase tracking-[1px]">Tributes & Keepsakes</h3>
               <p className="text-[12px] text-[#f3f3f7] leading-[1.6] opacity-85">Share stories, spoken laughter, and family histories through an elegant smart card experience designed for modern luxury.</p>
             </div>
           </div>
 
-          <div className="investor-cta-box bg-[radial-gradient(circle,rgba(212,175,55,0.15)_0%,rgba(7,7,9,0.9)_100%)] border border-[#d4af37] rounded-xl p-6 md:p-[36px_40px] flex flex-col md:flex-row items-center text-center md:text-left justify-between gap-5">
+          <div className="investor-cta-box bg-[radial-gradient(circle,rgba(212,175,55,0.2)_0%,rgba(7,7,9,0.85)_100%)] border border-[#d4af37] rounded-xl p-6 md:p-[36px_40px] flex flex-col md:flex-row items-center text-center md:text-left justify-between gap-5">
             <div className="cta-content">
               <h3 className="font-serif text-[20px] text-white uppercase tracking-[1px] mb-1.5">Complimentary Data Resets</h3>
               <p className="text-[13px] text-[#b0aebf] max-w-[520px] leading-[1.6]">Need to update or reassign your card's digital experience? Submit a reset request with your card serial number to update your media destination at any time.</p>
@@ -216,7 +216,7 @@ export default function StorefrontContent() {
 
       {/* INTERACTIVE VIDEO DEMO MODAL */}
       {activeModal === 'demoModal' && (
-        <div className="modal-overlay fixed inset-0 w-vw h-vh bg-black/92 backdrop-blur-xl flex items-center justify-center z-[9999] p-4" onClick={closeModal}>
+        <div className="modal-overlay fixed inset-0 w-full h-full bg-black/92 backdrop-blur-xl flex items-center justify-center z-[9999] p-4" onClick={closeModal}>
           <div className="modal-card bg-[#0d0c0a] border border-[#d4af37] rounded-lg p-6 w-full max-w-[540px] max-h-[85vh] min-h-0 flex flex-col gap-3 relative shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-y-auto text-center" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close absolute top-4 right-5 text-[#b0aebf] text-[24px] cursor-pointer z-10 bg-none border-none" onClick={closeModal} aria-label="Close modal">&times;</button>
             <div className="hero-badge self-center inline-block px-4 py-1.5 border border-[#d4af37]/35 rounded-[30px] text-[10px] tracking-[2.5px] uppercase text-[#f4e6b0] bg-[#d4af37]/10">Live Experience Preview</div>
@@ -239,7 +239,7 @@ export default function StorefrontContent() {
 
       {/* INTAKE FORM MODAL */}
       {activeModal === 'intakeModal' && (
-        <div className="modal-overlay fixed inset-0 w-vw h-vh bg-black/92 backdrop-blur-xl flex items-center justify-center z-[9999] p-4" onClick={closeModal}>
+        <div className="modal-overlay fixed inset-0 w-full h-full bg-black/92 backdrop-blur-xl flex items-center justify-center z-[9999] p-4" onClick={closeModal}>
           <div className="modal-card bg-[#0d0c0a] border border-[#d4af37] rounded-lg p-6 w-full max-w-[540px] max-h-[85vh] min-h-0 flex flex-col gap-3 relative shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close absolute top-4 right-5 text-[#b0aebf] text-[24px] cursor-pointer z-10 bg-none border-none" onClick={closeModal} aria-label="Close modal">&times;</button>
             <h3 className="font-serif text-[18px] uppercase text-[#d4af37]">Custom Order Request</h3>
@@ -262,7 +262,7 @@ export default function StorefrontContent() {
         </div>
       )}
 
-      <footer className="border-t border-[#d4af37]/35 py-10 mt-10 bg-[#040406]/95">
+      <footer className="border-t border-[#d4af37]/35 py-10 mt-10 bg-[#040406]/85">
         <div className="app-viewport max-w-[1140px] mx-auto px-4 w-full">
           <div className="footer-grid grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-7">
             <div>
