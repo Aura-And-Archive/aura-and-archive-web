@@ -4,15 +4,31 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
+// Default mock data for demo previews so they render sample media without Supabase records
+const DEMO_PREVIEW_DATA = {
+  message_text: "Welcome to the Aura & Archive Gold Graffiti Experience. A seamless fusion of physical luxury and digital narrative.",
+  media_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+};
+
 export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [cardData, setCardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Fetch card data from Supabase using the dynamic cardId against serial_number
+  // Fetch card data from Supabase using dynamic cardId, or fallback to DEMO data
   useEffect(() => {
     async function fetchCardData() {
+      const cleanId = (cardId || '').trim().toUpperCase();
+      const isDemo = cleanId.startsWith('DEMO');
+
+      // If accessing a preview/demo route, bypass Supabase and load sample data
+      if (isDemo) {
+        setCardData(DEMO_PREVIEW_DATA);
+        setLoading(false);
+        return;
+      }
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
