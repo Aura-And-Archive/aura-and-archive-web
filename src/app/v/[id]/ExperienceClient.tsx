@@ -4,9 +4,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const DEMO_PREVIEW_DATA = {
-  message_text: "Welcome to the Aura & Archive Experience. A seamless fusion of physical luxury and digital narrative.",
+  recipient_name: "Sarah",
+  message_text: "To: One of the best mothers ever and future heiress to the Aura & Archive™ empire.\n\nYou are just as glamorous now, as the very first day I met you 😚😊🌹❤️\n\n-William",
   media_url: "/AA-Demo.mp4",
-  effect_type: "gold-confetti",
+  effect_type: "wealth-glamour",
 };
 
 const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string }> = {
@@ -150,15 +151,15 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: themeKey === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
-        y: themeKey === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 14),
-        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 12 - 3,
-        size: Math.random() * 8 + 8,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * 26,
+        vy: (Math.random() - 0.8) * 20 - 8,
+        size: Math.random() * 8 + 10,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.08,
+        rotSpeed: (Math.random() - 0.5) * 0.2,
         opacity: 1,
-        sway: Math.random() * 3,
+        sway: Math.random() * 2,
       });
     }
 
@@ -170,15 +171,15 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((p) => {
-        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
+        p.x += p.vx + Math.sin(elapsed * 0.005 + p.sway) * 0.4;
         p.y += p.vy;
         if (themeKey !== 'executive-light') {
-          p.vy += 0.18;
-          p.vx *= 0.98;
+          p.vy += 0.75; // Snappy gravitational weight
+          p.vx *= 0.96;
         }
         p.rotation += p.rotSpeed;
 
-        if (elapsed > 1800) p.opacity -= 0.02;
+        if (elapsed > 1800) p.opacity -= 0.03;
 
         if (p.opacity > 0) {
           ctx.save();
@@ -190,7 +191,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
       });
 
-      if (elapsed < 3200) {
+      if (elapsed < 2800) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
@@ -242,10 +243,14 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         <div className={`text-left bg-black/40 border ${theme.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
           {loading ? (
             <p className="text-center text-sm text-[#b0aebf]">Loading card message...</p>
-          ) : cardData?.message_text ? (
+          ) : cardData?.message_text || cardData?.recipient_name ? (
             <div className="space-y-2">
-              <p className={`text-xs uppercase tracking-widest ${theme.text}`}>Message:</p>
-              <p className="text-base font-light leading-relaxed">{cardData.message_text}</p>
+              {cardData?.recipient_name && (
+                <p className={`text-xs uppercase tracking-widest ${theme.text} font-semibold`}>
+                  To: {cardData.recipient_name}
+                </p>
+              )}
+              <p className="text-base font-light leading-relaxed whitespace-pre-wrap">{cardData.message_text}</p>
             </div>
           ) : (
             <div className="text-center space-y-2">

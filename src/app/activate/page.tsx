@@ -38,6 +38,7 @@ function ActivateForm() {
   const searchParams = useSearchParams();
   const [serialNumber, setSerialNumber] = useState('');
   const [activationCode, setActivationCode] = useState('');
+  const [recipientName, setRecipientName] = useState('');
   const [messageText, setMessageText] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState('');
@@ -63,13 +64,14 @@ function ActivateForm() {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
         supabase
           .from('cards')
-          .select('is_activated, message_text, media_url, effect_type')
+          .select('is_activated, recipient_name, message_text, media_url, effect_type')
           .ilike('serial_number', cleanSerial)
           .maybeSingle()
           .then(({ data }) => {
             if (data && data.is_activated) {
               window.location.replace(`/v/${encodeURIComponent(cleanSerial)}`);
             } else if (data) {
+              if (data.recipient_name) setRecipientName(data.recipient_name);
               if (data.message_text) setMessageText(data.message_text);
               if (data.media_url) setMediaUrl(data.media_url);
               if (data.effect_type) setEffectType(data.effect_type);
@@ -185,15 +187,15 @@ function ActivateForm() {
 
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: themeKey === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
-        y: themeKey === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 14),
-        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 12 - 3,
-        size: Math.random() * 8 + 8,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * 26, // Snappier explosive velocity
+        vy: (Math.random() - 0.8) * 20 - 8, // Snappier upward burst
+        size: Math.random() * 8 + 10,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.08,
+        rotSpeed: (Math.random() - 0.5) * 0.2,
         opacity: 1,
-        sway: Math.random() * 3,
+        sway: Math.random() * 2,
       });
     }
 
@@ -205,15 +207,15 @@ function ActivateForm() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((p) => {
-        p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
+        p.x += p.vx + Math.sin(elapsed * 0.005 + p.sway) * 0.4;
         p.y += p.vy;
         if (themeKey !== 'executive-light') {
-          p.vy += 0.18;
-          p.vx *= 0.98;
+          p.vy += 0.75; // Heavy gravitational pull for crisp, snappy physics
+          p.vx *= 0.96;
         }
         p.rotation += p.rotSpeed;
 
-        if (elapsed > 1800) p.opacity -= 0.02;
+        if (elapsed > 1800) p.opacity -= 0.03;
 
         if (p.opacity > 0) {
           ctx.save();
@@ -225,7 +227,7 @@ function ActivateForm() {
         }
       });
 
-      if (elapsed < 3200) {
+      if (elapsed < 2800) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
@@ -262,6 +264,7 @@ function ActivateForm() {
       const { error } = await supabase
         .from('cards')
         .update({
+          recipient_name: recipientName,
           message_text: messageText,
           media_url: mediaUrl,
           effect_type: effectType,
@@ -274,7 +277,7 @@ function ActivateForm() {
       setStatus('success');
       setTimeout(() => {
         window.location.href = `/v/${encodeURIComponent(serialNumber.trim())}`;
-      }, 800);
+      }, 500);
     } catch (err: any) {
       setStatus('error');
       setErrorMessage(err.message || 'Failed to activate card.');
@@ -328,14 +331,27 @@ function ActivateForm() {
 
         <div>
           <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
+            Recipient Name
+          </label>
+          <input
+            type="text"
+            value={recipientName}
+            onChange={(e) => setRecipientName(e.target.value)}
+            placeholder="e.g. Sarah"
+            className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-white rounded text-[13px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37]"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] uppercase tracking-widest text-[#d4af37] mb-1.5">
             Write a Message
           </label>
           <textarea
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="Write your personal dedication..."
-            rows={3}
-            className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-white rounded text-[13px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37] resize-none"
+            rows={4}
+            className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-white rounded text-[13px] tracking-wider placeholder:text-[#b0aebf]/40 focus:outline-none focus:border-[#d4af37] resize-none whitespace-pre-wrap"
           />
         </div>
 
@@ -413,7 +429,7 @@ function ActivateForm() {
               <option value="graduation">🎓 Graduation</option>
               <option value="engagement">💍 Engagement</option>
               <option value="retirement">🌅 Retirement & Farewell</option>
-              <option value="day-of-the-dead">💀 Day of the Dead (Día de los Muertos)</option>
+              <option value="day-of-the-dead">💀 Day of the Dead</option>
               <option value="eternal-dove">🕊️ Eternal Remembrance</option>
             </optgroup>
             <optgroup label="--- Appreciation & Connection ---">
@@ -463,8 +479,12 @@ function ActivateForm() {
             <h2 className={`text-lg font-serif uppercase ${currentTheme.text}`}>Gift Note Preview</h2>
             
             <div className={`bg-black/60 border ${currentTheme.badgeBorder} p-4 rounded text-left space-y-2 text-sm text-[#f4e6b0]`}>
-              <p className={`text-[10px] uppercase tracking-widest ${currentTheme.text}`}>Message:</p>
-              <p className="text-white text-sm font-light">{messageText || "No message entered yet."}</p>
+              {recipientName && (
+                <p className={`text-xs uppercase tracking-widest ${currentTheme.text} font-semibold`}>
+                  To: {recipientName}
+                </p>
+              )}
+              <p className="text-white text-sm font-light whitespace-pre-wrap">{messageText || "No message entered yet."}</p>
             </div>
 
             {mediaUrl ? (
@@ -482,7 +502,7 @@ function ActivateForm() {
                 onClick={() => triggerPreviewEffect(effectType)}
                 className="flex-1 bg-black/60 border border-[#d4af37]/40 hover:border-[#d4af37] text-[#f4e6b0] py-2.5 rounded text-xs uppercase tracking-wider cursor-pointer"
               >
-                Burst Gift Note Animation ✦
+                Burst Animation ✦
               </button>
               <button
                 onClick={() => setShowPreview(false)}
