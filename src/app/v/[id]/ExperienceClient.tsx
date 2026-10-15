@@ -56,6 +56,15 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
     badgeBorder: 'border-[#dc143c]/40',
     buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] text-white',
   },
+  'wealth-glamour': {
+    name: 'Wealth & Glamour',
+    border: 'border-[#b9f2ff]',
+    glow: 'shadow-[0_0_35px_rgba(185,242,255,0.25)]',
+    text: 'text-[#b9f2ff]',
+    badgeBg: 'bg-[#b9f2ff]/10',
+    badgeBorder: 'border-[#b9f2ff]/40',
+    buttonBg: 'bg-gradient-to-r from-[#b9f2ff] to-[#ffffff] text-black',
+  },
 };
 
 export default function ExperienceClient({ cardId }: { cardId: string }) {
@@ -103,18 +112,26 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const activeThemeKey = cardData?.effect_type || 'gold-confetti';
   const theme = THEME_STYLES[activeThemeKey] || THEME_STYLES['gold-confetti'];
 
-  // Crisp Emoji Particle Engine (Guarantees distinct roses, bottles, doves, and stars)
-  const drawEmojiParticle = (ctx: CanvasRenderingContext2D, type: string, size: number) => {
+  const drawParticle = (ctx: CanvasRenderingContext2D, themeKey: string, size: number) => {
+    if (themeKey === 'executive-light') {
+      // Platinum Prism Light Bars
+      ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#e5e4e2';
+      ctx.fillRect(-size * 0.25, -size * 1.8, size * 0.5, size * 3.6);
+      return;
+    }
+
     ctx.font = `${Math.max(20, size * 2.8)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     let emoji = '✨';
-    if (type === 'ruby-petal') emoji = '🌹';
-    else if (type === 'eternal-dove') emoji = '🕊️';
-    else if (type === 'gender-reveal') emoji = '🍼';
-    else if (type === 'executive-light') emoji = '💎';
-    else emoji = '✦';
+    if (themeKey === 'gold-confetti') emoji = '✨';
+    else if (themeKey === 'ruby-petal') emoji = '🌹';
+    else if (themeKey === 'eternal-dove') emoji = '🕊️';
+    else if (themeKey === 'gender-reveal') emoji = '🍼';
+    else if (themeKey === 'wealth-glamour') emoji = '💎';
 
     ctx.fillText(emoji, 0, 0);
   };
@@ -136,14 +153,14 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = 45; // Perfect density for emoji particles
+    const count = themeKey === 'executive-light' ? 50 : 45;
 
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * 14,
-        vy: (Math.random() - 0.7) * 12 - 3,
+        x: themeKey === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
+        y: themeKey === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 14),
+        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 12 - 3,
         size: Math.random() * 8 + 8,
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.08,
@@ -162,8 +179,10 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       particles.forEach((p) => {
         p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
         p.y += p.vy;
-        p.vy += 0.18;
-        p.vx *= 0.98;
+        if (themeKey !== 'executive-light') {
+          p.vy += 0.18;
+          p.vx *= 0.98;
+        }
         p.rotation += p.rotSpeed;
 
         if (elapsed > 1800) p.opacity -= 0.02;
@@ -174,7 +193,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
           
-          drawEmojiParticle(ctx, themeKey, p.size);
+          drawParticle(ctx, themeKey, p.size);
 
           ctx.restore();
         }

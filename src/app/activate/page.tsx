@@ -40,6 +40,13 @@ const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: str
     badgeBg: 'bg-[#dc143c]/15',
     badgeBorder: 'border-[#dc143c]/40',
   },
+  'wealth-glamour': {
+    name: 'Wealth & Glamour',
+    border: 'border-[#b9f2ff]',
+    text: 'text-[#b9f2ff]',
+    badgeBg: 'bg-[#b9f2ff]/10',
+    badgeBorder: 'border-[#b9f2ff]/40',
+  },
 };
 
 function ActivateForm() {
@@ -111,18 +118,26 @@ function ActivateForm() {
     setUploadedFileName('');
   };
 
-  // Crisp Emoji Particle Engine for Preview Modal
-  const drawEmojiParticle = (ctx: CanvasRenderingContext2D, type: string, size: number) => {
+  const drawParticle = (ctx: CanvasRenderingContext2D, themeKey: string, size: number) => {
+    if (themeKey === 'executive-light') {
+      // Corporate Lumina: Sleek Platinum Prism Light Bars
+      ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#e5e4e2';
+      ctx.fillRect(-size * 0.25, -size * 1.8, size * 0.5, size * 3.6);
+      return;
+    }
+
     ctx.font = `${Math.max(20, size * 2.8)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     let emoji = '✨';
-    if (type === 'ruby-petal') emoji = '🌹';
-    else if (type === 'eternal-dove') emoji = '🕊️';
-    else if (type === 'gender-reveal') emoji = '🍼';
-    else if (type === 'executive-light') emoji = '💎';
-    else emoji = '✦';
+    if (themeKey === 'gold-confetti') emoji = '✨';
+    else if (themeKey === 'ruby-petal') emoji = '🌹';
+    else if (themeKey === 'eternal-dove') emoji = '🕊️';
+    else if (themeKey === 'gender-reveal') emoji = '🍼';
+    else if (themeKey === 'wealth-glamour') emoji = '💎';
 
     ctx.fillText(emoji, 0, 0);
   };
@@ -144,14 +159,14 @@ function ActivateForm() {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = 45;
+    const count = themeKey === 'executive-light' ? 50 : 45;
 
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * 14,
-        vy: (Math.random() - 0.7) * 12 - 3,
+        x: themeKey === 'executive-light' ? Math.random() * window.innerWidth : window.innerWidth / 2,
+        y: themeKey === 'executive-light' ? window.innerHeight + 20 : window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * (themeKey === 'executive-light' ? 2 : 14),
+        vy: themeKey === 'executive-light' ? -(Math.random() * 4 + 2) : (Math.random() - 0.7) * 12 - 3,
         size: Math.random() * 8 + 8,
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.08,
@@ -170,8 +185,10 @@ function ActivateForm() {
       particles.forEach((p) => {
         p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
         p.y += p.vy;
-        p.vy += 0.18;
-        p.vx *= 0.98;
+        if (themeKey !== 'executive-light') {
+          p.vy += 0.18;
+          p.vx *= 0.98;
+        }
         p.rotation += p.rotSpeed;
 
         if (elapsed > 1800) p.opacity -= 0.02;
@@ -182,7 +199,7 @@ function ActivateForm() {
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
           
-          drawEmojiParticle(ctx, themeKey, p.size);
+          drawParticle(ctx, themeKey, p.size);
 
           ctx.restore();
         }
@@ -351,10 +368,11 @@ function ActivateForm() {
             className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-[#f4e6b0] rounded text-[13px] tracking-wider focus:outline-none focus:border-[#d4af37]"
           >
             <option value="gold-confetti">✦ Aura Gold (Celebrations & Milestones)</option>
-            <option value="executive-light">✦ Corporate Lumina (Professional & Commercial)</option>
+            <option value="executive-light">✦ Corporate Lumina (Professional & Commercial Prism Lines)</option>
             <option value="eternal-dove">✦ Eternal Remembrance (Condolences & Memorials)</option>
             <option value="gender-reveal">✦ New Arrival (Baby Showers & Gender Reveals)</option>
             <option value="ruby-petal">✦ Crimson Romance (Anniversaries & Proposals)</option>
+            <option value="wealth-glamour">✦ Wealth & Glamour (Luxury Diamonds)</option>
           </select>
         </div>
 
@@ -391,18 +409,18 @@ function ActivateForm() {
             >
               ✕ Close
             </button>
-            <div className={`inline-block px-3 py-1 border border-[#d4af37]/40 rounded-full text-[10px] uppercase text-[#f4e6b0] bg-[#d4af37]/10`}>
+            <div className={`inline-block px-3 py-1 border ${currentTheme.badgeBorder} rounded-full text-[10px] uppercase text-[#f4e6b0] ${currentTheme.badgeBg}`}>
               ✦ Live Ceremony Preview ({currentTheme.name}) ✦
             </div>
             <h2 className={`text-lg font-serif uppercase ${currentTheme.text}`}>Unsealing Preview</h2>
             
-            <div className={`bg-black/60 border border-[#d4af37]/30 p-4 rounded text-left space-y-2 text-sm text-[#f4e6b0]`}>
+            <div className={`bg-black/60 border ${currentTheme.badgeBorder} p-4 rounded text-left space-y-2 text-sm text-[#f4e6b0]`}>
               <p className={`text-[10px] uppercase tracking-widest ${currentTheme.text}`}>Message:</p>
               <p className="text-white text-sm font-light">{messageText || "No custom message entered yet."}</p>
             </div>
 
             {mediaUrl ? (
-              <div className={`relative w-full rounded border border-[#d4af37]/30 bg-black aspect-video overflow-hidden`}>
+              <div className={`relative w-full rounded border ${currentTheme.badgeBorder} bg-black aspect-video overflow-hidden`}>
                 <video src={mediaUrl} controls playsInline className="w-full h-full object-contain" />
               </div>
             ) : (
