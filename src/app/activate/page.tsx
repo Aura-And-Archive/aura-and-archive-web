@@ -1,58 +1,41 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: string; badgeBorder: string; name: string }> = {
-  'gold-confetti': {
-    name: 'Aura Gold',
-    border: 'border-[#d4af37]',
-    text: 'text-[#d4af37]',
-    badgeBg: 'bg-[#d4af37]/10',
-    badgeBorder: 'border-[#d4af37]/40',
-  },
-  'executive-light': {
-    name: 'Corporate Lumina',
-    border: 'border-[#e5e4e2]',
-    text: 'text-[#e5e4e2]',
-    badgeBg: 'bg-[#e5e4e2]/10',
-    badgeBorder: 'border-[#e5e4e2]/40',
-  },
-  'eternal-dove': {
-    name: 'Eternal Remembrance',
-    border: 'border-[#f0f8ff]',
-    text: 'text-[#f0f8ff]',
-    badgeBg: 'bg-white/10',
-    badgeBorder: 'border-white/30',
-  },
-  'gender-reveal': {
-    name: 'New Arrival',
-    border: 'border-[#ffb6c1]',
-    text: 'text-[#ffb6c1]',
-    badgeBg: 'bg-[#ffb6c1]/10',
-    badgeBorder: 'border-[#ffb6c1]/40',
-  },
-  'ruby-petal': {
-    name: 'Crimson Romance',
-    border: 'border-[#dc143c]',
-    text: 'text-[#ff69b4]',
-    badgeBg: 'bg-[#dc143c]/15',
-    badgeBorder: 'border-[#dc143c]/40',
-  },
-  'wealth-glamour': {
-    name: 'Wealth & Glamour',
-    border: 'border-[#b9f2ff]',
-    text: 'text-[#b9f2ff]',
-    badgeBg: 'bg-[#b9f2ff]/10',
-    badgeBorder: 'border-[#b9f2ff]/40',
-  },
+  'gold-confetti': { name: 'Aura Gold', border: 'border-[#d4af37]', text: 'text-[#d4af37]', badgeBg: 'bg-[#d4af37]/10', badgeBorder: 'border-[#d4af37]/40' },
+  'executive-light': { name: 'Corporate Lumina', border: 'border-[#e5e4e2]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40' },
+  'wealth-glamour': { name: 'Wealth & Glamour', border: 'border-[#b9f2ff]', text: 'text-[#b9f2ff]', badgeBg: 'bg-[#b9f2ff]/10', badgeBorder: 'border-[#b9f2ff]/40' },
+  'ruby-petal': { name: 'Crimson Romance', border: 'border-[#dc143c]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#dc143c]/15', badgeBorder: 'border-[#dc143c]/40' },
+  'birthday': { name: 'Happy Birthday', border: 'border-[#ffb6c1]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40' },
+  'christmas': { name: 'Winter & Christmas', border: 'border-[#2e8b57]', text: 'text-[#2e8b57]', badgeBg: 'bg-[#2e8b57]/10', badgeBorder: 'border-[#2e8b57]/40' },
+  'halloween': { name: 'Halloween', border: 'border-[#ff8c00]', text: 'text-[#ff8c00]', badgeBg: 'bg-[#ff8c00]/10', badgeBorder: 'border-[#ff8c00]/40' },
+  'valentine': { name: "Valentine's Day", border: 'border-[#ff69b4]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/10', badgeBorder: 'border-[#ff69b4]/40' },
+  'april-fools': { name: 'April Fools & Humor', border: 'border-[#ffd700]', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/10', badgeBorder: 'border-[#ffd700]/40' },
+  'new-years': { name: "New Year's Eve", border: 'border-[#e5e4e2]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40' },
+  'christianity': { name: 'Christianity', border: 'border-[#dda0dd]', text: 'text-[#dda0dd]', badgeBg: 'bg-[#dda0dd]/10', badgeBorder: 'border-[#dda0dd]/40' },
+  'islam': { name: 'Islam', border: 'border-[#98fb98]', text: 'text-[#98fb98]', badgeBg: 'bg-[#98fb98]/10', badgeBorder: 'border-[#98fb98]/40' },
+  'judaism': { name: 'Judaism', border: 'border-[#87ceeb]', text: 'text-[#87ceeb]', badgeBg: 'bg-[#87ceeb]/10', badgeBorder: 'border-[#87ceeb]/40' },
+  'hinduism': { name: 'Hinduism (Diwali)', border: 'border-[#ffa500]', text: 'text-[#ffa500]', badgeBg: 'bg-[#ffa500]/10', badgeBorder: 'border-[#ffa500]/40' },
+  'buddhism': { name: 'Buddhism', border: 'border-[#deb887]', text: 'text-[#deb887]', badgeBg: 'bg-[#deb887]/10', badgeBorder: 'border-[#deb887]/40' },
+  'mothers-day': { name: "Mother's Day", border: 'border-[#ffb6c1]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40' },
+  'fathers-day': { name: "Father's Day", border: 'border-[#4682b4]', text: 'text-[#4682b4]', badgeBg: 'bg-[#4682b4]/10', badgeBorder: 'border-[#4682b4]/40' },
+  'gender-reveal': { name: 'New Arrival', border: 'border-[#87ceeb]', text: 'text-[#87ceeb]', badgeBg: 'bg-[#87ceeb]/10', badgeBorder: 'border-[#87ceeb]/40' },
+  'graduation': { name: 'Graduation', border: 'border-[#daa520]', text: 'text-[#daa520]', badgeBg: 'bg-[#daa520]/10', badgeBorder: 'border-[#daa520]/40' },
+  'engagement': { name: 'Engagement', border: 'border-[#e0ffff]', text: 'text-[#e0ffff]', badgeBg: 'bg-[#e0ffff]/10', badgeBorder: 'border-[#e0ffff]/40' },
+  'retirement': { name: 'Retirement & Farewell', border: 'border-[#f4a460]', text: 'text-[#f4a460]', badgeBg: 'bg-[#f4a460]/10', badgeBorder: 'border-[#f4a460]/40' },
+  'day-of-the-dead': { name: 'Day of the Dead', border: 'border-[#ba55d3]', text: 'text-[#ba55d3]', badgeBg: 'bg-[#ba55d3]/10', badgeBorder: 'border-[#ba55d3]/40' },
+  'eternal-dove': { name: 'Eternal Remembrance', border: 'border-[#f0f8ff]', text: 'text-[#f0f8ff]', badgeBg: 'bg-white/10', badgeBorder: 'border-white/30' },
+  'veteran': { name: 'Veteran Appreciation', border: 'border-[#b22222]', text: 'text-[#b22222]', badgeBg: 'bg-[#b22222]/10', badgeBorder: 'border-[#b22222]/40' },
+  'get-well': { name: 'Get Well Soon', border: 'border-[#adff2f]', text: 'text-[#adff2f]', badgeBg: 'bg-[#adff2f]/10', badgeBorder: 'border-[#adff2f]/40' },
+  'thank-you': { name: 'Thank You / Just Because', border: 'border-[#ffd700]', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/10', badgeBorder: 'border-[#ffd700]/40' },
+  'bff': { name: "BFF's (Best Friends)", border: 'border-[#ff69b4]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/10', badgeBorder: 'bg-[#ff69b4]/40' },
 };
 
 function ActivateForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-
   const [serialNumber, setSerialNumber] = useState('');
   const [activationCode, setActivationCode] = useState('');
   const [messageText, setMessageText] = useState('');
@@ -63,7 +46,6 @@ function ActivateForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [showPreview, setShowPreview] = useState(false);
-  const [checkingCard, setCheckingCard] = useState(true);
 
   const forceEdit = searchParams.get('edit') === 'true';
   const currentTheme = THEME_CONFIGS[effectType] || THEME_CONFIGS['gold-confetti'];
@@ -74,41 +56,28 @@ function ActivateForm() {
       const cleanSerial = urlSerial.trim();
       setSerialNumber(cleanSerial);
 
-      async function checkExistingCard() {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-        if (supabaseUrl && supabaseAnonKey && !forceEdit) {
-          try {
-            const supabase = createClient(supabaseUrl, supabaseAnonKey);
-            const { data } = await supabase
-              .from('cards')
-              .select('is_activated, message_text, media_url, effect_type')
-              .ilike('serial_number', cleanSerial)
-              .maybeSingle();
-
+      if (supabaseUrl && supabaseAnonKey && !forceEdit) {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        supabase
+          .from('cards')
+          .select('is_activated, message_text, media_url, effect_type')
+          .ilike('serial_number', cleanSerial)
+          .maybeSingle()
+          .then(({ data }) => {
             if (data && data.is_activated) {
-              router.push(`/v/${encodeURIComponent(cleanSerial)}`);
-              return;
-            }
-
-            if (data) {
+              window.location.replace(`/v/${encodeURIComponent(cleanSerial)}`);
+            } else if (data) {
               if (data.message_text) setMessageText(data.message_text);
               if (data.media_url) setMediaUrl(data.media_url);
               if (data.effect_type) setEffectType(data.effect_type);
             }
-          } catch (err) {
-            console.error('Card verification error:', err);
-          }
-        }
-        setCheckingCard(false);
+          });
       }
-
-      checkExistingCard();
-    } else {
-      setCheckingCard(false);
     }
-  }, [searchParams, router, forceEdit]);
+  }, [searchParams, forceEdit]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,20 +101,13 @@ function ActivateForm() {
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
       const filePath = `card-media/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('media')
-        .upload(filePath, file);
-
+      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      const { data: publicUrlData } = supabase.storage
-        .from('media')
-        .getPublicUrl(filePath);
-
+      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(filePath);
       setMediaUrl(publicUrlData.publicUrl);
       setUploadedFileName(file.name);
     } catch (err: any) {
-      console.error('Upload error:', err);
       setErrorMessage(err?.message || 'Failed to upload media file.');
     } finally {
       setUploading(false);
@@ -170,14 +132,36 @@ function ActivateForm() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    let emoji = '✨';
-    if (themeKey === 'gold-confetti') emoji = '✨';
-    else if (themeKey === 'ruby-petal') emoji = '🌹';
-    else if (themeKey === 'eternal-dove') emoji = '🕊️';
-    else if (themeKey === 'gender-reveal') emoji = '🍼';
-    else if (themeKey === 'wealth-glamour') emoji = '💎';
+    const emojis: Record<string, string> = {
+      'gold-confetti': '✨',
+      'wealth-glamour': '💎',
+      'ruby-petal': '🌹',
+      'birthday': '🎂',
+      'christmas': '🎄',
+      'halloween': '🎃',
+      'valentine': '❤️',
+      'april-fools': '🤣',
+      'new-years': '🥂',
+      'christianity': '✝️',
+      'islam': '☪️',
+      'judaism': '✡️',
+      'hinduism': '🪔',
+      'buddhism': '☸️',
+      'mothers-day': '💐',
+      'fathers-day': '👔',
+      'gender-reveal': '🍼',
+      'graduation': '🎓',
+      'engagement': '💍',
+      'retirement': '🌅',
+      'day-of-the-dead': '💀',
+      'eternal-dove': '🕊️',
+      'veteran': '🎖️',
+      'get-well': '🌻',
+      'thank-you': '🙏',
+      'bff': '👯‍♀️',
+    };
 
-    ctx.fillText(emoji, 0, 0);
+    ctx.fillText(emojis[themeKey] || '✨', 0, 0);
   };
 
   const triggerPreviewEffect = (themeKey: string) => {
@@ -236,9 +220,7 @@ function ActivateForm() {
           ctx.globalAlpha = Math.max(0, p.opacity);
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
-          
           drawParticle(ctx, themeKey, p.size);
-
           ctx.restore();
         }
       });
@@ -277,7 +259,6 @@ function ActivateForm() {
 
     try {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      
       const { error } = await supabase
         .from('cards')
         .update({
@@ -295,19 +276,10 @@ function ActivateForm() {
         window.location.href = `/v/${encodeURIComponent(serialNumber.trim())}`;
       }, 800);
     } catch (err: any) {
-      console.error('Activation error:', err);
       setStatus('error');
       setErrorMessage(err.message || 'Failed to activate card.');
     }
   };
-
-  if (checkingCard) {
-    return (
-      <div className="max-w-[520px] w-full text-center p-8 text-[#d4af37] text-sm animate-pulse font-serif tracking-widest">
-        ✦ VERIFYING GIFT NOTE STATUS...
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-[520px] w-full bg-[#101014]/92 border border-[#d4af37]/40 rounded-xl p-6 md:p-8 shadow-[0_0_35px_rgba(212,175,55,0.15)] backdrop-blur-md space-y-6">
@@ -413,12 +385,43 @@ function ActivateForm() {
             onChange={(e) => setEffectType(e.target.value)}
             className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-[#f4e6b0] rounded text-[13px] tracking-wider focus:outline-none focus:border-[#d4af37]"
           >
-            <option value="gold-confetti">✦ Aura Gold (Celebrations & Milestones)</option>
-            <option value="executive-light">✦ Corporate Lumina (Prism Light)</option>
-            <option value="wealth-glamour">✦ Wealth & Glamour (Diamonds)</option>
-            <option value="ruby-petal">✦ Crimson Romance (Roses)</option>
-            <option value="gender-reveal">✦ New Arrival (Celebrations)</option>
-            <option value="eternal-dove">✦ Eternal Remembrance (Peace Doves)</option>
+            <optgroup label="--- Luxury & Milestones ---">
+              <option value="gold-confetti">✦ Aura Gold (Celebrations)</option>
+              <option value="executive-light">✦ Corporate Lumina (Prism Bars)</option>
+              <option value="wealth-glamour">✦ Wealth & Glamour (Diamonds)</option>
+              <option value="ruby-petal">✦ Crimson Romance & Anniversary</option>
+            </optgroup>
+            <optgroup label="--- Holidays & Seasons ---">
+              <option value="birthday">🎂 Happy Birthday</option>
+              <option value="christmas">🎄 Winter & Christmas</option>
+              <option value="halloween">🎃 Halloween</option>
+              <option value="valentine">❤️ Valentine's Day</option>
+              <option value="april-fools">🤣 April Fools & Humor</option>
+              <option value="new-years">🥂 New Year's Eve</option>
+            </optgroup>
+            <optgroup label="--- Faith & Heritage ---">
+              <option value="christianity">✝️ Christianity</option>
+              <option value="islam">☪️ Islam</option>
+              <option value="judaism">✡️ Judaism</option>
+              <option value="hinduism">🪔 Hinduism (Diwali)</option>
+              <option value="buddhism">☸️ Buddhism</option>
+            </optgroup>
+            <optgroup label="--- Family & Life Milestones ---">
+              <option value="mothers-day">💐 Mother's Day</option>
+              <option value="fathers-day">👔 Father's Day</option>
+              <option value="gender-reveal">🍼 New Arrival</option>
+              <option value="graduation">🎓 Graduation</option>
+              <option value="engagement">💍 Engagement</option>
+              <option value="retirement">🌅 Retirement & Farewell</option>
+              <option value="day-of-the-dead">💀 Day of the Dead (Día de los Muertos)</option>
+              <option value="eternal-dove">🕊️ Eternal Remembrance</option>
+            </optgroup>
+            <optgroup label="--- Appreciation & Connection ---">
+              <option value="veteran">🎖️ Veteran Appreciation</option>
+              <option value="get-well">🌻 Get Well Soon</option>
+              <option value="thank-you">🙏 Thank You / Just Because</option>
+              <option value="bff">👯‍♀️ BFF's (Best Friends)</option>
+            </optgroup>
           </select>
         </div>
 
@@ -445,7 +448,6 @@ function ActivateForm() {
         </div>
       </form>
 
-      {/* Theme-Adaptive Live Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className={`max-w-[500px] w-full bg-[#101014] border ${currentTheme.border} rounded-xl p-6 text-center space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto`}>
@@ -480,7 +482,7 @@ function ActivateForm() {
                 onClick={() => triggerPreviewEffect(effectType)}
                 className="flex-1 bg-black/60 border border-[#d4af37]/40 hover:border-[#d4af37] text-[#f4e6b0] py-2.5 rounded text-xs uppercase tracking-wider cursor-pointer"
               >
-                Replay Animation ✦
+                Burst Gift Note Animation ✦
               </button>
               <button
                 onClick={() => setShowPreview(false)}
@@ -499,7 +501,7 @@ function ActivateForm() {
 export default function ActivatePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center p-4">
-      <Suspense fallback={<div className="text-[#d4af37] text-sm animate-pulse">Loading activation portal...</div>}>
+      <Suspense fallback={<div className="text-[#d4af37] text-sm animate-pulse">Verifying card...</div>}>
         <ActivateForm />
       </Suspense>
     </div>
