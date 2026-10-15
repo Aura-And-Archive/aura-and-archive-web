@@ -4,14 +4,13 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
-const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: string; badgeBorder: string; name: string; colors: string[] }> = {
+const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: string; badgeBorder: string; name: string }> = {
   'gold-confetti': {
     name: 'Aura Gold',
     border: 'border-[#d4af37]',
     text: 'text-[#d4af37]',
     badgeBg: 'bg-[#d4af37]/10',
     badgeBorder: 'border-[#d4af37]/40',
-    colors: ['#d4af37', '#f4e6b0', '#96760e'],
   },
   'executive-light': {
     name: 'Corporate Lumina',
@@ -19,7 +18,6 @@ const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: str
     text: 'text-[#e5e4e2]',
     badgeBg: 'bg-[#e5e4e2]/10',
     badgeBorder: 'border-[#e5e4e2]/40',
-    colors: ['#ffffff', '#e5e4e2', '#d4af37'],
   },
   'eternal-dove': {
     name: 'Eternal Remembrance',
@@ -27,7 +25,6 @@ const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: str
     text: 'text-[#f0f8ff]',
     badgeBg: 'bg-white/10',
     badgeBorder: 'border-white/30',
-    colors: ['#ffffff', '#f0f8ff', '#e6f2ff'],
   },
   'gender-reveal': {
     name: 'New Arrival',
@@ -35,7 +32,6 @@ const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: str
     text: 'text-[#ffb6c1]',
     badgeBg: 'bg-[#ffb6c1]/10',
     badgeBorder: 'border-[#ffb6c1]/40',
-    colors: ['#ffb6c1', '#87ceeb', '#ffffff', '#ff69b4'],
   },
   'ruby-petal': {
     name: 'Crimson Romance',
@@ -43,7 +39,6 @@ const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: str
     text: 'text-[#ff69b4]',
     badgeBg: 'bg-[#dc143c]/15',
     badgeBorder: 'border-[#dc143c]/40',
-    colors: ['#8b0000', '#dc143c', '#ff1493', '#e60049'],
   },
 };
 
@@ -116,6 +111,22 @@ function ActivateForm() {
     setUploadedFileName('');
   };
 
+  // Crisp Emoji Particle Engine for Preview Modal
+  const drawEmojiParticle = (ctx: CanvasRenderingContext2D, type: string, size: number) => {
+    ctx.font = `${Math.max(20, size * 2.8)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    let emoji = '✨';
+    if (type === 'ruby-petal') emoji = '🌹';
+    else if (type === 'eternal-dove') emoji = '🕊️';
+    else if (type === 'gender-reveal') emoji = '🍼';
+    else if (type === 'executive-light') emoji = '💎';
+    else emoji = '✦';
+
+    ctx.fillText(emoji, 0, 0);
+  };
+
   const triggerPreviewEffect = (themeKey: string) => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
@@ -133,19 +144,17 @@ function ActivateForm() {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = 90;
-    const colors = THEME_CONFIGS[themeKey]?.colors || ['#d4af37', '#f4e6b0'];
+    const count = 45;
 
     for (let i = 0; i < count; i++) {
       particles.push({
         x: window.innerWidth / 2,
-        y: window.innerHeight / 2 - 50,
-        vx: (Math.random() - 0.5) * 16,
-        vy: (Math.random() - 0.7) * 14 - 3,
-        size: Math.random() * 7 + 6,
-        color: colors[Math.floor(Math.random() * colors.length)],
+        y: window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * 14,
+        vy: (Math.random() - 0.7) * 12 - 3,
+        size: Math.random() * 8 + 8,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.15,
+        rotSpeed: (Math.random() - 0.5) * 0.08,
         opacity: 1,
         sway: Math.random() * 3,
       });
@@ -161,7 +170,7 @@ function ActivateForm() {
       particles.forEach((p) => {
         p.x += p.vx + Math.sin(elapsed * 0.003 + p.sway) * 0.5;
         p.y += p.vy;
-        p.vy += 0.22;
+        p.vy += 0.18;
         p.vx *= 0.98;
         p.rotation += p.rotSpeed;
 
@@ -172,40 +181,14 @@ function ActivateForm() {
           ctx.globalAlpha = Math.max(0, p.opacity);
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
-          ctx.fillStyle = p.color;
+          
+          drawEmojiParticle(ctx, themeKey, p.size);
 
-          if (themeKey === 'ruby-petal') {
-            ctx.beginPath();
-            ctx.moveTo(0, -p.size);
-            ctx.bezierCurveTo(p.size * 1.2, -p.size * 0.8, p.size * 1.5, p.size * 0.5, 0, p.size * 1.2);
-            ctx.bezierCurveTo(-p.size * 1.5, p.size * 0.5, -p.size * 1.2, -p.size * 0.8, 0, -p.size);
-            ctx.fill();
-          } else if (themeKey === 'eternal-dove') {
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.quadraticCurveTo(p.size * 0.8, -p.size * 1.2, p.size * 1.4, -p.size * 0.4);
-            ctx.quadraticCurveTo(p.size * 0.6, p.size * 0.2, 0, p.size * 0.5);
-            ctx.quadraticCurveTo(-p.size * 0.6, p.size * 0.2, -p.size * 1.4, -p.size * 0.4);
-            ctx.fill();
-          } else if (themeKey === 'gender-reveal') {
-            ctx.beginPath();
-            ctx.rect(-p.size * 0.4, -p.size * 0.6, p.size * 0.8, p.size * 1.2);
-            ctx.fill();
-          } else {
-            ctx.beginPath();
-            ctx.moveTo(0, -p.size);
-            ctx.lineTo(p.size * 0.3, -p.size * 0.3);
-            ctx.lineTo(p.size, 0);
-            ctx.lineTo(0, p.size);
-            ctx.lineTo(-p.size, 0);
-            ctx.closePath();
-            ctx.fill();
-          }
           ctx.restore();
         }
       });
 
-      if (elapsed < 3000) {
+      if (elapsed < 3200) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
@@ -398,6 +381,7 @@ function ActivateForm() {
         </div>
       </form>
 
+      {/* Theme-Adaptive Live Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className={`max-w-[500px] w-full bg-[#101014] border ${currentTheme.border} rounded-xl p-6 text-center space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto`}>
@@ -407,18 +391,18 @@ function ActivateForm() {
             >
               ✕ Close
             </button>
-            <div className={`inline-block px-3 py-1 border ${currentTheme.badgeBorder} rounded-full text-[10px] uppercase text-[#f4e6b0] ${currentTheme.badgeBg}`}>
+            <div className={`inline-block px-3 py-1 border border-[#d4af37]/40 rounded-full text-[10px] uppercase text-[#f4e6b0] bg-[#d4af37]/10`}>
               ✦ Live Ceremony Preview ({currentTheme.name}) ✦
             </div>
             <h2 className={`text-lg font-serif uppercase ${currentTheme.text}`}>Unsealing Preview</h2>
             
-            <div className={`bg-black/60 border ${currentTheme.badgeBorder} p-4 rounded text-left space-y-2 text-sm text-[#f4e6b0]`}>
+            <div className={`bg-black/60 border border-[#d4af37]/30 p-4 rounded text-left space-y-2 text-sm text-[#f4e6b0]`}>
               <p className={`text-[10px] uppercase tracking-widest ${currentTheme.text}`}>Message:</p>
               <p className="text-white text-sm font-light">{messageText || "No custom message entered yet."}</p>
             </div>
 
             {mediaUrl ? (
-              <div className={`relative w-full rounded border ${currentTheme.badgeBorder} bg-black aspect-video overflow-hidden`}>
+              <div className={`relative w-full rounded border border-[#d4af37]/30 bg-black aspect-video overflow-hidden`}>
                 <video src={mediaUrl} controls playsInline className="w-full h-full object-contain" />
               </div>
             ) : (
