@@ -136,7 +136,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     ctx.fillText(emoji, 0, 0);
   };
 
-  const triggerUnsealingEffect = (themeKey = 'gold-confetti') => {
+  const triggerGiftNoteEffect = (themeKey = 'gold-confetti') => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -211,7 +211,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
   useEffect(() => {
     if (cardData) {
-      triggerUnsealingEffect(cardData?.effect_type || 'gold-confetti');
+      triggerGiftNoteEffect(cardData?.effect_type || 'gold-confetti');
     }
   }, [cardData]);
 
@@ -220,13 +220,13 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Aura & Archive | Luxury Unsealing Experience',
-          text: 'You have received an elite digital keepsake experience.',
+          title: 'Aura & Archive | Premium Gift Note',
+          text: 'You have received a premium gift note from Aura & Archive™',
           url: shareUrl,
         });
         return;
       } catch (err) {
-        // User cancelled native share
+        // User cancelled share
       }
     }
     try {
@@ -242,11 +242,11 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     <div className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen">
       <div className={`bg-[#101014]/92 border ${theme.border} rounded-xl p-6 md:p-8 text-center ${theme.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500`}>
         <div className={`inline-block self-center px-4 py-1.5 border ${theme.badgeBorder} rounded-[30px] text-[10px] tracking-[2.5px] uppercase ${theme.text} ${theme.badgeBg}`}>
-          ✦ {theme.name} Ceremony ✦
+          ✦ {theme.name} Gift Note ✦
         </div>
         
         <div>
-          <h1 className={`font-serif text-[24px] uppercase ${theme.text} tracking-[2px]`}>Unsealing Experience</h1>
+          <h1 className={`font-serif text-[24px] uppercase ${theme.text} tracking-[2px]`}>Gift Note Experience</h1>
           <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
         </div>
 
@@ -263,7 +263,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
             <div className="text-center space-y-2">
               <p className="text-sm text-[#b0aebf]">No custom message stored for this card yet.</p>
               <Link 
-                href={`/activate?id=${encodeURIComponent(cardId)}`}
+                href={`/activate?id=${encodeURIComponent(cardId)}&edit=true`}
                 className="inline-block text-xs text-[#d4af37] underline tracking-wider uppercase mt-1"
               >
                 Configure This Card Now ↗
@@ -290,20 +290,20 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         <div className="flex flex-col gap-3 mt-2">
           <button 
             className={`w-full py-3.5 text-[11px] font-semibold uppercase tracking-[1.5px] rounded transition-all cursor-pointer ${theme.buttonBg}`} 
-            onClick={() => triggerUnsealingEffect(cardData?.effect_type || 'gold-confetti')}
+            onClick={() => triggerGiftNoteEffect(cardData?.effect_type || 'gold-confetti')}
           >
-            ✦ Replay Unsealing Ceremony ✦
+            ✦ Replay Gift Note Animation ✦
           </button>
 
           <button 
             onClick={handleShare}
             className="w-full py-3 text-[11px] bg-black/60 border border-[#d4af37]/60 hover:border-[#d4af37] text-[#f4e6b0] font-semibold rounded uppercase tracking-[1.5px] transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.08)]"
           >
-            {copied ? '✦ Link Copied to Clipboard ✦' : '✦ Share Keepsake Experience ✦'}
+            {copied ? '✦ Link Copied to Clipboard ✦' : '✦ Share Gift Note Link ✦'}
           </button>
           
           <Link 
-            href={`/activate?id=${encodeURIComponent(cardId)}`}
+            href={`/activate?id=${encodeURIComponent(cardId)}&edit=true`}
             className="w-full py-3 text-[11px] border border-[#d4af37]/30 text-[#f4e6b0] hover:border-[#d4af37] rounded uppercase tracking-wider text-center"
           >
             Configure / Edit This Card
