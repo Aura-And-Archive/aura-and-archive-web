@@ -5,48 +5,36 @@ import { useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 const THEME_CONFIGS: Record<string, { border: string; text: string; badgeBg: string; badgeBorder: string; name: string }> = {
-  'gold-confetti': {
-    name: 'Aura Gold',
-    border: 'border-[#d4af37]',
-    text: 'text-[#d4af37]',
-    badgeBg: 'bg-[#d4af37]/10',
-    badgeBorder: 'border-[#d4af37]/40',
-  },
-  'executive-light': {
-    name: 'Corporate Lumina',
-    border: 'border-[#e5e4e2]',
-    text: 'text-[#e5e4e2]',
-    badgeBg: 'bg-[#e5e4e2]/10',
-    badgeBorder: 'border-[#e5e4e2]/40',
-  },
-  'eternal-dove': {
-    name: 'Eternal Remembrance',
-    border: 'border-[#f0f8ff]',
-    text: 'text-[#f0f8ff]',
-    badgeBg: 'bg-white/10',
-    badgeBorder: 'border-white/30',
-  },
-  'gender-reveal': {
-    name: 'New Arrival',
-    border: 'border-[#ffb6c1]',
-    text: 'text-[#ffb6c1]',
-    badgeBg: 'bg-[#ffb6c1]/10',
-    badgeBorder: 'border-[#ffb6c1]/40',
-  },
-  'ruby-petal': {
-    name: 'Crimson Romance',
-    border: 'border-[#dc143c]',
-    text: 'text-[#ff69b4]',
-    badgeBg: 'bg-[#dc143c]/15',
-    badgeBorder: 'border-[#dc143c]/40',
-  },
-  'wealth-glamour': {
-    name: 'Wealth & Glamour',
-    border: 'border-[#b9f2ff]',
-    text: 'text-[#b9f2ff]',
-    badgeBg: 'bg-[#b9f2ff]/10',
-    badgeBorder: 'border-[#b9f2ff]/40',
-  },
+  'gold-confetti': { name: 'Aura Gold (Milestones)', border: 'border-[#d4af37]', text: 'text-[#d4af37]', badgeBg: 'bg-[#d4af37]/10', badgeBorder: 'border-[#d4af37]/40' },
+  'executive-light': { name: 'Corporate Lumina (Prism Bars)', border: 'border-[#e5e4e2]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40' },
+  'eternal-dove': { name: 'Eternal Remembrance', border: 'border-[#f0f8ff]', text: 'text-[#f0f8ff]', badgeBg: 'bg-white/10', badgeBorder: 'border-white/30' },
+  'gender-reveal': { name: 'New Arrival', border: 'border-[#ffb6c1]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40' },
+  'ruby-petal': { name: 'Crimson Romance & Anniversary', border: 'border-[#dc143c]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#dc143c]/15', badgeBorder: 'border-[#dc143c]/40' },
+  'wealth-glamour': { name: 'Wealth & Glamour', border: 'border-[#b9f2ff]', text: 'text-[#b9f2ff]', badgeBg: 'bg-[#b9f2ff]/10', badgeBorder: 'border-[#b9f2ff]/40' },
+  // Expanded Universal Greeting Card Catalog
+  'birthday': { name: 'Happy Birthday', border: 'border-[#ffd700]', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/10', badgeBorder: 'border-[#ffd700]/40' },
+  'christmas': { name: 'Winter & Christmas', border: 'border-[#ff4d4d]', text: 'text-[#ff4d4d]', badgeBg: 'bg-[#ff4d4d]/10', badgeBorder: 'border-[#ff4d4d]/40' },
+  'halloween': { name: 'Halloween', border: 'border-[#ff9900]', text: 'text-[#ff9900]', badgeBg: 'bg-[#ff9900]/10', badgeBorder: 'border-[#ff9900]/40' },
+  'valentines': { name: "Valentine's Day", border: 'border-[#ff1493]', text: 'text-[#ff1493]', badgeBg: 'bg-[#ff1493]/10', badgeBorder: 'border-[#ff1493]/40' },
+  'april-fools': { name: 'April Fools & Humor (Cry Laughing)', border: 'border-[#00ffcc]', text: 'text-[#00ffcc]', badgeBg: 'bg-[#00ffcc]/10', badgeBorder: 'border-[#00ffcc]/40' },
+  'veterans-day': { name: 'Veteran Appreciation', border: 'border-[#4169e1]', text: 'text-[#4169e1]', badgeBg: 'bg-[#4169e1]/10', badgeBorder: 'border-[#4169e1]/40' },
+  'fourth-of-july': { name: 'Fourth of July', border: 'border-[#ff3333]', text: 'text-[#ff3333]', badgeBg: 'bg-[#ff3333]/10', badgeBorder: 'border-[#ff3333]/40' },
+  'thanksgiving': { name: 'Thanksgiving', border: 'border-[#ff8c00]', text: 'text-[#ff8c00]', badgeBg: 'bg-[#ff8c00]/10', badgeBorder: 'border-[#ff8c00]/40' },
+  'christianity': { name: 'Christianity (Faith)', border: 'border-[#ffffff]', text: 'text-[#ffffff]', badgeBg: 'bg-white/10', badgeBorder: 'border-white/30' },
+  'islam': { name: 'Islam (Faith & Crescent)', border: 'border-[#00fa9a]', text: 'text-[#00fa9a]', badgeBg: 'bg-[#00fa9a]/10', badgeBorder: 'border-[#00fa9a]/40' },
+  'judaism': { name: 'Judaism (Star of David)', border: 'border-[#1e90ff]', text: 'text-[#1e90ff]', badgeBg: 'bg-[#1e90ff]/10', badgeBorder: 'border-[#1e90ff]/40' },
+  'hinduism': { name: 'Hinduism (Diwali & Lamps)', border: 'border-[#ff8c00]', text: 'text-[#ff8c00]', badgeBg: 'bg-[#ff8c00]/10', badgeBorder: 'border-[#ff8c00]/40' },
+  'buddhism': { name: 'Buddhism (Lotus & Peace)', border: 'border-[#dda0dd]', text: 'text-[#dda0dd]', badgeBg: 'bg-[#dda0dd]/10', badgeBorder: 'border-[#dda0dd]/40' },
+  'mothers-day': { name: "Mother's Day", border: 'border-[#ffb6c1]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40' },
+  'fathers-day': { name: "Father's Day", border: 'border-[#4682b4]', text: 'text-[#4682b4]', badgeBg: 'bg-[#4682b4]/10', badgeBorder: 'border-[#4682b4]/40' },
+  'day-of-the-dead': { name: 'Day of the Dead (Día de los Muertos)', border: 'border-[#ff6347]', text: 'text-[#ff6347]', badgeBg: 'bg-[#ff6347]/10', badgeBorder: 'border-[#ff6347]/40' },
+  'graduation': { name: 'Graduation', border: 'border-[#9370db]', text: 'text-[#9370db]', badgeBg: 'bg-[#9370db]/10', badgeBorder: 'border-[#9370db]/40' },
+  'get-well': { name: 'Get Well Soon', border: 'border-[#98fb98]', text: 'text-[#98fb98]', badgeBg: 'bg-[#98fb98]/10', badgeBorder: 'border-[#98fb98]/40' },
+  'thank-you': { name: 'Thank You / Just Because', border: 'border-[#ffe4e1]', text: 'text-[#ffe4e1]', badgeBg: 'bg-[#ffe4e1]/10', badgeBorder: 'border-[#ffe4e1]/40' },
+  'bffs': { name: "BFFs (Best Friends)", border: 'border-[#ff69b4]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/10', badgeBorder: 'border-[#ff69b4]/40' },
+  'engagement': { name: 'Engagement', border: 'border-[#e0ffff]', text: 'text-[#e0ffff]', badgeBg: 'bg-[#e0ffff]/10', badgeBorder: 'border-[#e0ffff]/40' },
+  'retirement': { name: 'Retirement & Farewell', border: 'border-[#f4a460]', text: 'text-[#f4a460]', badgeBg: 'bg-[#f4a460]/10', badgeBorder: 'border-[#f4a460]/40' },
+  'new-years': { name: "New Year's Eve", border: 'border-[#silver]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40' },
 };
 
 function ActivateForm() {
@@ -120,7 +108,6 @@ function ActivateForm() {
 
   const drawParticle = (ctx: CanvasRenderingContext2D, themeKey: string, size: number) => {
     if (themeKey === 'executive-light') {
-      // Corporate Lumina: Sleek Platinum Prism Light Bars
       ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
       ctx.shadowBlur = 12;
       ctx.fillStyle = '#e5e4e2';
@@ -133,11 +120,37 @@ function ActivateForm() {
     ctx.textBaseline = 'middle';
 
     let emoji = '✨';
-    if (themeKey === 'gold-confetti') emoji = '✨';
-    else if (themeKey === 'ruby-petal') emoji = '🌹';
-    else if (themeKey === 'eternal-dove') emoji = '🕊️';
-    else if (themeKey === 'gender-reveal') emoji = '🍼';
-    else if (themeKey === 'wealth-glamour') emoji = '💎';
+    switch (themeKey) {
+      case 'gold-confetti': emoji = '✨'; break;
+      case 'eternal-dove': emoji = '🕊️'; break;
+      case 'gender-reveal': emoji = '🍼'; break;
+      case 'ruby-petal': emoji = '🌹'; break;
+      case 'wealth-glamour': emoji = '💎'; break;
+      case 'birthday': emoji = '🎂'; break;
+      case 'christmas': emoji = '🎄'; break;
+      case 'halloween': emoji = '🎃'; break;
+      case 'valentines': emoji = '❤️'; break;
+      case 'april-fools': emoji = '🤣'; break;
+      case 'veterans-day': emoji = '🎖️'; break;
+      case 'fourth-of-july': emoji = '🎆'; break;
+      case 'thanksgiving': emoji = '🦃'; break;
+      case 'christianity': emoji = '✝️'; break;
+      case 'islam': emoji = '☪️'; break;
+      case 'judaism': emoji = '✡️'; break;
+      case 'hinduism': emoji = '🪔'; break;
+      case 'buddhism': emoji = '🪷'; break;
+      case 'mothers-day': emoji = '💐'; break;
+      case 'fathers-day': emoji = '👔'; break;
+      case 'day-of-the-dead': emoji = '💀'; break;
+      case 'graduation': emoji = '🎓'; break;
+      case 'get-well': emoji = '🌻'; break;
+      case 'thank-you': emoji = '🙏'; break;
+      case 'bffs': emoji = '👯'; break;
+      case 'engagement': emoji = '💍'; break;
+      case 'retirement': emoji = '🌅'; break;
+      case 'new-years': emoji = '🥂'; break;
+      default: emoji = '✨';
+    }
 
     ctx.fillText(emoji, 0, 0);
   };
@@ -267,7 +280,7 @@ function ActivateForm() {
     <div className="max-w-[520px] w-full bg-[#101014]/92 border border-[#d4af37]/40 rounded-xl p-6 md:p-8 shadow-[0_0_35px_rgba(212,175,55,0.15)] backdrop-blur-md space-y-6">
       <div className="text-center space-y-2">
         <div className="inline-block px-4 py-1.5 border border-[#d4af37]/40 rounded-[30px] text-[10px] tracking-[2.5px] uppercase text-[#f4e6b0] bg-[#d4af37]/10">
-          ✦ Aura & Archive Activation ✦
+          ✦ Aura & Archive Universal ✦
         </div>
         <h1 className="font-serif text-[22px] uppercase text-[#d4af37] tracking-[2px]">
           Configure Ceremony
@@ -367,12 +380,45 @@ function ActivateForm() {
             onChange={(e) => setEffectType(e.target.value)}
             className="w-full bg-black/60 border border-[#d4af37]/35 p-3.5 text-[#f4e6b0] rounded text-[13px] tracking-wider focus:outline-none focus:border-[#d4af37]"
           >
-            <option value="gold-confetti">✦ Aura Gold (Celebrations & Milestones)</option>
-            <option value="executive-light">✦ Corporate Lumina (Professional & Commercial Prism Lines)</option>
-            <option value="eternal-dove">✦ Eternal Remembrance (Condolences & Memorials)</option>
-            <option value="gender-reveal">✦ New Arrival (Baby Showers & Gender Reveals)</option>
-            <option value="ruby-petal">✦ Crimson Romance (Anniversaries & Proposals)</option>
-            <option value="wealth-glamour">✦ Wealth & Glamour (Luxury Diamonds)</option>
+            <optgroup label="Luxury & Milestones">
+              <option value="gold-confetti">✦ Aura Gold (Celebrations)</option>
+              <option value="executive-light">✦ Corporate Lumina (Prism Bars)</option>
+              <option value="wealth-glamour">✦ Wealth & Glamour (Diamonds)</option>
+              <option value="ruby-petal">✦ Crimson Romance & Anniversary</option>
+            </optgroup>
+            <optgroup label="Holidays & Seasons">
+              <option value="birthday">🎂 Happy Birthday</option>
+              <option value="christmas">🎄 Winter & Christmas</option>
+              <option value="halloween">🎃 Halloween</option>
+              <option value="valentines">❤️ Valentine's Day</option>
+              <option value="april-fools">🤣 April Fools & Humor</option>
+              <option value="thanksgiving">🦃 Thanksgiving</option>
+              <option value="fourth-of-july">🎆 Fourth of July</option>
+              <option value="new-years">🥂 New Year's Eve</option>
+            </optgroup>
+            <optgroup label="Faith & Heritage">
+              <option value="christianity">✝️ Christianity</option>
+              <option value="islam">☪️ Islam</option>
+              <option value="judaism">✡️ Judaism</option>
+              <option value="hinduism">🪔 Hinduism (Diwali)</option>
+              <option value="buddhism">☸️ Buddhism</option>
+            </optgroup>
+            <optgroup label="Family & Life Milestones">
+              <option value="mothers-day">💐 Mother's Day</option>
+              <option value="fathers-day">👔 Father's Day</option>
+              <option value="gender-reveal">🍼 New Arrival</option>
+              <option value="graduation">🎓 Graduation</option>
+              <option value="engagement">💍 Engagement</option>
+              <option value="retirement">🌅 Retirement & Farewell</option>
+              <option value="day-of-the-dead">💀 Day of the Dead (Día de los Muertos)</option>
+              <option value="eternal-dove">🕊️ Eternal Remembrance</option>
+            </optgroup>
+            <optgroup label="Appreciation & Connection">
+              <option value="veterans-day">🎖️ Veteran Appreciation</option>
+              <option value="get-well">🌻 Get Well Soon</option>
+              <option value="thank-you">🙏 Thank You / Just Because</option>
+              <option value="bffs">👯 BFF's (Best Friends)</option>
+            </optgroup>
           </select>
         </div>
 
@@ -399,7 +445,6 @@ function ActivateForm() {
         </div>
       </form>
 
-      {/* Theme-Adaptive Live Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className={`max-w-[500px] w-full bg-[#101014] border ${currentTheme.border} rounded-xl p-6 text-center space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto`}>
@@ -410,7 +455,7 @@ function ActivateForm() {
               ✕ Close
             </button>
             <div className={`inline-block px-3 py-1 border ${currentTheme.badgeBorder} rounded-full text-[10px] uppercase text-[#f4e6b0] ${currentTheme.badgeBg}`}>
-              ✦ Live Ceremony Preview ({currentTheme.name}) ✦
+              ✦ Live Preview ({currentTheme.name}) ✦
             </div>
             <h2 className={`text-lg font-serif uppercase ${currentTheme.text}`}>Unsealing Preview</h2>
             
@@ -453,7 +498,7 @@ function ActivateForm() {
 export default function ActivatePage() {
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center p-4">
-      <Suspense fallback={<div className="text-[#d4af37] text-sm animate-pulse">Loading activation portal...</div>}>
+      <Suspense fallback={<div className="text-[#d4af37] text-sm animate-pulse">Loading universal activation portal...</div>}>
         <ActivateForm />
       </Suspense>
     </div>

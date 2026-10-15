@@ -5,66 +5,41 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
 const DEMO_PREVIEW_DATA = {
-  message_text: "Welcome to the Aura & Archive Experience. A seamless fusion of physical luxury and digital narrative.",
+  message_text: "Welcome to the Aura & Archive Experience. The all-in-one universal greeting card platform.",
   media_url: "/AA-Demo.mp4",
   effect_type: "gold-confetti",
 };
 
 const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string }> = {
-  'gold-confetti': {
-    name: 'Aura Gold',
-    border: 'border-[#d4af37]',
-    glow: 'shadow-[0_0_35px_rgba(212,175,55,0.2)]',
-    text: 'text-[#d4af37]',
-    badgeBg: 'bg-[#d4af37]/10',
-    badgeBorder: 'border-[#d4af37]/40',
-    buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black',
-  },
-  'executive-light': {
-    name: 'Corporate Lumina',
-    border: 'border-[#e5e4e2]',
-    glow: 'shadow-[0_0_35px_rgba(229,228,226,0.2)]',
-    text: 'text-[#e5e4e2]',
-    badgeBg: 'bg-[#e5e4e2]/10',
-    badgeBorder: 'border-[#e5e4e2]/40',
-    buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] text-black',
-  },
-  'eternal-dove': {
-    name: 'Eternal Remembrance',
-    border: 'border-[#f0f8ff]',
-    glow: 'shadow-[0_0_35px_rgba(240,248,255,0.15)]',
-    text: 'text-[#f0f8ff]',
-    badgeBg: 'bg-white/10',
-    badgeBorder: 'border-white/30',
-    buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] text-black',
-  },
-  'gender-reveal': {
-    name: 'New Arrival',
-    border: 'border-[#ffb6c1]',
-    glow: 'shadow-[0_0_35px_rgba(255,182,193,0.25)]',
-    text: 'text-[#ffb6c1]',
-    badgeBg: 'bg-[#ffb6c1]/10',
-    badgeBorder: 'border-[#ffb6c1]/40',
-    buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#87ceeb] text-black',
-  },
-  'ruby-petal': {
-    name: 'Crimson Romance',
-    border: 'border-[#dc143c]',
-    glow: 'shadow-[0_0_35px_rgba(220,20,60,0.25)]',
-    text: 'text-[#ff69b4]',
-    badgeBg: 'bg-[#dc143c]/15',
-    badgeBorder: 'border-[#dc143c]/40',
-    buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] text-white',
-  },
-  'wealth-glamour': {
-    name: 'Wealth & Glamour',
-    border: 'border-[#b9f2ff]',
-    glow: 'shadow-[0_0_35px_rgba(185,242,255,0.25)]',
-    text: 'text-[#b9f2ff]',
-    badgeBg: 'bg-[#b9f2ff]/10',
-    badgeBorder: 'border-[#b9f2ff]/40',
-    buttonBg: 'bg-gradient-to-r from-[#b9f2ff] to-[#ffffff] text-black',
-  },
+  'gold-confetti': { name: 'Aura Gold', border: 'border-[#d4af37]', glow: 'shadow-[0_0_35px_rgba(212,175,55,0.2)]', text: 'text-[#d4af37]', badgeBg: 'bg-[#d4af37]/10', badgeBorder: 'border-[#d4af37]/40', buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black' },
+  'executive-light': { name: 'Corporate Lumina', border: 'border-[#e5e4e2]', glow: 'shadow-[0_0_35px_rgba(229,228,226,0.2)]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40', buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] text-black' },
+  'eternal-dove': { name: 'Eternal Remembrance', border: 'border-[#f0f8ff]', glow: 'shadow-[0_0_35px_rgba(240,248,255,0.15)]', text: 'text-[#f0f8ff]', badgeBg: 'bg-white/10', badgeBorder: 'border-white/30', buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] text-black' },
+  'gender-reveal': { name: 'New Arrival', border: 'border-[#ffb6c1]', glow: 'shadow-[0_0_35px_rgba(255,182,193,0.25)]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40', buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#87ceeb] text-black' },
+  'ruby-petal': { name: 'Crimson Romance', border: 'border-[#dc143c]', glow: 'shadow-[0_0_35px_rgba(220,20,60,0.25)]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#dc143c]/15', badgeBorder: 'border-[#dc143c]/40', buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] text-white' },
+  'wealth-glamour': { name: 'Wealth & Glamour', border: 'border-[#b9f2ff]', glow: 'shadow-[0_0_35px_rgba(185,242,255,0.25)]', text: 'text-[#b9f2ff]', badgeBg: 'bg-[#b9f2ff]/10', badgeBorder: 'border-[#b9f2ff]/40', buttonBg: 'bg-gradient-to-r from-[#b9f2ff] to-[#ffffff] text-black' },
+  'birthday': { name: 'Happy Birthday', border: 'border-[#ffd700]', glow: 'shadow-[0_0_35px_rgba(255,215,0,0.25)]', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/10', badgeBorder: 'border-[#ffd700]/40', buttonBg: 'bg-gradient-to-r from-[#ffd700] to-[#ffffff] text-black' },
+  'christmas': { name: 'Winter & Christmas', border: 'border-[#ff4d4d]', glow: 'shadow-[0_0_35px_rgba(255,77,77,0.25)]', text: 'text-[#ff4d4d]', badgeBg: 'bg-[#ff4d4d]/10', badgeBorder: 'border-[#ff4d4d]/40', buttonBg: 'bg-gradient-to-r from-[#ff4d4d] to-[#00aa55] text-white' },
+  'halloween': { name: 'Halloween', border: 'border-[#ff9900]', glow: 'shadow-[0_0_35px_rgba(255,153,0,0.25)]', text: 'text-[#ff9900]', badgeBg: 'bg-[#ff9900]/10', badgeBorder: 'border-[#ff9900]/40', buttonBg: 'bg-gradient-to-r from-[#ff9900] to-[#333333] text-white' },
+  'valentines': { name: "Valentine's Day", border: 'border-[#ff1493]', glow: 'shadow-[0_0_35px_rgba(255,20,147,0.25)]', text: 'text-[#ff1493]', badgeBg: 'bg-[#ff1493]/10', badgeBorder: 'border-[#ff1493]/40', buttonBg: 'bg-gradient-to-r from-[#ff1493] to-[#ffb6c1] text-white' },
+  'april-fools': { name: 'April Fools & Humor', border: 'border-[#00ffcc]', glow: 'shadow-[0_0_35px_rgba(0,255,204,0.25)]', text: 'text-[#00ffcc]', badgeBg: 'bg-[#00ffcc]/10', badgeBorder: 'border-[#00ffcc]/40', buttonBg: 'bg-gradient-to-r from-[#00ffcc] to-[#ffff00] text-black' },
+  'veterans-day': { name: 'Veteran Appreciation', border: 'border-[#4169e1]', glow: 'shadow-[0_0_35px_rgba(65,105,225,0.25)]', text: 'text-[#4169e1]', badgeBg: 'bg-[#4169e1]/10', badgeBorder: 'border-[#4169e1]/40', buttonBg: 'bg-gradient-to-r from-[#4169e1] to-[#ffffff] text-black' },
+  'fourth-of-july': { name: 'Fourth of July', border: 'border-[#ff3333]', glow: 'shadow-[0_0_35px_rgba(255,51,51,0.25)]', text: 'text-[#ff3333]', badgeBg: 'bg-[#ff3333]/10', badgeBorder: 'border-[#ff3333]/40', buttonBg: 'bg-gradient-to-r from-[#ff3333] to-[#ffffff] text-black' },
+  'thanksgiving': { name: 'Thanksgiving', border: 'border-[#ff8c00]', glow: 'shadow-[0_0_35px_rgba(255,140,0,0.25)]', text: 'text-[#ff8c00]', badgeBg: 'bg-[#ff8c00]/10', badgeBorder: 'border-[#ff8c00]/40', buttonBg: 'bg-gradient-to-r from-[#ff8c00] to-[#deb887] text-black' },
+  'christianity': { name: 'Christianity', border: 'border-[#ffffff]', glow: 'shadow-[0_0_35px_rgba(255,255,255,0.25)]', text: 'text-[#ffffff]', badgeBg: 'bg-white/10', badgeBorder: 'border-white/30', buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] text-black' },
+  'islam': { name: 'Islam', border: 'border-[#00fa9a]', glow: 'shadow-[0_0_35px_rgba(0,250,154,0.25)]', text: 'text-[#00fa9a]', badgeBg: 'bg-[#00fa9a]/10', badgeBorder: 'border-[#00fa9a]/40', buttonBg: 'bg-gradient-to-r from-[#00fa9a] to-[#ffffff] text-black' },
+  'judaism': { name: 'Judaism', border: 'border-[#1e90ff]', glow: 'shadow-[0_0_35px_rgba(30,144,255,0.25)]', text: 'text-[#1e90ff]', badgeBg: 'bg-[#1e90ff]/10', badgeBorder: 'border-[#1e90ff]/40', buttonBg: 'bg-gradient-to-r from-[#1e90ff] to-[#ffffff] text-black' },
+  'hinduism': { name: 'Hinduism', border: 'border-[#ff8c00]', glow: 'shadow-[0_0_35px_rgba(255,140,0,0.25)]', text: 'text-[#ff8c00]', badgeBg: 'bg-[#ff8c00]/10', badgeBorder: 'border-[#ff8c00]/40', buttonBg: 'bg-gradient-to-r from-[#ff8c00] to-[#ffd700] text-black' },
+  'buddhism': { name: 'Buddhism', border: 'border-[#dda0dd]', glow: 'shadow-[0_0_35px_rgba(221,160,221,0.25)]', text: 'text-[#dda0dd]', badgeBg: 'bg-[#dda0dd]/10', badgeBorder: 'border-[#dda0dd]/40', buttonBg: 'bg-gradient-to-r from-[#dda0dd] to-[#ffffff] text-black' },
+  'mothers-day': { name: "Mother's Day", border: 'border-[#ffb6c1]', glow: 'shadow-[0_0_35px_rgba(255,182,193,0.25)]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40', buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#ff1493] text-white' },
+  'fathers-day': { name: "Father's Day", border: 'border-[#4682b4]', glow: 'shadow-[0_0_35px_rgba(70,130,180,0.25)]', text: 'text-[#4682b4]', badgeBg: 'bg-[#4682b4]/10', badgeBorder: 'border-[#4682b4]/40', buttonBg: 'bg-gradient-to-r from-[#4682b4] to-[#ffffff] text-black' },
+  'day-of-the-dead': { name: 'Day of the Dead', border: 'border-[#ff6347]', glow: 'shadow-[0_0_35px_rgba(255,99,71,0.25)]', text: 'text-[#ff6347]', badgeBg: 'bg-[#ff6347]/10', badgeBorder: 'border-[#ff6347]/40', buttonBg: 'bg-gradient-to-r from-[#ff6347] to-[#ffd700] text-black' },
+  'graduation': { name: 'Graduation', border: 'border-[#9370db]', glow: 'shadow-[0_0_35px_rgba(147,112,219,0.25)]', text: 'text-[#9370db]', badgeBg: 'bg-[#9370db]/10', badgeBorder: 'border-[#9370db]/40', buttonBg: 'bg-gradient-to-r from-[#9370db] to-[#ffd700] text-black' },
+  'get-well': { name: 'Get Well Soon', border: 'border-[#98fb98]', glow: 'shadow-[0_0_35px_rgba(152,251,152,0.25)]', text: 'text-[#98fb98]', badgeBg: 'bg-[#98fb98]/10', badgeBorder: 'border-[#98fb98]/40', buttonBg: 'bg-gradient-to-r from-[#98fb98] to-[#ffffff] text-black' },
+  'thank-you': { name: 'Thank You', border: 'border-[#ffe4e1]', glow: 'shadow-[0_0_35px_rgba(255,228,225,0.25)]', text: 'text-[#ffe4e1]', badgeBg: 'bg-[#ffe4e1]/10', badgeBorder: 'border-[#ffe4e1]/40', buttonBg: 'bg-gradient-to-r from-[#ffe4e1] to-[#ffb6c1] text-black' },
+  'bffs': { name: "BFF's", border: 'border-[#ff69b4]', glow: 'shadow-[0_0_35px_rgba(255,105,180,0.25)]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/10', badgeBorder: 'border-[#ff69b4]/40', buttonBg: 'bg-gradient-to-r from-[#ff69b4] to-[#ff1493] text-white' },
+  'engagement': { name: 'Engagement', border: 'border-[#e0ffff]', glow: 'shadow-[0_0_35px_rgba(224,255,255,0.25)]', text: 'text-[#e0ffff]', badgeBg: 'bg-[#e0ffff]/10', badgeBorder: 'border-[#e0ffff]/40', buttonBg: 'bg-gradient-to-r from-[#e0ffff] to-[#ffd700] text-black' },
+  'retirement': { name: 'Retirement & Farewell', border: 'border-[#f4a460]', glow: 'shadow-[0_0_35px_rgba(244,164,96,0.25)]', text: 'text-[#f4a460]', badgeBg: 'bg-[#f4a460]/10', badgeBorder: 'border-[#f4a460]/40', buttonBg: 'bg-gradient-to-r from-[#f4a460] to-[#ffffff] text-black' },
+  'new-years': { name: "New Year's Eve", border: 'border-[#e5e4e2]', glow: 'shadow-[0_0_35px_rgba(229,228,226,0.25)]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40', buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffd700] text-black' },
 };
 
 export default function ExperienceClient({ cardId }: { cardId: string }) {
@@ -114,7 +89,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
   const drawParticle = (ctx: CanvasRenderingContext2D, themeKey: string, size: number) => {
     if (themeKey === 'executive-light') {
-      // Platinum Prism Light Bars
       ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
       ctx.shadowBlur = 12;
       ctx.fillStyle = '#e5e4e2';
@@ -127,11 +101,37 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     ctx.textBaseline = 'middle';
 
     let emoji = '✨';
-    if (themeKey === 'gold-confetti') emoji = '✨';
-    else if (themeKey === 'ruby-petal') emoji = '🌹';
-    else if (themeKey === 'eternal-dove') emoji = '🕊️';
-    else if (themeKey === 'gender-reveal') emoji = '🍼';
-    else if (themeKey === 'wealth-glamour') emoji = '💎';
+    switch (themeKey) {
+      case 'gold-confetti': emoji = '✨'; break;
+      case 'eternal-dove': emoji = '🕊️'; break;
+      case 'gender-reveal': emoji = '🍼'; break;
+      case 'ruby-petal': emoji = '🌹'; break;
+      case 'wealth-glamour': emoji = '💎'; break;
+      case 'birthday': emoji = '🎂'; break;
+      case 'christmas': emoji = '🎄'; break;
+      case 'halloween': emoji = '🎃'; break;
+      case 'valentines': emoji = '❤️'; break;
+      case 'april-fools': emoji = '🤣'; break;
+      case 'veterans-day': emoji = '🎖️'; break;
+      case 'fourth-of-july': emoji = '🎆'; break;
+      case 'thanksgiving': emoji = '🦃'; break;
+      case 'christianity': emoji = '✝️'; break;
+      case 'islam': emoji = '☪️'; break;
+      case 'judaism': emoji = '✡️'; break;
+      case 'hinduism': emoji = '🪔'; break;
+      case 'buddhism': emoji = '🪷'; break;
+      case 'mothers-day': emoji = '💐'; break;
+      case 'fathers-day': emoji = '👔'; break;
+      case 'day-of-the-dead': emoji = '💀'; break;
+      case 'graduation': emoji = '🎓'; break;
+      case 'get-well': emoji = '🌻'; break;
+      case 'thank-you': emoji = '🙏'; break;
+      case 'bffs': emoji = '👯'; break;
+      case 'engagement': emoji = '💍'; break;
+      case 'retirement': emoji = '🌅'; break;
+      case 'new-years': emoji = '🥂'; break;
+      default: emoji = '✨';
+    }
 
     ctx.fillText(emoji, 0, 0);
   };
