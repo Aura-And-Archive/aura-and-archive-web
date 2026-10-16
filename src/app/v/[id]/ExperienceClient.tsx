@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
 
 const DEMO_PREVIEW_DATA = {
   recipient_name: "Sarah",
@@ -42,6 +43,7 @@ const THEME_STYLES: Record<string, { border: string; glow: string; text: string;
 };
 
 export default function ExperienceClient({ cardId }: { cardId: string }) {
+  const router = useRouter();
   const [cardData, setCardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -68,6 +70,21 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         return;
       }
 
+      // 1. Check local session draft preview first so preview works instantly
+      const localPreview = sessionStorage.getItem(`preview_${cleanId}`);
+      if (localPreview) {
+        try {
+          const parsed = JSON.parse(localPreview);
+          setCardData(parsed);
+          setIsUnlocked(true);
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error('Error parsing local preview draft', e);
+        }
+      }
+
+      // 2. Fetch live record from Supabase
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -229,50 +246,28 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (now - lastClickTimeRef.current < 120) return;
     lastClickTimeRef.current = now;
 
-    const isDesktop = window.innerWidth > 768;
     const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
+    const count = 45;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2 - 30;
 
-    if (isDesktop) {
-      const count = 45;
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2 - 30;
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = (Math.random() * 16 + 6) * Math.min(scale, 1.4);
 
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = (Math.random() * 16 + 6) * Math.min(scale, 1.4);
-
-        particlesRef.current.push({
-          x: centerX + (Math.random() - 0.5) * 80,
-          y: centerY + (Math.random() - 0.5) * 40,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 5,
-          size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
-          rotation: Math.random() * Math.PI * 2,
-          rotSpeed: (Math.random() - 0.5) * 0.3,
-          opacity: 1,
-          sway: Math.random() * 3,
-          age: 0,
-          themeKey,
-        });
-      }
-    } else {
-      const count = 18;
-
-      for (let i = 0; i < count; i++) {
-        particlesRef.current.push({
-          x: Math.random() * window.innerWidth,
-          y: -20,
-          vx: (Math.random() - 0.5) * 1.5,
-          vy: Math.random() * 2.5 + 1.2,
-          size: (Math.random() * 6 + 10) * Math.min(scale, 1.2),
-          rotation: Math.random() * Math.PI * 2,
-          rotSpeed: (Math.random() - 0.5) * 0.2,
-          opacity: 1,
-          sway: Math.random() * 3,
-          age: 0,
-          themeKey,
-        });
-      }
+      particlesRef.current.push({
+        x: centerX + (Math.random() - 0.5) * 80,
+        y: centerY + (Math.random() - 0.5) * 40,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 5,
+        size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.3,
+        opacity: 1,
+        sway: Math.random() * 3,
+        age: 0,
+        themeKey,
+      });
     }
   };
 
@@ -437,6 +432,13 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
             className="w-full py-3 text-[11px] bg-black/60 border border-[#d4af37]/60 hover:border-[#d4af37] text-[#f4e6b0] font-semibold rounded uppercase tracking-[1.5px] transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.08)]"
           >
             {copied ? '✦ Link Copied to Clipboard ✦' : '✦ Share Gift Note Link ✦'}
+          </button>
+
+          <button 
+            onClick={() => router.push(`/activate?card=${cardId}`)}
+            className="w-full py-3 text-[11px] bg-black/40 border border-white/20 hover:border-[#d4af37] text-slate-300 font-semibold rounded uppercase tracking-[1.5px] transition-all cursor-pointer mt-1"
+          >
+            ← Back to Activation Editor
           </button>
         </div>
       </div>
