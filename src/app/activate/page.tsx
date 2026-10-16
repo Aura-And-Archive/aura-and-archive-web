@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const THEMES = [
   { key: 'gold-confetti', name: 'Aura Gold' },
@@ -36,15 +36,75 @@ const THEMES = [
 
 export default function ActivatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [serialNumber, setSerialNumber] = useState('');
   const [activationCode, setActivationCode] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [messageText, setMessageText] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [effectType, setEffectType] = useState('gold-confetti');
+  
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Auto-populate serial number from URL search params (e.g. /activate?card=AA-1081 or ?id=AA-1081)
+  useEffect(() => {
+    const cardParam = searchParams.get('card') || searchParams.get('id');
+    if (cardParam) {
+      setSerialNumber(cardParam.trim().toUpperCase());
+    }
+  }, [searchParams]);
+
+  // Handle direct file upload to Supabase Storage
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setErrorMsg('');
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setErrorMsg('Supabase environment credentials are missing.');
+      setUploading(false);
+      return;
+    }
+
+    try {
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `gift-media/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('cards-media')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: publicURLData } = supabase.storage
+        .from('cards-media')
+        .getPublicUrl(filePath);
+
+      if (publicURLData?.publicUrl) {
+        setMediaUrl(publicURLData.publicUrl);
+        setSuccessMsg('✦ Media uploaded successfully! ✦');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      }
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setErrorMsg(err.message || 'Failed to upload media file. You can also paste a direct URL below.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleActivateAndSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +129,6 @@ export default function ActivatePage() {
 
     try {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      
       const cleanSerial = serialNumber.trim().toUpperCase();
 
       const payload = {
@@ -86,11 +145,9 @@ export default function ActivatePage() {
         .from('cards')
         .upsert(payload, { onConflict: 'serial_number' });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setSuccessMsg('✦ Card successfully activated & saved! Redirecting to experience... ✦');
+      setSuccessMsg('✦ Card successfully activated & saved! Redirecting... ✦');
       setTimeout(() => {
         router.push(`/v/${cleanSerial}`);
       }, 1500);
@@ -148,7 +205,7 @@ export default function ActivatePage() {
             </label>
             <input
               type="text"
-              placeholder="e.g. 1666 (Leaves card open if blank)"
+              placeholder="e.g. 777 (Leave blank for public open access)"
               value={activationCode}
               onChange={(e) => setActivationCode(e.target.value)}
               className="w-full bg-black/60 border border-[#d4af37]/40 p-3.5 text-white rounded text-sm tracking-wider focus:outline-none focus:border-[#d4af37] transition-all"
@@ -183,18 +240,31 @@ export default function ActivatePage() {
             />
           </div>
 
-          {/* Media Destination */}
+          {/* Multi-Media File Chooser & URL Input */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
-              Media Destination (Photos, Audio, Video, or URL)
+              Media (Upload File or Paste URL)
             </label>
-            <input
-              type="text"
-              placeholder="Paste media link or upload URL (.mp4, .mp3, .jpg, etc.)"
-              value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
-              className="w-full bg-black/60 border border-[#d4af37]/40 p-3.5 text-white rounded text-sm focus:outline-none focus:border-[#d4af37] transition-all"
-            />
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-3">
+                <label className="flex-1 py-3 px-4 bg-black/80 border border-[#d4af37]/50 hover:border-[#d4af37] text-[#f4e6b0] text-xs font-semibold uppercase tracking-wider rounded cursor-pointer text-center transition-all shadow-sm">
+                  {uploading ? 'Uploading Media...' : '📁 Choose Media File (Video, Audio, Photo)'}
+                  <input
+                    type="file"
+                    accept="video/*,audio/*,image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <input
+                type="text"
+                placeholder="Or paste direct media URL (.mp4, .mp3, .jpg, etc.)"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                className="w-full bg-black/60 border border-[#d4af37]/40 p-3.5 text-white rounded text-sm focus:outline-none focus:border-[#d4af37] transition-all"
+              />
+            </div>
           </div>
 
           {/* Gift Note Theme */}
@@ -229,7 +299,7 @@ export default function ActivatePage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || uploading}
               className="flex-1 py-3.5 bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] hover:brightness-110 text-black font-semibold rounded text-[11px] uppercase tracking-[1.5px] transition-all cursor-pointer shadow-[0_0_20px_rgba(212,175,55,0.2)] disabled:opacity-50"
             >
               {loading ? 'Saving Activation...' : 'Activate & Save ✦'}
