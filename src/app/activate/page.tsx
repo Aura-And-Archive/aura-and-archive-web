@@ -50,6 +50,7 @@ function ActivateForm() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Auto-populate serial number from URL search params (e.g. /activate?card=AA-1081 or ?id=AA-1081)
   useEffect(() => {
     const cardParam = searchParams.get('card') || searchParams.get('id');
     if (cardParam) {
@@ -57,6 +58,7 @@ function ActivateForm() {
     }
   }, [searchParams]);
 
+  // Handle direct file upload to Supabase Storage ('media' bucket, 'card-media' folder)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -77,16 +79,18 @@ function ActivateForm() {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `gift-media/${fileName}`;
+      const filePath = `card-media/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('cards-media')
+        .from('media')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        throw uploadError;
+      }
 
       const { data: publicURLData } = supabase.storage
-        .from('cards-media')
+        .from('media')
         .getPublicUrl(filePath);
 
       if (publicURLData?.publicUrl) {
@@ -178,6 +182,8 @@ function ActivateForm() {
         </div>
 
         <form onSubmit={handleActivateAndSave} className="space-y-4 text-left">
+          
+          {/* Card Serial Number */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Card Serial Number *
@@ -192,6 +198,7 @@ function ActivateForm() {
             />
           </div>
 
+          {/* Activation Code (Optional Vault PIN) */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Activation Code / Secure PIN (Optional)
@@ -205,6 +212,7 @@ function ActivateForm() {
             />
           </div>
 
+          {/* Recipient Name */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Recipient Name
@@ -218,6 +226,7 @@ function ActivateForm() {
             />
           </div>
 
+          {/* Message Text */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Personal Gift Message
@@ -231,13 +240,15 @@ function ActivateForm() {
             />
           </div>
 
+          {/* Multi-Media File Chooser & URL Input */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Media (Upload File or Paste URL)
             </label>
             <div className="flex flex-col gap-2.5">
-              <label className="flex-1 py-3 px-4 bg-black/80 border border-[#d4af37]/50 hover:border-[#d4af37] text-[#f4e6b0] text-xs font-semibold uppercase tracking-wider rounded cursor-pointer text-center transition-all shadow-sm">
-                {uploading ? 'Uploading Media...' : '📁 Choose Media File (Video, Audio, Photo)'}
+              <label className="flex-1 py-3 px-4 bg-black/80 border border-[#d4af37]/50 hover:border-[#d4af37] text-[#f4e6b0] text-xs font-semibold uppercase tracking-wider rounded cursor-pointer text-center transition-all shadow-sm flex items-center justify-center gap-2">
+                <span>✦</span>
+                <span>{uploading ? 'Uploading Media...' : 'Choose Media File (Video, Audio, Photo)'}</span>
                 <input
                   type="file"
                   accept="video/*,audio/*,image/*"
@@ -255,6 +266,7 @@ function ActivateForm() {
             </div>
           </div>
 
+          {/* Gift Note Theme */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Gift Note Theme & Effect
@@ -292,6 +304,7 @@ function ActivateForm() {
               {loading ? 'Saving Activation...' : 'Activate & Save ✦'}
             </button>
           </div>
+
         </form>
       </div>
     </div>
