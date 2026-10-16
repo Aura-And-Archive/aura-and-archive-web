@@ -5,9 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 
 const DEMO_PREVIEW_DATA = {
   recipient_name: "Sarah",
-  message_text: "To: One of the best mothers ever and future heiress to the Aura & Archive™ empire.\n\nYou are just as glamorous now, as the very first day I met you 😚😊🌹❤️\n\n-William",
+  message_text: "To: One of the best mothers ever...\n\nYou are just as glamorous now, as the very first day I met you 😚😊🌹❤️\n\n-William",
   media_url: "/AA-Demo.mp4",
   effect_type: "wealth-glamour",
+  activation_code: "1666",
 };
 
 const THEME_STYLES: Record<string, { border: string; glow: string; text: string; badgeBg: string; badgeBorder: string; buttonBg: string; name: string }> = {
@@ -44,6 +45,9 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [cardData, setCardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [enteredCode, setEnteredCode] = useState('');
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [codeError, setCodeError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -71,6 +75,9 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
           if (!error && data) {
             setCardData(data);
+            if (!data.activation_code) {
+              setIsUnlocked(true);
+            }
           }
         } catch (err) {
           console.error('Error fetching card data:', err);
@@ -94,7 +101,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       return;
     }
 
-    ctx.font = `${Math.max(20, size * 2.8)}px sans-serif`;
+    ctx.font = `${Math.max(22, size * 2.8)}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -147,19 +154,21 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     if (!ctx) return;
 
     const particles: Array<any> = [];
-    const count = themeKey === 'executive-light' ? 50 : 45;
+    const isDesktop = window.innerWidth > 768;
+    const count = isDesktop ? 80 : 50;
+    const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
 
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * 26,
-        vy: (Math.random() - 0.8) * 20 - 8,
-        size: Math.random() * 8 + 10,
+        x: isDesktop ? Math.random() * window.innerWidth : window.innerWidth / 2,
+        y: isDesktop ? -30 : window.innerHeight / 2 - 40,
+        vx: (Math.random() - 0.5) * 35 * (isDesktop ? 1.5 : 1),
+        vy: (isDesktop ? (Math.random() * 12 + 6) : ((Math.random() - 0.8) * 22 - 10)) * Math.min(scale, 1.4),
+        size: (Math.random() * 10 + 12) * Math.min(scale, 1.3),
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.2,
+        rotSpeed: (Math.random() - 0.5) * 0.3,
         opacity: 1,
-        sway: Math.random() * 2,
+        sway: Math.random() * 3,
       });
     }
 
@@ -171,15 +180,15 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particles.forEach((p) => {
-        p.x += p.vx + Math.sin(elapsed * 0.005 + p.sway) * 0.4;
+        p.x += p.vx + Math.sin(elapsed * 0.004 + p.sway) * 0.6;
         p.y += p.vy;
         if (themeKey !== 'executive-light') {
-          p.vy += 0.75; // Snappy gravitational weight
-          p.vx *= 0.96;
+          p.vy += 0.85;
+          p.vx *= 0.95;
         }
         p.rotation += p.rotSpeed;
 
-        if (elapsed > 1800) p.opacity -= 0.03;
+        if (elapsed > 2000) p.opacity -= 0.035;
 
         if (p.opacity > 0) {
           ctx.save();
@@ -191,7 +200,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
       });
 
-      if (elapsed < 2800) {
+      if (elapsed < 3000) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
@@ -202,10 +211,10 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   };
 
   useEffect(() => {
-    if (cardData) {
+    if (cardData && isUnlocked) {
       triggerGiftNoteEffect(cardData?.effect_type || 'gold-confetti');
     }
-  }, [cardData]);
+  }, [cardData, isUnlocked]);
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
@@ -228,6 +237,61 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     }
   };
 
+  const handleUnlockAttempt = () => {
+    if (enteredCode.trim().toLowerCase() === String(cardData?.activation_code || '').trim().toLowerCase()) {
+      setIsUnlocked(true);
+    } else {
+      setCodeError(true);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-[480px] p-6 mx-auto my-auto min-h-screen flex items-center justify-center text-[#d4af37] text-sm animate-pulse">
+        ✦ LOADING GIFT NOTE...
+      </div>
+    );
+  }
+
+  // Access Code Lock Screen
+  if (cardData?.activation_code && !isUnlocked) {
+    return (
+      <div className="w-full max-w-[480px] p-6 mx-auto my-auto min-h-screen flex flex-col justify-center">
+        <div className="bg-[#101014]/92 border border-[#d4af37]/40 rounded-xl p-8 text-center space-y-5 shadow-[0_0_50px_rgba(212,175,55,0.15)] backdrop-blur-md">
+          <div className="inline-block px-4 py-1.5 border border-[#d4af37]/40 rounded-[30px] text-[10px] tracking-[2.5px] uppercase text-[#f4e6b0] bg-[#d4af37]/10">
+            ✦ Secure Vault ✦
+          </div>
+          <h1 className="font-serif text-[22px] uppercase text-[#d4af37] tracking-[2px]">Protected Gift Note</h1>
+          <p className="text-[12px] text-[#b0aebf] leading-relaxed">Please enter the access code provided with your card to view this secure gift note.</p>
+          
+          <input
+            type="password"
+            value={enteredCode}
+            onChange={(e) => {
+              setEnteredCode(e.target.value);
+              setCodeError(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleUnlockAttempt();
+            }}
+            placeholder="Enter access code..."
+            autoFocus
+            className="w-full bg-black/60 border border-[#d4af37]/40 p-3.5 text-white rounded text-center text-sm tracking-widest focus:outline-none focus:border-[#d4af37] transition-all"
+          />
+          
+          {codeError && <p className="text-xs text-red-400 tracking-wider">Incorrect access code. Please try again.</p>}
+
+          <button
+            onClick={handleUnlockAttempt}
+            className="w-full py-3.5 bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] hover:brightness-110 text-black font-semibold rounded text-[11px] uppercase tracking-[1.5px] cursor-pointer transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+          >
+            Unlock Gift Note ✦
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen">
       <div className={`bg-[#101014]/92 border ${theme.border} rounded-xl p-6 md:p-8 text-center ${theme.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500`}>
@@ -241,9 +305,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         </div>
 
         <div className={`text-left bg-black/40 border ${theme.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
-          {loading ? (
-            <p className="text-center text-sm text-[#b0aebf]">Loading card message...</p>
-          ) : cardData?.message_text || cardData?.recipient_name ? (
+          {cardData?.message_text || cardData?.recipient_name ? (
             <div className="space-y-2">
               {cardData?.recipient_name && (
                 <p className={`text-xs uppercase tracking-widest ${theme.text} font-semibold`}>
