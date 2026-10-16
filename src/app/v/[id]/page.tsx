@@ -2,20 +2,20 @@ import { Metadata } from 'next';
 import ExperienceClient from './ExperienceClient';
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const cardId = params.id;
-  const siteUrl = 'https://aura-and-archive-web-zdqe.vercel.app';
+  const { id } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aura-and-archive-web-zdqe.vercel.app';
 
   return {
     title: `You've Received a Gift Note | Aura & Archive™`,
-    description: `Tap to open your secure luxury gift note experience (Card ID: ${cardId}).`,
+    description: `Tap to open your secure luxury gift note experience (Card ID: ${id}).`,
     openGraph: {
       title: `You've Received a Gift Note ✦ Aura & Archive™`,
       description: `Tap to open your secure luxury gift note experience.`,
-      url: `${siteUrl}/v/${cardId}`,
+      url: `${siteUrl}/v/${id}`,
       siteName: 'Aura & Archive',
       images: [
         {
@@ -36,6 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ExperiencePage({ params }: Props) {
-  return <ExperienceClient cardId={params.id} />;
+export default async function ExperiencePage({ params }: Props) {
+  const { id } = await params;
+  return <ExperienceClient cardId={id} />;
 }
