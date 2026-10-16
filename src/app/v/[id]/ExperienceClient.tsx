@@ -50,11 +50,12 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [codeError, setCodeError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Persistent Particle Pool Refs with Delta Time tracking
+  // Persistent Particle Pool & Throttle Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
+  const lastClickTimeRef = useRef<number>(0);
 
   useEffect(() => {
     async function fetchCardData() {
@@ -95,7 +96,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     fetchCardData();
   }, [cardId]);
 
-  // Persistent single canvas loop with delta-time physics
+  // Persistent single canvas loop with strict 180 particle performance cap
   useEffect(() => {
     if (!isUnlocked) return;
 
@@ -118,37 +119,33 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     lastTimeRef.current = performance.now();
 
     const renderLoop = (currentTime: number) => {
-      // Calculate exact delta time factor (normalized to 60fps / 16.6ms)
       const deltaTime = currentTime - lastTimeRef.current;
       lastTimeRef.current = currentTime;
-      const dtFactor = Math.min(deltaTime / 16.66, 3.0); // Clamp to prevent wild jumps on tab switch
+      const dtFactor = Math.min(deltaTime / 16.66, 3.0);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Update particle positions and ages smoothly across any monitor refresh rate
       particlesRef.current.forEach((p) => {
         p.x += (p.vx + Math.sin(p.age * 0.004 + p.sway) * 0.6) * dtFactor;
         p.y += p.vy * dtFactor;
         if (p.themeKey !== 'executive-light') {
-          p.vy += 0.55 * dtFactor; // Smooth gravity
-          p.vx *= Math.pow(0.96, dtFactor); // Air resistance
+          p.vy += 0.55 * dtFactor;
+          p.vx *= Math.pow(0.96, dtFactor);
         }
         p.rotation += p.rotSpeed * dtFactor;
         p.age += deltaTime;
 
-        // Fade out during the last 1100ms of lifespan
-        if (p.age > 2400) {
-          p.opacity -= 0.025 * dtFactor;
+        if (p.age > 2200) {
+          p.opacity -= 0.03 * dtFactor;
         }
       });
 
-      // Filter out dead particles (max 350 cap to maintain buttery 60fps performance)
+      // Strict performance cap: Max 180 active particles at once to prevent any text-rendering lag
       particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
-      if (particlesRef.current.length > 350) {
-        particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 350);
+      if (particlesRef.current.length > 180) {
+        particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 180);
       }
 
-      // Draw all active particles
       particlesRef.current.forEach((p) => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, p.opacity);
@@ -226,26 +223,29 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     ctx.fillText(emojis[themeKey] || '✨', 0, 0);
   };
 
-  // Trigger burst with natural 360-degree fountain spread from center card/button area
+  // Throttled burst function to prevent spam overload while keeping bursts lush
   const triggerGiftNoteEffect = (themeKey = 'gold-confetti') => {
+    const now = performance.now();
+    if (now - lastClickTimeRef.current < 120) return; // 120ms throttle guard
+    lastClickTimeRef.current = now;
+
     const isDesktop = window.innerWidth > 768;
-    const count = isDesktop ? 45 : 30;
+    const count = isDesktop ? 25 : 18;
     const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
 
-    // Burst from center of screen (where the card container is located)
     const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2 - 50;
+    const centerY = window.innerHeight / 2 - 30;
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = (Math.random() * 18 + 8) * Math.min(scale, 1.4);
+      const speed = (Math.random() * 16 + 6) * Math.min(scale, 1.4);
 
       particlesRef.current.push({
-        x: centerX + (Math.random() - 0.5) * 100,
-        y: centerY + (Math.random() - 0.5) * 50,
+        x: centerX + (Math.random() - 0.5) * 80,
+        y: centerY + (Math.random() - 0.5) * 40,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 4, // Upward initial pop
-        size: (Math.random() * 10 + 12) * Math.min(scale, 1.3),
+        vy: Math.sin(angle) * speed - 5,
+        size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.3,
         opacity: 1,
@@ -256,7 +256,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     }
   };
 
-  // Trigger initial animation upon successful unlock
   useEffect(() => {
     if (cardData && isUnlocked) {
       triggerGiftNoteEffect(cardData?.effect_type || 'gold-confetti');
@@ -300,7 +299,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     );
   }
 
-  // Access Code Lock Screen
   if (cardData?.activation_code && !isUnlocked) {
     return (
       <div className="w-full max-w-[480px] p-6 mx-auto my-auto min-h-screen flex flex-col justify-center">
