@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -34,7 +34,7 @@ const THEMES = [
   { key: 'executive-light', name: 'Corporate Lumina' },
 ];
 
-export default function ActivatePage() {
+function ActivateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -50,7 +50,6 @@ export default function ActivatePage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Auto-populate serial number from URL search params (e.g. /activate?card=AA-1081 or ?id=AA-1081)
   useEffect(() => {
     const cardParam = searchParams.get('card') || searchParams.get('id');
     if (cardParam) {
@@ -58,7 +57,6 @@ export default function ActivatePage() {
     }
   }, [searchParams]);
 
-  // Handle direct file upload to Supabase Storage
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -85,9 +83,7 @@ export default function ActivatePage() {
         .from('cards-media')
         .upload(filePath, file);
 
-      if (uploadError) {
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { data: publicURLData } = supabase.storage
         .from('cards-media')
@@ -100,7 +96,7 @@ export default function ActivatePage() {
       }
     } catch (err: any) {
       console.error('Upload error:', err);
-      setErrorMsg(err.message || 'Failed to upload media file. You can also paste a direct URL below.');
+      setErrorMsg(err.message || 'Failed to upload media file.');
     } finally {
       setUploading(false);
     }
@@ -182,8 +178,6 @@ export default function ActivatePage() {
         </div>
 
         <form onSubmit={handleActivateAndSave} className="space-y-4 text-left">
-          
-          {/* Card Serial Number */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Card Serial Number *
@@ -198,7 +192,6 @@ export default function ActivatePage() {
             />
           </div>
 
-          {/* Activation Code (Optional Vault PIN) */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Activation Code / Secure PIN (Optional)
@@ -212,7 +205,6 @@ export default function ActivatePage() {
             />
           </div>
 
-          {/* Recipient Name */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Recipient Name
@@ -226,7 +218,6 @@ export default function ActivatePage() {
             />
           </div>
 
-          {/* Message Text */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Personal Gift Message
@@ -240,23 +231,20 @@ export default function ActivatePage() {
             />
           </div>
 
-          {/* Multi-Media File Chooser & URL Input */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Media (Upload File or Paste URL)
             </label>
             <div className="flex flex-col gap-2.5">
-              <div className="flex items-center gap-3">
-                <label className="flex-1 py-3 px-4 bg-black/80 border border-[#d4af37]/50 hover:border-[#d4af37] text-[#f4e6b0] text-xs font-semibold uppercase tracking-wider rounded cursor-pointer text-center transition-all shadow-sm">
-                  {uploading ? 'Uploading Media...' : '📁 Choose Media File (Video, Audio, Photo)'}
-                  <input
-                    type="file"
-                    accept="video/*,audio/*,image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
+              <label className="flex-1 py-3 px-4 bg-black/80 border border-[#d4af37]/50 hover:border-[#d4af37] text-[#f4e6b0] text-xs font-semibold uppercase tracking-wider rounded cursor-pointer text-center transition-all shadow-sm">
+                {uploading ? 'Uploading Media...' : '📁 Choose Media File (Video, Audio, Photo)'}
+                <input
+                  type="file"
+                  accept="video/*,audio/*,image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
               <input
                 type="text"
                 placeholder="Or paste direct media URL (.mp4, .mp3, .jpg, etc.)"
@@ -267,7 +255,6 @@ export default function ActivatePage() {
             </div>
           </div>
 
-          {/* Gift Note Theme */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Gift Note Theme & Effect
@@ -305,9 +292,16 @@ export default function ActivatePage() {
               {loading ? 'Saving Activation...' : 'Activate & Save ✦'}
             </button>
           </div>
-
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ActivatePage() {
+  return (
+    <Suspense fallback={<div className="w-full text-center text-[#d4af37] p-10">Loading Portal...</div>}>
+      <ActivateForm />
+    </Suspense>
   );
 }
