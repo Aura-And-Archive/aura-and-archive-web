@@ -48,8 +48,9 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [enteredCode, setEnteredCode] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [codeError, setCodeError] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
 
+  // Persistent Particle Pool & Throttle Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
   const animFrameRef = useRef<number | null>(null);
@@ -95,6 +96,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     fetchCardData();
   }, [cardId]);
 
+  // Persistent single canvas loop with strict 180 particle performance cap
   useEffect(() => {
     if (!isUnlocked) return;
 
@@ -128,8 +130,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         p.x += (p.vx + Math.sin(p.age * 0.004 + p.sway) * 0.6) * dtFactor;
         p.y += p.vy * dtFactor;
         if (p.themeKey !== 'executive-light') {
-          // Gentle gravity on mobile, snappy on desktop
-          p.vy += (isDesktop ? 0.55 : 0.15) * dtFactor; 
+          p.vy += (isDesktop ? 0.55 : 0.15) * dtFactor;
           p.vx *= Math.pow(isDesktop ? 0.96 : 0.98, dtFactor);
         }
         p.rotation += p.rotSpeed * dtFactor;
@@ -140,6 +141,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
       });
 
+      // Strict performance cap: Max 180 active particles at once
       particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
       if (particlesRef.current.length > 180) {
         particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 180);
@@ -231,7 +233,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
 
     if (isDesktop) {
-      // Desktop: Lush center-outward burst fountain
       const count = 45;
       const centerX = window.innerWidth / 2;
       const centerY = window.innerHeight / 2 - 30;
@@ -255,7 +256,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         });
       }
     } else {
-      // Mobile: Silky-smooth, elegant top-down cascading snowfall (no violent center explosion)
       const count = 18;
 
       for (let i = 0; i < count; i++) {
@@ -263,7 +263,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           x: Math.random() * window.innerWidth,
           y: -20,
           vx: (Math.random() - 0.5) * 1.5,
-          vy: Math.random() * 2.5 + 1.2, // Gentle downward drift
+          vy: Math.random() * 2.5 + 1.2,
           size: (Math.random() * 6 + 10) * Math.min(scale, 1.2),
           rotation: Math.random() * Math.PI * 2,
           rotSpeed: (Math.random() - 0.5) * 0.2,
@@ -319,6 +319,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     );
   }
 
+  // Access Code Lock Screen
   if (cardData?.activation_code && !isUnlocked) {
     return (
       <div className="w-full max-w-[480px] p-6 mx-auto my-auto min-h-screen flex flex-col justify-center">
@@ -387,15 +388,39 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         </div>
 
         {cardData?.media_url && (
-          <div className={`relative w-full rounded-lg overflow-hidden border ${theme.badgeBorder} bg-black aspect-video`}>
-            <video
-              ref={videoRef}
-              src={cardData.media_url}
-              controls
-              playsInline
-              preload="metadata"
-              className="w-full h-full object-contain block"
-            />
+          <div className={`relative w-full rounded-lg overflow-hidden border ${theme.badgeBorder} bg-black/60 p-4 flex flex-col items-center justify-center gap-4`}>
+            {/\.(mp3|wav|m4a|aac|ogg)(\?.*)?$/i.test(cardData.media_url) ? (
+              <div className="w-full flex flex-col items-center gap-3 py-2">
+                <div className={`relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 ${theme.border} ${theme.glow} bg-black flex items-center justify-center p-2 shadow-xl animate-pulse`}>
+                  <img 
+                    src="/logo.png" 
+                    alt="Aura & Archive Cover Art" 
+                    className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.4)]"
+                  />
+                </div>
+                <div className="text-center">
+                  <p className={`text-xs uppercase tracking-[2px] ${theme.text} font-semibold`}>✦ Exclusive Audio Note ✦</p>
+                </div>
+                <audio
+                  ref={mediaRef as React.RefObject<HTMLAudioElement>}
+                  src={cardData.media_url}
+                  controls
+                  preload="metadata"
+                  className="w-full mt-2"
+                />
+              </div>
+            ) : (
+              <div className={`relative w-full rounded-lg overflow-hidden border ${theme.badgeBorder} bg-black aspect-video`}>
+                <video
+                  ref={mediaRef as React.RefObject<HTMLVideoElement>}
+                  src={cardData.media_url}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-contain block"
+                />
+              </div>
+            )}
           </div>
         )}
 
