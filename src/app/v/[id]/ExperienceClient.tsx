@@ -188,7 +188,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
         p.rotation += p.rotSpeed;
 
-        if (elapsed > 2000) p.opacity -= 0.035;
+        if (elapsed > 2200) p.opacity -= 0.03;
 
         if (p.opacity > 0) {
           ctx.save();
@@ -200,7 +200,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
       });
 
-      if (elapsed < 3000) {
+      if (elapsed < 3300) {
         animationFrameId = requestAnimationFrame(render);
       } else {
         canvas.remove();
