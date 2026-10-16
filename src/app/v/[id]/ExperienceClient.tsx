@@ -52,6 +52,8 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [codeError, setCodeError] = useState(false);
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
 
+  const cleanSerial = decodeURIComponent(cardId || '').trim().toUpperCase();
+
   // Persistent Particle Pool & Throttle Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
@@ -61,8 +63,12 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
   useEffect(() => {
     async function fetchCardData() {
-      const cleanId = (cardId || '').trim().toUpperCase();
-      const isDemo = cleanId.startsWith('DEMO');
+      if (!cleanSerial) {
+        setLoading(false);
+        return;
+      }
+
+      const isDemo = cleanSerial.startsWith('DEMO');
 
       if (isDemo) {
         setCardData(DEMO_PREVIEW_DATA);
@@ -71,7 +77,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       }
 
       // 1. Check local session draft preview first so preview works instantly
-      const localPreview = sessionStorage.getItem(`preview_${cleanId}`);
+      const localPreview = sessionStorage.getItem(`preview_${cleanSerial}`);
       if (localPreview) {
         try {
           const parsed = JSON.parse(localPreview);
@@ -94,7 +100,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           const { data, error } = await supabase
             .from('cards')
             .select('*')
-            .ilike('serial_number', cardId)
+            .ilike('serial_number', cleanSerial)
             .maybeSingle();
 
           if (!error && data) {
@@ -111,7 +117,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     }
 
     fetchCardData();
-  }, [cardId]);
+  }, [cleanSerial]);
 
   // Persistent single canvas loop with strict 180 particle performance cap
   useEffect(() => {
@@ -362,7 +368,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         
         <div>
           <h1 className={`font-serif text-[24px] uppercase ${theme.text} tracking-[2px]`}>Gift Note Experience</h1>
-          <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cardId}</p>
+          <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1.5">CARD ID: {cleanSerial}</p>
         </div>
 
         <div className={`text-left bg-black/40 border ${theme.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
@@ -435,7 +441,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           </button>
 
           <button 
-            onClick={() => router.push(`/activate?card=${cardId}`)}
+            onClick={() => router.push(`/activate?card=${cleanSerial}`)}
             className="w-full py-3 text-[11px] bg-black/40 border border-white/20 hover:border-[#d4af37] text-slate-300 font-semibold rounded uppercase tracking-[1.5px] transition-all cursor-pointer mt-1"
           >
             ← Back to Activation Editor
