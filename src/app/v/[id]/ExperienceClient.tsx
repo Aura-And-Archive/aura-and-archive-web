@@ -50,6 +50,12 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [codeError, setCodeError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Persistent Particle Pool Refs with Delta Time tracking
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const particlesRef = useRef<Array<any>>([]);
+  const animFrameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(performance.now());
+
   useEffect(() => {
     async function fetchCardData() {
       const cleanId = (cardId || '').trim().toUpperCase();
@@ -88,6 +94,89 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
 
     fetchCardData();
   }, [cardId]);
+
+  // Persistent single canvas loop with delta-time physics
+  useEffect(() => {
+    if (!isUnlocked) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '99999';
+    document.body.appendChild(canvas);
+    canvasRef.current = canvas;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    lastTimeRef.current = performance.now();
+
+    const renderLoop = (currentTime: number) => {
+      // Calculate exact delta time factor (normalized to 60fps / 16.6ms)
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+      const dtFactor = Math.min(deltaTime / 16.66, 3.0); // Clamp to prevent wild jumps on tab switch
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Update particle positions and ages smoothly across any monitor refresh rate
+      particlesRef.current.forEach((p) => {
+        p.x += (p.vx + Math.sin(p.age * 0.004 + p.sway) * 0.6) * dtFactor;
+        p.y += p.vy * dtFactor;
+        if (p.themeKey !== 'executive-light') {
+          p.vy += 0.55 * dtFactor; // Smooth gravity
+          p.vx *= Math.pow(0.96, dtFactor); // Air resistance
+        }
+        p.rotation += p.rotSpeed * dtFactor;
+        p.age += deltaTime;
+
+        // Fade out during the last 1100ms of lifespan
+        if (p.age > 2400) {
+          p.opacity -= 0.025 * dtFactor;
+        }
+      });
+
+      // Filter out dead particles (max 350 cap to maintain buttery 60fps performance)
+      particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
+      if (particlesRef.current.length > 350) {
+        particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 350);
+      }
+
+      // Draw all active particles
+      particlesRef.current.forEach((p) => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.opacity);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        drawParticle(ctx, p.themeKey, p.size);
+        ctx.restore();
+      });
+
+      animFrameRef.current = requestAnimationFrame(renderLoop);
+    };
+
+    animFrameRef.current = requestAnimationFrame(renderLoop);
+
+    const handleResize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (canvasRef.current) canvasRef.current.remove();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isUnlocked]);
 
   const activeThemeKey = cardData?.effect_type || 'gold-confetti';
   const theme = THEME_STYLES[activeThemeKey] || THEME_STYLES['gold-confetti'];
@@ -137,79 +226,37 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     ctx.fillText(emojis[themeKey] || '✨', 0, 0);
   };
 
+  // Trigger burst with natural 360-degree fountain spread from center card/button area
   const triggerGiftNoteEffect = (themeKey = 'gold-confetti') => {
-    const canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.width = '100vw';
-    canvas.style.height = '100vh';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '99999';
-    document.body.appendChild(canvas);
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const particles: Array<any> = [];
     const isDesktop = window.innerWidth > 768;
-    const count = isDesktop ? 80 : 50;
+    const count = isDesktop ? 45 : 30;
     const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
 
+    // Burst from center of screen (where the card container is located)
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2 - 50;
+
     for (let i = 0; i < count; i++) {
-      particles.push({
-        x: isDesktop ? Math.random() * window.innerWidth : window.innerWidth / 2,
-        y: isDesktop ? -30 : window.innerHeight / 2 - 40,
-        vx: (Math.random() - 0.5) * 35 * (isDesktop ? 1.5 : 1),
-        vy: (isDesktop ? (Math.random() * 12 + 6) : ((Math.random() - 0.8) * 22 - 10)) * Math.min(scale, 1.4),
+      const angle = Math.random() * Math.PI * 2;
+      const speed = (Math.random() * 18 + 8) * Math.min(scale, 1.4);
+
+      particlesRef.current.push({
+        x: centerX + (Math.random() - 0.5) * 100,
+        y: centerY + (Math.random() - 0.5) * 50,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 4, // Upward initial pop
         size: (Math.random() * 10 + 12) * Math.min(scale, 1.3),
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.3,
         opacity: 1,
         sway: Math.random() * 3,
+        age: 0,
+        themeKey,
       });
     }
-
-    let animationFrameId: number;
-    const start = Date.now();
-
-    const render = () => {
-      const elapsed = Date.now() - start;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach((p) => {
-        p.x += p.vx + Math.sin(elapsed * 0.004 + p.sway) * 0.6;
-        p.y += p.vy;
-        if (themeKey !== 'executive-light') {
-          p.vy += 0.85;
-          p.vx *= 0.95;
-        }
-        p.rotation += p.rotSpeed;
-
-        if (elapsed > 2200) p.opacity -= 0.03;
-
-        if (p.opacity > 0) {
-          ctx.save();
-          ctx.globalAlpha = Math.max(0, p.opacity);
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rotation);
-          drawParticle(ctx, themeKey, p.size);
-          ctx.restore();
-        }
-      });
-
-      if (elapsed < 3300) {
-        animationFrameId = requestAnimationFrame(render);
-      } else {
-        canvas.remove();
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(render);
   };
 
+  // Trigger initial animation upon successful unlock
   useEffect(() => {
     if (cardData && isUnlocked) {
       triggerGiftNoteEffect(cardData?.effect_type || 'gold-confetti');
