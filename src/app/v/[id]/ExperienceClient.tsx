@@ -50,7 +50,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [codeError, setCodeError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Persistent Particle Pool & Throttle Refs
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
   const animFrameRef = useRef<number | null>(null);
@@ -96,7 +95,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     fetchCardData();
   }, [cardId]);
 
-  // Persistent single canvas loop with strict 180 particle performance cap
   useEffect(() => {
     if (!isUnlocked) return;
 
@@ -122,6 +120,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       const deltaTime = currentTime - lastTimeRef.current;
       lastTimeRef.current = currentTime;
       const dtFactor = Math.min(deltaTime / 16.66, 3.0);
+      const isDesktop = window.innerWidth > 768;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -129,8 +128,9 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         p.x += (p.vx + Math.sin(p.age * 0.004 + p.sway) * 0.6) * dtFactor;
         p.y += p.vy * dtFactor;
         if (p.themeKey !== 'executive-light') {
-          p.vy += 0.55 * dtFactor;
-          p.vx *= Math.pow(0.96, dtFactor);
+          // Gentle gravity on mobile, snappy on desktop
+          p.vy += (isDesktop ? 0.55 : 0.15) * dtFactor; 
+          p.vx *= Math.pow(isDesktop ? 0.96 : 0.98, dtFactor);
         }
         p.rotation += p.rotSpeed * dtFactor;
         p.age += deltaTime;
@@ -140,7 +140,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
       });
 
-      // Strict performance cap: Max 180 active particles at once to prevent any text-rendering lag
       particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
       if (particlesRef.current.length > 180) {
         particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 180);
@@ -223,36 +222,57 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     ctx.fillText(emojis[themeKey] || '✨', 0, 0);
   };
 
-  // Throttled burst function to prevent spam overload while keeping bursts lush
   const triggerGiftNoteEffect = (themeKey = 'gold-confetti') => {
     const now = performance.now();
-    if (now - lastClickTimeRef.current < 120) return; // 120ms throttle guard
+    if (now - lastClickTimeRef.current < 120) return;
     lastClickTimeRef.current = now;
 
     const isDesktop = window.innerWidth > 768;
-    const count = isDesktop ? 25 : 18;
     const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
 
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2 - 30;
+    if (isDesktop) {
+      // Desktop: Lush center-outward burst fountain
+      const count = 45;
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2 - 30;
 
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = (Math.random() * 16 + 6) * Math.min(scale, 1.4);
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = (Math.random() * 16 + 6) * Math.min(scale, 1.4);
 
-      particlesRef.current.push({
-        x: centerX + (Math.random() - 0.5) * 80,
-        y: centerY + (Math.random() - 0.5) * 40,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 5,
-        size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.3,
-        opacity: 1,
-        sway: Math.random() * 3,
-        age: 0,
-        themeKey,
-      });
+        particlesRef.current.push({
+          x: centerX + (Math.random() - 0.5) * 80,
+          y: centerY + (Math.random() - 0.5) * 40,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 5,
+          size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.3,
+          opacity: 1,
+          sway: Math.random() * 3,
+          age: 0,
+          themeKey,
+        });
+      }
+    } else {
+      // Mobile: Silky-smooth, elegant top-down cascading snowfall (no violent center explosion)
+      const count = 18;
+
+      for (let i = 0; i < count; i++) {
+        particlesRef.current.push({
+          x: Math.random() * window.innerWidth,
+          y: -20,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: Math.random() * 2.5 + 1.2, // Gentle downward drift
+          size: (Math.random() * 6 + 10) * Math.min(scale, 1.2),
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.2,
+          opacity: 1,
+          sway: Math.random() * 3,
+          age: 0,
+          themeKey,
+        });
+      }
     }
   };
 
