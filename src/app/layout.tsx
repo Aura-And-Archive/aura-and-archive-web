@@ -16,6 +16,8 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://aura-and-archive-web-zdqe.vercel.app";
+
 export const viewport: Viewport = {
   themeColor: "#070709",
   colorScheme: "dark",
@@ -25,6 +27,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Aura & Archive | Luxury Smart Cards & Interactive Media",
     template: "%s | Aura & Archive",
@@ -43,7 +46,16 @@ export const metadata: Metadata = {
     title: "Aura & Archive | Luxury Smart Cards & Interactive Media",
     description:
       "The physical gateway to digital elegance. Transforming vows, spoken confessions, and cinematic moments into instant luxury experiences.",
+    url: SITE_URL,
     siteName: "Aura & Archive",
+    images: [
+      {
+        url: `${SITE_URL}/logo.png`,
+        width: 800,
+        height: 800,
+        alt: "Aura & Archive Logo",
+      },
+    ],
     locale: "en_US",
     type: "website",
   },
@@ -52,9 +64,11 @@ export const metadata: Metadata = {
     title: "Aura & Archive | Luxury Smart Cards & Interactive Media",
     description:
       "The physical gateway to digital elegance. Transforming vows, spoken confessions, and cinematic moments into instant luxury experiences.",
+    images: [`${SITE_URL}/logo.png`],
   },
   icons: {
     icon: "/favicon.ico",
+    apple: "/logo.png",
   },
 };
 

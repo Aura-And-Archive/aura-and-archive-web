@@ -50,7 +50,6 @@ function ActivateForm() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Auto-populate serial number from URL search params (e.g. /activate?card=AA-1081 or ?id=AA-1081)
   useEffect(() => {
     const cardParam = searchParams.get('card') || searchParams.get('id');
     if (cardParam) {
@@ -58,7 +57,6 @@ function ActivateForm() {
     }
   }, [searchParams]);
 
-  // Handle direct file upload to Supabase Storage ('media' bucket, 'card-media' folder)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -85,9 +83,7 @@ function ActivateForm() {
         .from('media')
         .upload(filePath, file);
 
-      if (uploadError) {
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { data: publicURLData } = supabase.storage
         .from('media')
@@ -111,7 +107,8 @@ function ActivateForm() {
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!serialNumber.trim()) {
+    const cleanSerial = serialNumber.trim().toUpperCase();
+    if (!cleanSerial) {
       setErrorMsg('Please enter a valid Card Serial Number.');
       return;
     }
@@ -129,7 +126,6 @@ function ActivateForm() {
 
     try {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const cleanSerial = serialNumber.trim().toUpperCase();
 
       const payload = {
         serial_number: cleanSerial,
@@ -147,6 +143,8 @@ function ActivateForm() {
 
       if (error) throw error;
 
+      sessionStorage.removeItem(`preview_${cleanSerial}`);
+
       setSuccessMsg('✦ Card successfully activated & saved! Redirecting... ✦');
       setTimeout(() => {
         router.push(`/v/${cleanSerial}`);
@@ -161,11 +159,23 @@ function ActivateForm() {
   };
 
   const handlePreview = () => {
-    if (!serialNumber.trim()) {
+    const cleanSerial = (serialNumber || 'DEMO').trim().toUpperCase();
+    if (!cleanSerial) {
       setErrorMsg('Please enter a serial number to preview.');
       return;
     }
-    router.push(`/v/${serialNumber.trim().toUpperCase()}`);
+
+    const previewPayload = {
+      serial_number: cleanSerial,
+      activation_code: activationCode.trim() || null,
+      recipient_name: recipientName.trim(),
+      message_text: messageText.trim(),
+      media_url: mediaUrl.trim(),
+      effect_type: effectType,
+    };
+    
+    sessionStorage.setItem(`preview_${cleanSerial}`, JSON.stringify(previewPayload));
+    router.push(`/v/${cleanSerial}`);
   };
 
   return (
@@ -183,7 +193,6 @@ function ActivateForm() {
 
         <form onSubmit={handleActivateAndSave} className="space-y-4 text-left">
           
-          {/* Card Serial Number */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Card Serial Number *
@@ -191,14 +200,13 @@ function ActivateForm() {
             <input
               type="text"
               required
-              placeholder="e.g. AA-1081"
+              placeholder="e.g. AA-1083"
               value={serialNumber}
               onChange={(e) => setSerialNumber(e.target.value)}
               className="w-full bg-black/60 border border-[#d4af37]/40 p-3.5 text-white rounded text-sm uppercase tracking-wider focus:outline-none focus:border-[#d4af37] transition-all"
             />
           </div>
 
-          {/* Activation Code (Optional Vault PIN) */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Activation Code / Secure PIN (Optional)
@@ -212,7 +220,6 @@ function ActivateForm() {
             />
           </div>
 
-          {/* Recipient Name */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Recipient Name
@@ -226,7 +233,6 @@ function ActivateForm() {
             />
           </div>
 
-          {/* Message Text */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Personal Gift Message
@@ -240,7 +246,6 @@ function ActivateForm() {
             />
           </div>
 
-          {/* Multi-Media File Chooser & URL Input */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Media (Upload File or Paste URL)
@@ -266,7 +271,6 @@ function ActivateForm() {
             </div>
           </div>
 
-          {/* Gift Note Theme */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-2 font-semibold">
               Gift Note Theme & Effect
