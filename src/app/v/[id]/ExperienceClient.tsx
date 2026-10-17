@@ -69,14 +69,13 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       }
 
       const isDemo = cleanSerial.startsWith('DEMO');
-
       if (isDemo) {
         setCardData(DEMO_PREVIEW_DATA);
         setLoading(false);
         return;
       }
 
-      // 1. Check local session draft preview first so preview works instantly
+      // 1. CHECK SESSION STORAGE FIRST (FOR PREVIEWS)
       const localPreview = sessionStorage.getItem(`preview_${cleanSerial}`);
       if (localPreview) {
         try {
@@ -90,10 +89,10 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
       }
 
-      // 2. Fetch live record from Supabase
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+      // 2. QUERY SUPABASE SECOND (Live committed database records)
       if (supabaseUrl && supabaseAnonKey) {
         try {
           const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -103,16 +102,19 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
             .ilike('serial_number', cleanSerial)
             .maybeSingle();
 
-          if (!error && data) {
+          if (!error && data && data.message_text) {
             setCardData(data);
             if (!data.activation_code) {
               setIsUnlocked(true);
             }
+            setLoading(false);
+            return; // Successfully loaded live database card!
           }
         } catch (err) {
-          console.error('Error fetching card data:', err);
+          console.error('Error fetching card data from Supabase:', err);
         }
       }
+
       setLoading(false);
     }
 
@@ -164,7 +166,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
         }
       });
 
-      // Strict performance cap: Max 180 active particles at once
       particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
       if (particlesRef.current.length > 180) {
         particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 180);
@@ -438,13 +439,6 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
             className="w-full py-3 text-[11px] bg-black/60 border border-[#d4af37]/60 hover:border-[#d4af37] text-[#f4e6b0] font-semibold rounded uppercase tracking-[1.5px] transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.08)]"
           >
             {copied ? '✦ Link Copied to Clipboard ✦' : '✦ Share Gift Note Link ✦'}
-          </button>
-
-          <button 
-            onClick={() => router.push(`/activate?card=${cleanSerial}`)}
-            className="w-full py-3 text-[11px] bg-black/40 border border-white/20 hover:border-[#d4af37] text-slate-300 font-semibold rounded uppercase tracking-[1.5px] transition-all cursor-pointer mt-1"
-          >
-            ← Back to Activation Editor
           </button>
         </div>
       </div>
