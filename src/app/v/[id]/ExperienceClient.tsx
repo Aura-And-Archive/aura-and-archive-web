@@ -50,6 +50,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
   const [enteredCode, setEnteredCode] = useState('');
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [codeError, setCodeError] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
 
   const cleanSerial = decodeURIComponent(cardId || '').trim().toUpperCase();
@@ -71,6 +72,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
       const isDemo = cleanSerial.startsWith('DEMO');
       if (isDemo) {
         setCardData(DEMO_PREVIEW_DATA);
+        setIsPreviewMode(true);
         setLoading(false);
         return;
       }
@@ -82,6 +84,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           const parsed = JSON.parse(localPreview);
           setCardData(parsed);
           setIsUnlocked(true);
+          setIsPreviewMode(true);
           setLoading(false);
           return;
         } catch (e) {
@@ -108,7 +111,7 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
               setIsUnlocked(true);
             }
             setLoading(false);
-            return; // Successfully loaded live database card!
+            return;
           }
         } catch (err) {
           console.error('Error fetching card data from Supabase:', err);
@@ -248,25 +251,28 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
     ctx.fillText(emojis[themeKey] || '✨', 0, 0);
   };
 
+  // Spam-clickable Dual-Mode Bursting Engine (Lightweight append-only array to prevent freezing)
   const triggerGiftNoteEffect = (themeKey = 'gold-confetti') => {
     const now = performance.now();
-    if (now - lastClickTimeRef.current < 120) return;
+    if (now - lastClickTimeRef.current < 50) return; // Ultra-responsive 50ms spam filter
     lastClickTimeRef.current = now;
 
     const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
-    const count = 45;
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2 - 30;
+    const isDesktop = window.innerWidth > 768;
+    const count = isDesktop ? 25 : 35; // Batched count per click for smooth spamming
+
+    const startX = isDesktop ? Math.random() * window.innerWidth : window.innerWidth / 2;
+    const startY = isDesktop ? -20 : window.innerHeight / 2 - 30;
 
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = (Math.random() * 16 + 6) * Math.min(scale, 1.4);
+      const angle = isDesktop ? (Math.random() * Math.PI) + Math.PI * 0.25 : Math.random() * Math.PI * 2;
+      const speed = isDesktop ? (Math.random() * 10 + 4) : (Math.random() * 16 + 6) * Math.min(scale, 1.4);
 
       particlesRef.current.push({
-        x: centerX + (Math.random() - 0.5) * 80,
-        y: centerY + (Math.random() - 0.5) * 40,
+        x: startX + (isDesktop ? (Math.random() - 0.5) * window.innerWidth * 0.8 : (Math.random() - 0.5) * 80),
+        y: startY + (isDesktop ? 0 : (Math.random() - 0.5) * 40),
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 5,
+        vy: isDesktop ? Math.random() * 6 + 2 : Math.sin(angle) * speed - 5,
         size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.3,
@@ -433,6 +439,15 @@ export default function ExperienceClient({ cardId }: { cardId: string }) {
           >
             ✦ Burst Gift Note Animation ✦
           </button>
+
+          {isPreviewMode && (
+            <button 
+              onClick={() => router.push(`/activate?card=${cleanSerial}`)}
+              className="w-full py-3 text-[11px] bg-black/60 border border-[#d4af37]/60 hover:border-[#d4af37] text-[#f4e6b0] font-semibold rounded uppercase tracking-[1.5px] transition-all cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.08)]"
+            >
+              ✦ Back to Editing ✦
+            </button>
+          )}
 
           <button 
             onClick={handleShare}
