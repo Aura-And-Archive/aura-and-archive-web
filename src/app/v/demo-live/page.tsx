@@ -66,9 +66,10 @@ const EMOJI_MAP: Record<string, string> = {
 export default function DemoSandboxPage() {
   const router = useRouter();
   
-  const [recipient, setRecipient] = useState('Sarah');
-  const [message, setMessage] = useState("To: One of the best...\n\nYou just scanned a live flyer card! Test our full experience right here.\n\n-William");
-  const [mediaUrl, setMediaUrl] = useState('/AA-Demo.mp4');
+  // Clean default state with zero pre-filled text
+  const [recipient, setRecipient] = useState('');
+  const [message, setMessage] = useState('');
+  const [mediaUrl, setMediaUrl] = useState('');
   const [mediaFileType, setMediaFileType] = useState<'video' | 'audio' | 'image'>('video');
   const [effectType, setEffectType] = useState('gold-confetti');
   const [isEditing, setIsEditing] = useState(true);
@@ -240,8 +241,9 @@ export default function DemoSandboxPage() {
               <input
                 type="text"
                 value={recipient}
+                placeholder="e.g. Sarah"
                 onChange={(e) => setRecipient(e.target.value)}
-                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm focus:outline-none focus:border-white transition-all`}
+                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm placeholder:text-zinc-600 focus:outline-none focus:border-white transition-all`}
               />
             </div>
 
@@ -252,8 +254,9 @@ export default function DemoSandboxPage() {
               <textarea
                 rows={3}
                 value={message}
+                placeholder="Type your personal note here..."
                 onChange={(e) => setMessage(e.target.value)}
-                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm focus:outline-none focus:border-white transition-all`}
+                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm placeholder:text-zinc-600 focus:outline-none focus:border-white transition-all`}
               />
             </div>
 
@@ -299,8 +302,8 @@ export default function DemoSandboxPage() {
             </div>
 
             <div className={`text-left bg-black/40 border ${activeThemeObj.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
-              <p className={`text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold mb-2`}>To: {recipient}</p>
-              <p className="text-base font-light leading-relaxed whitespace-pre-wrap">{message}</p>
+              <p className={`text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold mb-2`}>To: {recipient || 'A Special Friend'}</p>
+              <p className="text-base font-light leading-relaxed whitespace-pre-wrap">{message || 'Your personal gift message will appear here!'}</p>
             </div>
 
             {mediaUrl && (
