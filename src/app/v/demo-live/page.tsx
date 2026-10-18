@@ -69,7 +69,8 @@ export default function DemoSandboxPage() {
   const [recipient, setRecipient] = useState('Sarah');
   const [message, setMessage] = useState("To: One of the best...\n\nYou just scanned a live flyer card! Test our full experience right here.\n\n-William");
   const [mediaUrl, setMediaUrl] = useState('/AA-Demo.mp4');
-  const [effectType, setEffectType] = useState('wealth-glamour');
+  const [mediaFileType, setMediaFileType] = useState<'video' | 'audio' | 'image'>('video');
+  const [effectType, setEffectType] = useState('gold-confetti'); // Default to Aura Gold
   const [isEditing, setIsEditing] = useState(true);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -82,6 +83,15 @@ export default function DemoSandboxPage() {
   const handleLocalFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.type.startsWith('image/')) {
+      setMediaFileType('image');
+    } else if (file.type.startsWith('audio/')) {
+      setMediaFileType('audio');
+    } else {
+      setMediaFileType('video');
+    }
+
     const localUrl = URL.createObjectURL(file);
     setMediaUrl(localUrl);
   };
@@ -198,7 +208,6 @@ export default function DemoSandboxPage() {
     }
   };
 
-  // Auto-trigger initial emoji burst on entering preview mode
   useEffect(() => {
     if (!isEditing) {
       const timer = setTimeout(() => {
@@ -220,45 +229,55 @@ export default function DemoSandboxPage() {
 
         {isEditing ? (
           <div className="space-y-4 text-left">
-            <h1 className="font-serif text-[22px] uppercase text-[#d4af37] tracking-[2px] text-center">Customize Your Sample Note</h1>
-            <p className="text-[12px] text-[#b0aebf] text-center">Test all 27 themes, custom messages, and media uploads just like a real card!</p>
+            <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px] text-center`}>
+              {activeThemeObj.name} Portal
+            </h1>
+            <p className="text-[12px] text-[#b0aebf] text-center">Configure your custom message, media, and animation theme.</p>
             
             <div>
-              <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-1 font-semibold">Recipient Name</label>
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
+                Recipient Name
+              </label>
               <input
                 type="text"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                className="w-full bg-black/60 border border-[#d4af37]/40 p-3 text-white rounded text-sm focus:outline-none focus:border-[#d4af37]"
+                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm focus:outline-none focus:border-white transition-all`}
               />
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-1 font-semibold">Secret Message</label>
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
+                Personal Gift Message
+              </label>
               <textarea
                 rows={3}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full bg-black/60 border border-[#d4af37]/40 p-3 text-white rounded text-sm focus:outline-none focus:border-[#d4af37]"
+                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm focus:outline-none focus:border-white transition-all`}
               />
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-1 font-semibold">Attach Media (Video / Audio / Photo)</label>
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
+                Media (Upload Photo, Audio, or Video File)
+              </label>
               <input
                 type="file"
                 accept="video/*,audio/*,image/*"
                 onChange={handleLocalFileSelect}
-                className="w-full bg-black/60 border border-[#d4af37]/40 p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110"
+                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
               />
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-widest text-[#d4af37] mb-1 font-semibold">Select Theme & Effect (All 27 Available)</label>
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
+                Gift Note Theme & Effect (All 27 Themes)
+              </label>
               <select
                 value={effectType}
                 onChange={(e) => setEffectType(e.target.value)}
-                className="w-full bg-black/60 border border-[#d4af37]/40 p-3 text-white rounded text-sm focus:outline-none focus:border-[#d4af37] cursor-pointer"
+                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm focus:outline-none focus:border-white cursor-pointer transition-all`}
               >
                 {THEMES.map((t) => (
                   <option key={t.key} value={t.key} className="bg-[#101014] text-white">{t.name}</option>
@@ -268,9 +287,9 @@ export default function DemoSandboxPage() {
 
             <button
               onClick={() => setIsEditing(false)}
-              className={`w-full py-3.5 font-semibold rounded text-[11px] uppercase tracking-[1.5px] cursor-pointer ${activeThemeObj.buttonBg}`}
+              className={`w-full py-3.5 font-semibold rounded text-[11px] uppercase tracking-[1.5px] cursor-pointer shadow-lg transition-all ${activeThemeObj.buttonBg}`}
             >
-              Preview Live Experience ✦
+              Preview Experience ✦
             </button>
           </div>
         ) : (
@@ -287,7 +306,7 @@ export default function DemoSandboxPage() {
 
             {mediaUrl && (
               <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black/60 p-4 flex flex-col items-center justify-center gap-4`}>
-                {/\.(mp3|wav|m4a|aac|ogg|blob)(\?.*)?$/i.test(mediaUrl) || mediaUrl.startsWith('blob:') ? (
+                {mediaFileType === 'image' || (/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(mediaUrl)) ? ( <div className="w-full flex flex-col items-center justify-center"> <img src={mediaUrl} alt="Uploaded Media" className="max-h-[350px] w-auto object-contain rounded-lg shadow-md" /> </div> ) : mediaFileType === 'audio' \vert{}\vert{} (/\.(mp3\vert{}wav\vert{}m4a\vert{}aac\vert{}ogg)(\?.*)?$/i.test(mediaUrl)) ? (
                   <div className="w-full flex flex-col items-center gap-3 py-2">
                     <div className={`relative w-24 h-24 rounded-full overflow-hidden border-2 ${activeThemeObj.border} ${activeThemeObj.glow} bg-black flex items-center justify-center p-2 shadow-xl animate-pulse`}>
                       <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
@@ -308,7 +327,7 @@ export default function DemoSandboxPage() {
                 className={`w-full py-3.5 text-[11px] font-semibold uppercase tracking-[1.5px] rounded cursor-pointer ${activeThemeObj.buttonBg}`} 
                 onClick={triggerEffect}
               >
-                ✦ Spam-Click to Burst Emojis! ✦
+                ✦ Burst Gift Note Animation ✦
               </button>
 
               <button 
