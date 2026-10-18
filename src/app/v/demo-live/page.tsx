@@ -70,7 +70,7 @@ export default function DemoSandboxPage() {
   const [message, setMessage] = useState("To: One of the best...\n\nYou just scanned a live flyer card! Test our full experience right here.\n\n-William");
   const [mediaUrl, setMediaUrl] = useState('/AA-Demo.mp4');
   const [mediaFileType, setMediaFileType] = useState<'video' | 'audio' | 'image'>('video');
-  const [effectType, setEffectType] = useState('gold-confetti'); // Default to Aura Gold
+  const [effectType, setEffectType] = useState('gold-confetti');
   const [isEditing, setIsEditing] = useState(true);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -96,7 +96,6 @@ export default function DemoSandboxPage() {
     setMediaUrl(localUrl);
   };
 
-  // Canvas particle loop
   useEffect(() => {
     if (isEditing) return;
 
@@ -306,7 +305,11 @@ export default function DemoSandboxPage() {
 
             {mediaUrl && (
               <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black/60 p-4 flex flex-col items-center justify-center gap-4`}>
-                {mediaFileType === 'image' || (/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(mediaUrl)) ? ( <div className="w-full flex flex-col items-center justify-center"> <img src={mediaUrl} alt="Uploaded Media" className="max-h-[350px] w-auto object-contain rounded-lg shadow-md" /> </div> ) : mediaFileType === 'audio' \vert{}\vert{} (/\.(mp3\vert{}wav\vert{}m4a\vert{}aac\vert{}ogg)(\?.*)?$/i.test(mediaUrl)) ? (
+                {mediaFileType === 'image' ? (
+                  <div className="w-full flex flex-col items-center justify-center">
+                    <img src={mediaUrl} alt="Uploaded Media" className="max-h-[350px] w-auto object-contain rounded-lg shadow-md" />
+                  </div>
+                ) : mediaFileType === 'audio' ? (
                   <div className="w-full flex flex-col items-center gap-3 py-2">
                     <div className={`relative w-24 h-24 rounded-full overflow-hidden border-2 ${activeThemeObj.border} ${activeThemeObj.glow} bg-black flex items-center justify-center p-2 shadow-xl animate-pulse`}>
                       <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
