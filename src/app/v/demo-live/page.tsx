@@ -86,7 +86,7 @@ export default function DemoSandboxPage() {
     setMediaUrl(localUrl);
   };
 
-  // Canvas particle loop for spam-clickable animations
+  // Canvas particle loop
   useEffect(() => {
     if (isEditing) return;
 
@@ -197,6 +197,16 @@ export default function DemoSandboxPage() {
       });
     }
   };
+
+  // Auto-trigger initial emoji burst on entering preview mode
+  useEffect(() => {
+    if (!isEditing) {
+      const timer = setTimeout(() => {
+        triggerEffect();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isEditing]);
 
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
@@ -313,7 +323,7 @@ export default function DemoSandboxPage() {
                 <a
                   href="/"
                   target="_blank"
-                  className="block w-full py-3 bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black font-bold text-xs uppercase tracking-widest rounded shadow-md"
+                  className="block w-full py-3.5 bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all hover:brightness-110"
                 >
                   Order Your Own Physical Card Now ✦
                 </a>
