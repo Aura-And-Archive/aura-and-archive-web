@@ -1,9 +1,16 @@
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 
 export type MediaType = 'audio' | 'image' | 'video';
 
 export async function uploadMedia(file: File | Blob, type: MediaType, customFileName?: string) {
-  const supabase = createClient();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are missing.');
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
   
   const ext = file.type.split('/')[1]?.split(';')[0] || (type === 'audio' ? 'webm' : 'bin');
   const fileName = customFileName || `${type}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
