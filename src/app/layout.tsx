@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://aura-and-archive-web-zdqe.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://web-zdqe.vercel.app";
 
 export const viewport: Viewport = {
   themeColor: "#070709",
@@ -89,7 +89,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {/* IMMEDIATE ZERO-LATENCY CSS: Fallback styles before main CSS loads */}
+        {/* IMMEDIATE ZERO-LATENCY CSS */}
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -101,7 +101,6 @@ export default function RootLayout({
                 min-height: 100vh;
               }
 
-              /* Immediate Component Styling */
               .btn {
                 display: inline-flex !important;
                 align-items: center !important;

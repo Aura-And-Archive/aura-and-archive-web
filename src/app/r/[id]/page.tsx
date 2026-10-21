@@ -24,10 +24,10 @@ export default async function RedirectPage({
     try {
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-      // Query Supabase using serial_number and check message_text
+      // Query Supabase using serial_number and check message details
       const { data: card, error } = await supabase
         .from('cards')
-        .select('serial_number, message_text, redirect_url')
+        .select('serial_number, message_text, redirect_url, media_url')
         .ilike('serial_number', cleanSerial)
         .maybeSingle();
 
@@ -36,8 +36,8 @@ export default async function RedirectPage({
           redirect(card.redirect_url);
         }
 
-        // If a message is saved, card is activated -> Go straight to experience viewer
-        if (card.message_text && card.message_text.trim().length > 0) {
+        // If a message or media is saved, card is activated -> Go straight to experience viewer
+        if ((card.message_text && card.message_text.trim().length > 0) || (card.media_url && card.media_url.trim().length > 0)) {
           redirect(`/v/${encodeURIComponent(cleanSerial)}`);
         }
       }

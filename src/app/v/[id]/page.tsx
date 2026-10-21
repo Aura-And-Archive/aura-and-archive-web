@@ -5,21 +5,27 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://web-zdqe.vercel.app';
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aura-and-archive-web-zdqe.vercel.app';
+  const cleanId = decodeURIComponent(id || '').trim();
+  const pageUrl = `${SITE_URL}/v/${encodeURIComponent(cleanId)}`;
 
   return {
     title: `You've Received a Gift Note | Aura & Archive™`,
-    description: `Tap to open your secure luxury gift note experience (Card ID: ${id}).`,
+    description: `Tap to open your secure luxury gift note experience (Card ID: ${cleanId}).`,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       title: `You've Received a Gift Note ✦ Aura & Archive™`,
       description: `Tap to open your secure luxury gift note experience.`,
-      url: `${siteUrl}/v/${id}`,
+      url: pageUrl,
       siteName: 'Aura & Archive',
       images: [
         {
-          url: `${siteUrl}/logo.png`,
+          url: `${SITE_URL}/logo.png`,
           width: 1200,
           height: 630,
           alt: 'Aura & Archive Logo',
@@ -31,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: `You've Received a Gift Note ✦ Aura & Archive™`,
       description: `Tap to open your secure luxury gift note experience.`,
-      images: [`${siteUrl}/logo.png`],
+      images: [`${SITE_URL}/logo.png`],
     },
   };
 }

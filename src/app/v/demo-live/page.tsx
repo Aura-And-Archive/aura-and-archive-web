@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import AudioRecorder from '@/components/AudioRecorder';
 
 const THEMES = [
   { key: 'gold-confetti', name: 'Aura Gold', border: 'border-[#d4af37]', glow: 'shadow-[0_0_35px_rgba(212,175,55,0.2)]', text: 'text-[#d4af37]', badgeBg: 'bg-[#d4af37]/10', badgeBorder: 'border-[#d4af37]/40', buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] !text-black' },
@@ -72,6 +73,7 @@ export default function DemoSandboxPage() {
   const [mediaFileType, setMediaFileType] = useState<'video' | 'audio' | 'image'>('video');
   const [effectType, setEffectType] = useState('gold-confetti');
   const [isEditing, setIsEditing] = useState(true);
+  const [inputMode, setInputMode] = useState<'upload' | 'record'>('upload');
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
@@ -260,15 +262,45 @@ export default function DemoSandboxPage() {
             </div>
 
             <div>
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
-                Media Attachment (Photo, Audio, or Video)
-              </label>
-              <input
-                type="file"
-                accept="video/*,audio/*,image/*"
-                onChange={handleLocalFileSelect}
-                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
-              />
+              <div className="flex justify-between items-center mb-1">
+                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold`}>
+                  Media Attachment
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('upload')}
+                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? 'bg-[#d4af37] text-black' : 'bg-black/60 text-zinc-400'}`}
+                  >
+                    Upload File
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('record')}
+                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? 'bg-[#d4af37] text-black' : 'bg-black/60 text-zinc-400'}`}
+                  >
+                    Record Audio
+                  </button>
+                </div>
+              </div>
+
+              {inputMode === 'upload' ? (
+                <input
+                  type="file"
+                  accept="video/*,audio/*,image/*"
+                  onChange={handleLocalFileSelect}
+                  className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
+                />
+              ) : (
+                <div className="mt-2 flex justify-center">
+                  <AudioRecorder
+                    onUploadComplete={(publicUrl) => {
+                      setMediaUrl(publicUrl);
+                      setMediaFileType('audio');
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             <div>
