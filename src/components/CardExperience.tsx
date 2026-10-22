@@ -248,7 +248,7 @@ export default function CardExperience({
       <div className={`bg-[#101014]/95 border ${activeThemeObj.border} rounded-xl p-6 md:p-8 text-center ${activeThemeObj.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500`}>
         
         <div className={`inline-block self-center px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2.5px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
-          AURA AURA ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
+          ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
         </div>
 
         {isEditing && isSandbox ? (
@@ -293,14 +293,14 @@ export default function CardExperience({
                   <button
                     type="button"
                     onClick={() => setInputMode('upload')}
-                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? 'bg-[#d4af37] text-black' : 'bg-black/60 text-zinc-400'}`}
+                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
                   >
                     Upload File
                   </button>
                   <button
                     type="button"
                     onClick={() => setInputMode('record')}
-                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? 'bg-[#d4af37] text-black' : 'bg-black/60 text-zinc-400'}`}
+                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
                   >
                     Record Audio
                   </button>
@@ -317,6 +317,10 @@ export default function CardExperience({
               ) : (
                 <div className="mt-2 flex justify-center">
                   <AudioRecorder
+                    themeBorder={activeThemeObj.border}
+                    themeText={activeThemeObj.text}
+                    themeBadgeBorder={activeThemeObj.badgeBorder}
+                    themeButtonBg={activeThemeObj.buttonBg}
                     onUploadComplete={(publicUrl) => {
                       setMediaUrl(publicUrl);
                       setMediaFileType('audio');
@@ -393,18 +397,18 @@ export default function CardExperience({
               {isSandbox && (
                 <button 
                   onClick={() => setIsEditing(true)}
-                  className="w-full py-3 text-[11px] bg-black/60 border border-[#d4af37]/60 text-[#f4e6b0] font-semibold rounded uppercase tracking-[1.5px] cursor-pointer hover:bg-black/80 transition-all"
+                  className={`w-full py-3 text-[11px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-[1.5px] cursor-pointer hover:bg-black/80 transition-all`}
                 >
                   ✦ Edit Sample Message & Theme ✦
                 </button>
               )}
 
-              <div className="pt-4 border-t border-[#d4af37]/20 text-center space-y-2">
+              <div className={`pt-4 border-t ${activeThemeObj.badgeBorder} text-center space-y-2`}>
                 <p className="text-xs text-[#b0aebf]">Love this interactive smart card? Lock it in permanently.</p>
                 <a
                   href="/"
                   target="_blank"
-                  className="block w-full py-3.5 bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] !text-black font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all hover:brightness-110"
+                  className={`block w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
                 >
                   ORDER YOUR OWN PHYSICAL CARD NOW ✦
                 </a>
