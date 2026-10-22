@@ -5,9 +5,19 @@ import { uploadMedia } from '@/lib/uploadMedia';
 
 interface AudioRecorderProps {
   onUploadComplete?: (publicUrl: string) => void;
+  themeBorder?: string;
+  themeText?: string;
+  themeBadgeBorder?: string;
+  themeButtonBg?: string;
 }
 
-export default function AudioRecorder({ onUploadComplete }: AudioRecorderProps) {
+export default function AudioRecorder({
+  onUploadComplete,
+  themeBorder = 'border-[#d4af37]',
+  themeText = 'text-[#d4af37]',
+  themeBadgeBorder = 'border-[#d4af37]/40',
+  themeButtonBg = 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] text-black',
+}: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -81,13 +91,13 @@ export default function AudioRecorder({ onUploadComplete }: AudioRecorderProps) 
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 border rounded-xl bg-slate-900 text-white max-w-md w-full shadow-lg">
-      <h3 className="text-lg font-semibold">Voice Message</h3>
+    <div className={`flex flex-col items-center gap-4 p-5 border ${themeBadgeBorder} rounded-xl bg-black/60 text-white max-w-md w-full shadow-lg transition-all duration-300`}>
+      <h3 className={`text-sm font-semibold uppercase tracking-wider ${themeText}`}>Voice Message Studio</h3>
 
       {isRecording && (
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 bg-red-500 rounded-full animate-ping" />
-          <span className="font-mono text-xl text-red-400">{formatTimer(timer)}</span>
+          <span className={`font-mono text-xl ${themeText}`}>{formatTimer(timer)}</span>
         </div>
       )}
 
@@ -96,7 +106,7 @@ export default function AudioRecorder({ onUploadComplete }: AudioRecorderProps) 
           <button
             type="button"
             onClick={startRecording}
-            className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 font-medium rounded-lg transition"
+            className={`px-5 py-2.5 font-bold uppercase tracking-wider text-xs rounded-lg transition-all shadow-md ${themeButtonBg}`}
           >
             {audioUrl ? 'Record Again' : 'Record Audio'}
           </button>
@@ -104,7 +114,7 @@ export default function AudioRecorder({ onUploadComplete }: AudioRecorderProps) 
           <button
             type="button"
             onClick={stopRecording}
-            className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 font-medium rounded-lg transition"
+            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 font-bold uppercase tracking-wider text-xs text-white rounded-lg transition shadow-md"
           >
             Stop Recording
           </button>
@@ -118,7 +128,7 @@ export default function AudioRecorder({ onUploadComplete }: AudioRecorderProps) 
             type="button"
             onClick={handleUpload}
             disabled={isUploading}
-            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-medium rounded-lg transition disabled:opacity-50"
+            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 font-bold uppercase tracking-wider text-xs text-white rounded-lg transition disabled:opacity-50 shadow-md"
           >
             {isUploading ? 'Uploading...' : 'Save Voice Recording'}
           </button>
