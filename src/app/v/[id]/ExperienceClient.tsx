@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import CardExperience from '@/components/CardExperience';
 
 interface ExperienceClientProps {
@@ -9,67 +8,45 @@ interface ExperienceClientProps {
 }
 
 export default function ExperienceClient({ cardId }: ExperienceClientProps) {
-  const [cardData, setCardData] = useState<{
-    recipient?: string;
-    message?: string;
-    mediaUrl?: string;
-    theme?: string;
-  } | null>(null);
+  const [cardData, setCardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchCard() {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseAnonKey) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        const cleanSerial = decodeURIComponent(cardId || '').trim().toUpperCase();
-
-        const { data, error } = await supabase
-          .from('cards')
-          .select('recipient_name, message_text, media_url, theme')
-          .ilike('serial_number', cleanSerial)
-          .maybeSingle();
-
-        if (!error && data) {
-          setCardData({
-            recipient: data.recipient_name,
-            message: data.message_text,
-            mediaUrl: data.media_url,
-            theme: data.theme,
-          });
+        const res = await fetch(`/api/cards/${cardId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCardData(data);
         }
       } catch (err) {
-        console.error('Error fetching card experience:', err);
+        console.error('Failed to load card data:', err);
       } finally {
         setLoading(false);
       }
     }
-
     fetchCard();
   }, [cardId]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-xs uppercase tracking-widest text-[#d4af37] animate-pulse">Loading Experience ✦</p>
+      <div className="min-h-screen bg-black text-white flex items-center justify-center font-mono text-xs uppercase tracking-widest">
+        Loading Vault...
       </div>
     );
   }
 
+  // If card is not configured yet, allow sandbox/editing mode so the gifter can setup audio/text
+  const isCardConfigured = cardData?.is_configured ?? false;
+
   return (
     <CardExperience
-      initialRecipient={cardData?.recipient || ''}
+      cardId={cardId}
+      initialRecipient={cardData?.recipient_name || cardData?.recipient || ''}
       initialMessage={cardData?.message || ''}
-      initialMediaUrl={cardData?.mediaUrl || ''}
-      initialTheme={cardData?.theme || 'gold-confetti'}
-      isSandbox={false}
+      initialMediaUrl={cardData?.media_url || cardData?.mediaUrl || ''}
+      initialTheme={cardData?.theme_key || cardData?.theme || 'gold-confetti'}
+      isSandbox={!isCardConfigured}
     />
   );
 }
