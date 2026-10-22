@@ -86,6 +86,7 @@ export default function CardExperience({
   const [mediaFileType, setMediaFileType] = useState<'video' | 'audio' | 'image'>('video');
   const [effectType, setEffectType] = useState(initialTheme);
   const [isEditing, setIsEditing] = useState(isSandbox);
+  const [isPreviewingAsRecipient, setIsPreviewingAsRecipient] = useState(false);
   const [inputMode, setInputMode] = useState<'upload' | 'record'>('upload');
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -96,6 +97,26 @@ export default function CardExperience({
   const lastTimeRef = useRef<number>(performance.now());
   const lastClickTimeRef = useRef<number>(0);
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
+
+  // Auto-load custom parameters if link was shared
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const query = new URLSearchParams(window.location.search);
+      const paramTo = query.get('to');
+      const paramMsg = query.get('msg');
+      const paramMedia = query.get('media');
+      const paramTheme = query.get('theme');
+
+      if (paramTo) setRecipient(paramTo);
+      if (paramMsg) setMessage(paramMsg);
+      if (paramMedia) setMediaUrl(paramMedia);
+      if (paramTheme) setEffectType(paramTheme);
+
+      if (paramTo || paramMsg || paramMedia || paramTheme) {
+        if (isSandbox) setIsPreviewingAsRecipient(true);
+      }
+    }
+  }, [isSandbox]);
 
   useEffect(() => {
     if (initialMediaUrl) {
@@ -127,8 +148,8 @@ export default function CardExperience({
 
   const handleSaveToDatabase = async () => {
     if (isSandbox) {
-      setToastMessage('Card experience locked for live preview!');
-      setIsEditing(false);
+      setIsPreviewingAsRecipient(true);
+      setToastMessage('Entering Recipient Experience Preview ✨');
       return;
     }
 
@@ -142,7 +163,7 @@ export default function CardExperience({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save card configuration.');
       
-      setToastMessage('Card successfully locked & saved to memory vault!');
+      setToastMessage('Card successfully saved & locked in your memory vault ✨');
       setIsEditing(false);
     } catch (err: any) {
       setToastMessage(err.message || 'Error saving card.');
@@ -152,12 +173,27 @@ export default function CardExperience({
   };
 
   const copyVaultLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setToastMessage('Vault link copied to clipboard!');
+    if (isSandbox) {
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      const params = new URLSearchParams();
+
+      if (recipient) params.set('to', recipient);
+      if (message) params.set('msg', message);
+      if (mediaUrl) params.set('media', mediaUrl);
+      if (effectType) params.set('theme', effectType);
+
+      const shareableLink = `${origin}${pathname}?${params.toString()}`;
+      navigator.clipboard.writeText(shareableLink);
+      setToastMessage('Personalized demo link copied to clipboard ✨');
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      setToastMessage('Vault link copied to clipboard ✨');
+    }
   };
 
   useEffect(() => {
-    if (isEditing) return;
+    if (isEditing && !isPreviewingAsRecipient) return;
 
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
@@ -234,7 +270,7 @@ export default function CardExperience({
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (canvasRef.current) canvasRef.current.remove();
     };
-  }, [isEditing]);
+  }, [isEditing, isPreviewingAsRecipient]);
 
   const triggerEffect = () => {
     const now = performance.now();
@@ -268,13 +304,13 @@ export default function CardExperience({
   };
 
   useEffect(() => {
-    if (!isEditing) {
+    if (!isEditing || isPreviewingAsRecipient) {
       const timer = setTimeout(() => {
         triggerEffect();
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isEditing]);
+  }, [isEditing, isPreviewingAsRecipient]);
 
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
@@ -286,7 +322,7 @@ export default function CardExperience({
           ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
         </div>
 
-        {isEditing && isSandbox ? (
+        {isEditing && !isPreviewingAsRecipient ? (
           <div className="space-y-4 text-left">
             <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px] text-center`}>
               {activeThemeObj.name} Portal
@@ -356,7 +392,8 @@ export default function CardExperience({
                   className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
                 />
               ) : (
-                <div className="mt-2 flex justify-center">
+                <div className="mt-2 flex flex-col items-center gap-2">
+                  <p className="text-[10px] text-[#b0aebf] italic">Note: Tap Allow on your browser's microphone permission prompt.</p>
                   <AudioRecorder
                     themeBorder={activeThemeObj.border}
                     themeText={activeThemeObj.text}
@@ -403,7 +440,7 @@ export default function CardExperience({
             </div>
 
             <button
-              onClick={() => setIsEditing(false)}
+              onClick={() => setIsPreviewingAsRecipient(true)}
               className={`w-full py-3.5 font-bold rounded text-[11px] uppercase tracking-[1.5px] cursor-pointer shadow-lg transition-all ${activeThemeObj.buttonBg}`}
             >
               Preview Live Card Experience ✦
@@ -454,7 +491,7 @@ export default function CardExperience({
               {isSandbox && (
                 <div className="flex gap-2">
                   <button 
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => setIsPreviewingAsRecipient(false)}
                     className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
                   >
                     Edit Message
@@ -473,7 +510,7 @@ export default function CardExperience({
                 disabled={isSaving}
                 className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
               >
-                {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
+                {isSaving ? 'Saving Vault...' : isSandbox ? 'TEST RECIPIENT VIEW ✦' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
               </button>
 
               <div className={`pt-4 border-t ${activeThemeObj.badgeBorder} text-center space-y-2`}>
@@ -507,7 +544,7 @@ export default function CardExperience({
               onClick={() => setToastMessage(null)}
               className={`w-full py-2.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded transition-all cursor-pointer ${activeThemeObj.buttonBg}`}
             >
-              Acknowledge ✦
+              CONTINUE ✦
             </button>
           </div>
         </div>

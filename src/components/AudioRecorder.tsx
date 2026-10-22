@@ -78,7 +78,7 @@ export default function AudioRecorder({
     try {
       const { publicUrl } = await uploadMedia(audioBlob, 'audio');
       if (onUploadComplete) onUploadComplete(publicUrl);
-      if (onShowToast) onShowToast('Audio recording saved successfully!');
+      if (onShowToast) onShowToast('Voice note recorded & saved successfully ✨');
     } catch (err: any) {
       if (onShowToast) onShowToast(err.message || 'Error uploading recording.');
     } finally {
