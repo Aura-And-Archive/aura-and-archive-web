@@ -5,6 +5,7 @@ import { uploadMedia } from '@/lib/uploadMedia';
 
 interface AudioRecorderProps {
   onUploadComplete?: (publicUrl: string) => void;
+  onShowToast?: (message: string) => void;
   themeBorder?: string;
   themeText?: string;
   themeBadgeBorder?: string;
@@ -13,6 +14,7 @@ interface AudioRecorderProps {
 
 export default function AudioRecorder({
   onUploadComplete,
+  onShowToast,
   themeBorder = 'border-[#d4af37]',
   themeText = 'text-[#d4af37]',
   themeBadgeBorder = 'border-[#d4af37]/40',
@@ -56,7 +58,7 @@ export default function AudioRecorder({
         setTimer((prev) => prev + 1);
       }, 1000);
     } catch (err) {
-      alert('Microphone access denied or not supported.');
+      if (onShowToast) onShowToast('Microphone access denied or not supported.');
       console.error(err);
     }
   };
@@ -76,9 +78,9 @@ export default function AudioRecorder({
     try {
       const { publicUrl } = await uploadMedia(audioBlob, 'audio');
       if (onUploadComplete) onUploadComplete(publicUrl);
-      alert('Audio recording saved successfully!');
+      if (onShowToast) onShowToast('Audio recording saved successfully!');
     } catch (err: any) {
-      alert(err.message || 'Error uploading recording.');
+      if (onShowToast) onShowToast(err.message || 'Error uploading recording.');
     } finally {
       setIsUploading(false);
     }

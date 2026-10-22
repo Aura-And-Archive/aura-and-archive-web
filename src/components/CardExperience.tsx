@@ -88,6 +88,7 @@ export default function CardExperience({
   const [isEditing, setIsEditing] = useState(isSandbox);
   const [inputMode, setInputMode] = useState<'upload' | 'record'>('upload');
   const [isSaving, setIsSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
@@ -126,7 +127,7 @@ export default function CardExperience({
 
   const handleSaveToDatabase = async () => {
     if (isSandbox) {
-      alert('Card experience locked for live preview!');
+      setToastMessage('Card experience locked for live preview!');
       setIsEditing(false);
       return;
     }
@@ -141,10 +142,10 @@ export default function CardExperience({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save card configuration.');
       
-      alert('Card successfully locked & saved to memory vault!');
+      setToastMessage('Card successfully locked & saved to memory vault!');
       setIsEditing(false);
     } catch (err: any) {
-      alert(err.message || 'Error saving card.');
+      setToastMessage(err.message || 'Error saving card.');
     } finally {
       setIsSaving(false);
     }
@@ -152,7 +153,7 @@ export default function CardExperience({
 
   const copyVaultLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    alert('Vault link copied to clipboard!');
+    setToastMessage('Vault link copied to clipboard!');
   };
 
   useEffect(() => {
@@ -361,6 +362,7 @@ export default function CardExperience({
                     themeText={activeThemeObj.text}
                     themeBadgeBorder={activeThemeObj.badgeBorder}
                     themeButtonBg={activeThemeObj.buttonBg}
+                    onShowToast={(msg) => setToastMessage(msg)}
                     onUploadComplete={(publicUrl) => {
                       setMediaUrl(publicUrl);
                       setMediaFileType('audio');
@@ -489,6 +491,27 @@ export default function CardExperience({
         )}
 
       </div>
+
+      {/* Custom Aura & Archive Theme-Matched Modal Toast */}
+      {toastMessage && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className={`bg-[#101014] border ${activeThemeObj.border} rounded-xl p-6 text-center ${activeThemeObj.glow} max-w-sm w-full flex flex-col gap-4 shadow-2xl`}>
+            <div className={`inline-block self-center px-3 py-1 border ${activeThemeObj.badgeBorder} rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
+              ✦ AURA & ARCHIVE ✦
+            </div>
+            <p className="text-sm text-white font-light leading-relaxed">
+              {toastMessage}
+            </p>
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              className={`w-full py-2.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded transition-all cursor-pointer ${activeThemeObj.buttonBg}`}
+            >
+              Acknowledge ✦
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
