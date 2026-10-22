@@ -248,7 +248,7 @@ export default function CardExperience({
       <div className={`bg-[#101014]/95 border ${activeThemeObj.border} rounded-xl p-6 md:p-8 text-center ${activeThemeObj.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500`}>
         
         <div className={`inline-block self-center px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2.5px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
-          AURA AURA ✦ AURA & ARCHIVE™ ARCHIVE™ ARCHIVE™ {isSandbox ? 'LIVE ACTIVATION' : 'EXCLUSIVE EXPERIENCE'} ✦
+          AURA AURA ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
         </div>
 
         {isEditing && isSandbox ? (
