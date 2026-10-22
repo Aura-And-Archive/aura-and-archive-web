@@ -64,6 +64,7 @@ export const EMOJI_MAP: Record<string, string> = {
 };
 
 interface CardExperienceProps {
+  cardId?: string;
   initialRecipient?: string;
   initialMessage?: string;
   initialMediaUrl?: string;
@@ -72,6 +73,7 @@ interface CardExperienceProps {
 }
 
 export default function CardExperience({
+  cardId = '',
   initialRecipient = '',
   initialMessage = '',
   initialMediaUrl = '',
@@ -85,6 +87,7 @@ export default function CardExperience({
   const [effectType, setEffectType] = useState(initialTheme);
   const [isEditing, setIsEditing] = useState(isSandbox);
   const [inputMode, setInputMode] = useState<'upload' | 'record'>('upload');
+  const [isSaving, setIsSaving] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
@@ -119,6 +122,37 @@ export default function CardExperience({
 
     const localUrl = URL.createObjectURL(file);
     setMediaUrl(localUrl);
+  };
+
+  const handleSaveToDatabase = async () => {
+    if (isSandbox) {
+      alert('Card experience locked for live preview!');
+      setIsEditing(false);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/cards/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardId, recipient, message, mediaUrl, theme: effectType }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save card configuration.');
+      
+      alert('Card successfully locked & saved to memory vault!');
+      setIsEditing(false);
+    } catch (err: any) {
+      alert(err.message || 'Error saving card.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const copyVaultLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Vault link copied to clipboard!');
   };
 
   useEffect(() => {
@@ -272,11 +306,17 @@ export default function CardExperience({
             </div>
 
             <div>
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
-                Personal Gift Message
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold`}>
+                  Personal Gift Message
+                </label>
+                <span className={`text-[10px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-400'}`}>
+                  {message.length}/500
+                </span>
+              </div>
               <textarea
                 rows={3}
+                maxLength={500}
                 value={message}
                 placeholder="Type your personal note here..."
                 onChange={(e) => setMessage(e.target.value)}
@@ -326,6 +366,21 @@ export default function CardExperience({
                       setMediaFileType('audio');
                     }}
                   />
+                </div>
+              )}
+
+              {mediaUrl && (
+                <div className={`mt-3 flex items-center justify-between p-2.5 rounded bg-black/80 border ${activeThemeObj.badgeBorder}`}>
+                  <span className={`text-[11px] ${activeThemeObj.text} font-medium truncate max-w-[240px]`}>
+                    ✓ Media Attached Successfully
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMediaUrl('')}
+                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-1 bg-red-950/40 rounded border border-red-500/30 transition"
+                  >
+                    Remove
+                  </button>
                 </div>
               )}
             </div>
@@ -395,13 +450,29 @@ export default function CardExperience({
               </button>
 
               {isSandbox && (
-                <button 
-                  onClick={() => setIsEditing(true)}
-                  className={`w-full py-3 text-[11px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-[1.5px] cursor-pointer hover:bg-black/80 transition-all`}
-                >
-                  ✦ Edit Sample Message & Theme ✦
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setIsEditing(true)}
+                    className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
+                  >
+                    Edit Message
+                  </button>
+                  <button 
+                    onClick={copyVaultLink}
+                    className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
+                  >
+                    Copy Link 📋
+                  </button>
+                </div>
               )}
+
+              <button
+                onClick={handleSaveToDatabase}
+                disabled={isSaving}
+                className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
+              >
+                {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
+              </button>
 
               <div className={`pt-4 border-t ${activeThemeObj.badgeBorder} text-center space-y-2`}>
                 <p className="text-xs text-[#b0aebf]">Love this interactive smart card? Lock it in permanently.</p>
