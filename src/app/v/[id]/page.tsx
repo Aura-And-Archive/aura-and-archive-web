@@ -44,5 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ExperiencePage({ params }: Props) {
   const { id } = await params;
-  return <ExperienceClient cardId={id} />;
+  const cleanId = decodeURIComponent(id || '').trim();
+
+  return <ExperienceClient cardId={cleanId} />;
 }

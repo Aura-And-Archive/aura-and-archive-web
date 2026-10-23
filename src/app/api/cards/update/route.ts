@@ -9,18 +9,19 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { cardId, recipient, message, mediaUrl, theme } = body;
+    const { cardId, recipient, message, photoUrl, mediaUrl, theme } = body;
 
     if (!cardId) {
       return NextResponse.json({ error: 'Card ID is required' }, { status: 400 });
     }
 
-    // Update the card record in your Supabase "cards" table
+    // Update the card record in your Supabase "cards" table including photo_url
     const { data, error } = await supabase
       .from('cards')
       .update({
         recipient_name: recipient,
         message: message,
+        photo_url: photoUrl,
         media_url: mediaUrl,
         theme_key: theme,
         is_configured: true,

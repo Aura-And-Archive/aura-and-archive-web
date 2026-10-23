@@ -67,6 +67,7 @@ interface CardExperienceProps {
   cardId?: string;
   initialRecipient?: string;
   initialMessage?: string;
+  initialPhotoUrl?: string;
   initialMediaUrl?: string;
   initialTheme?: string;
   isSandbox?: boolean;
@@ -76,18 +77,27 @@ export default function CardExperience({
   cardId = '',
   initialRecipient = '',
   initialMessage = '',
+  initialPhotoUrl = '',
   initialMediaUrl = '',
   initialTheme = 'gold-confetti',
   isSandbox = false,
 }: CardExperienceProps) {
   const [recipient, setRecipient] = useState(initialRecipient);
   const [message, setMessage] = useState(initialMessage);
+  
+  // Media 1: Background Image Only (JPEG, PNG, WEBP)
+  const [photoUrl, setPhotoUrl] = useState(initialPhotoUrl);
+
+  // Media 2: Multimedia (Audio, Video, Recorder, Link)
   const [mediaUrl, setMediaUrl] = useState(initialMediaUrl);
-  const [mediaFileType, setMediaFileType] = useState<'video' | 'audio' | 'image'>('video');
+  const [mediaFileType, setMediaFileType] = useState<'video' | 'audio'>('video');
+  const [inputMode, setInputMode] = useState<'upload' | 'record' | 'link'>('upload');
+  const [externalLinkInput, setExternalLinkInput] = useState('');
+
   const [effectType, setEffectType] = useState(initialTheme);
+  const [emojisActive, setEmojisActive] = useState(true);
   const [isEditing, setIsEditing] = useState(isSandbox);
   const [isPreviewingAsRecipient, setIsPreviewingAsRecipient] = useState(false);
-  const [inputMode, setInputMode] = useState<'upload' | 'record'>('upload');
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -95,48 +105,54 @@ export default function CardExperience({
   const particlesRef = useRef<Array<any>>([]);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
-  const lastClickTimeRef = useRef<number>(0);
+  const autoBurstIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
 
-  // Auto-load custom parameters if link was shared
+  // Auto-load parameters from shared URL strings
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const query = new URLSearchParams(window.location.search);
       const paramTo = query.get('to');
       const paramMsg = query.get('msg');
+      const paramPhoto = query.get('photo');
       const paramMedia = query.get('media');
       const paramTheme = query.get('theme');
 
       if (paramTo) setRecipient(paramTo);
       if (paramMsg) setMessage(paramMsg);
+      if (paramPhoto) setPhotoUrl(paramPhoto);
       if (paramMedia) setMediaUrl(paramMedia);
       if (paramTheme) setEffectType(paramTheme);
 
-      if (paramTo || paramMsg || paramMedia || paramTheme) {
+      if (paramTo || paramMsg || paramPhoto || paramMedia || paramTheme) {
         if (isSandbox) setIsPreviewingAsRecipient(true);
       }
     }
   }, [isSandbox]);
 
+  // Handle auto-playing Media 2 immediately when entering recipient preview
   useEffect(() => {
-    if (initialMediaUrl) {
-      if (initialMediaUrl.match(/\.(jpeg|jpg|gif|png|webp)/i)) {
-        setMediaFileType('image');
-      } else if (initialMediaUrl.match(/\.(mp3|wav|ogg|webm|m4a)/i)) {
-        setMediaFileType('audio');
-      } else {
-        setMediaFileType('video');
-      }
+    if (isPreviewingAsRecipient && mediaRef.current) {
+      mediaRef.current.play().catch((err) => {
+        console.log('Autoplay restricted by browser policy:', err);
+      });
     }
-  }, [initialMediaUrl]);
+  }, [isPreviewingAsRecipient, mediaUrl]);
 
-  const handleLocalFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handler for Media 1: Background Image Only
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const localUrl = URL.createObjectURL(file);
+    setPhotoUrl(localUrl);
+  };
+
+  // Handler for Media 2: Multimedia upload
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type.startsWith('image/')) {
-      setMediaFileType('image');
-    } else if (file.type.startsWith('audio/')) {
+    if (file.type.startsWith('audio/')) {
       setMediaFileType('audio');
     } else {
       setMediaFileType('video');
@@ -144,6 +160,13 @@ export default function CardExperience({
 
     const localUrl = URL.createObjectURL(file);
     setMediaUrl(localUrl);
+  };
+
+  const handleExternalLinkSave = () => {
+    if (!externalLinkInput) return;
+    setMediaUrl(externalLinkInput);
+    setMediaFileType('video');
+    setToastMessage('External media link attached successfully ✨');
   };
 
   const handleSaveToDatabase = async () => {
@@ -158,7 +181,7 @@ export default function CardExperience({
       const res = await fetch('/api/cards/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cardId, recipient, message, mediaUrl, theme: effectType }),
+        body: JSON.stringify({ cardId, recipient, message, photoUrl, mediaUrl, theme: effectType }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save card configuration.');
@@ -180,6 +203,7 @@ export default function CardExperience({
 
       if (recipient) params.set('to', recipient);
       if (message) params.set('msg', message);
+      if (photoUrl) params.set('photo', photoUrl);
       if (mediaUrl) params.set('media', mediaUrl);
       if (effectType) params.set('theme', effectType);
 
@@ -192,9 +216,50 @@ export default function CardExperience({
     }
   };
 
-  useEffect(() => {
-    if (isEditing && !isPreviewingAsRecipient) return;
+  // Continuous Fireworks Burst Generator Every 1.5 Seconds
+  const triggerFireworksBurst = () => {
+    if (!emojisActive) return;
 
+    const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
+    const isDesktop = window.innerWidth > 768;
+    const count = isDesktop ? 20 : 28;
+    const startX = isDesktop ? Math.random() * window.innerWidth : window.innerWidth / 2;
+    const startY = isDesktop ? -20 : window.innerHeight / 2 - 30;
+
+    for (let i = 0; i < count; i++) {
+      const angle = isDesktop ? (Math.random() * Math.PI) + Math.PI * 0.25 : Math.random() * Math.PI * 2;
+      const speed = isDesktop ? (Math.random() * 8 + 3) : (Math.random() * 14 + 5) * Math.min(scale, 1.4);
+
+      particlesRef.current.push({
+        x: startX + (isDesktop ? (Math.random() - 0.5) * window.innerWidth * 0.8 : (Math.random() - 0.5) * 80),
+        y: startY + (isDesktop ? 0 : (Math.random() - 0.5) * 40),
+        vx: Math.cos(angle) * speed,
+        vy: isDesktop ? Math.random() * 5 + 2 : Math.sin(angle) * speed - 4,
+        size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.3,
+        opacity: 1,
+        sway: Math.random() * 3,
+        age: 0,
+        themeKey: effectType,
+      });
+    }
+  };
+
+  // Setup Continuous 1.5-second interval loop for emojis
+  useEffect(() => {
+    if (isPreviewingAsRecipient || isSandbox) {
+      autoBurstIntervalRef.current = setInterval(() => {
+        triggerFireworksBurst();
+      }, 1500);
+    }
+    return () => {
+      if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
+    };
+  }, [isPreviewingAsRecipient, isSandbox, emojisActive, effectType]);
+
+  // Canvas Particle Animation Renderer
+  useEffect(() => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -221,45 +286,47 @@ export default function CardExperience({
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      particlesRef.current.forEach((p) => {
-        p.x += (p.vx + Math.sin(p.age * 0.004 + p.sway) * 0.6) * dtFactor;
-        p.y += p.vy * dtFactor;
-        if (p.themeKey !== 'executive-light') {
-          p.vy += (isDesktop ? 0.55 : 0.15) * dtFactor;
-          p.vx *= Math.pow(isDesktop ? 0.96 : 0.98, dtFactor);
-        }
-        p.rotation += p.rotSpeed * dtFactor;
-        p.age += deltaTime;
+      if (emojisActive) {
+        particlesRef.current.forEach((p) => {
+          p.x += (p.vx + Math.sin(p.age * 0.004 + p.sway) * 0.6) * dtFactor;
+          p.y += p.vy * dtFactor;
+          if (p.themeKey !== 'executive-light') {
+            p.vy += (isDesktop ? 0.65 : 0.15) * dtFactor;
+            p.vx *= Math.pow(isDesktop ? 0.96 : 0.98, dtFactor);
+          }
+          p.rotation += p.rotSpeed * dtFactor;
+          p.age += deltaTime;
 
-        if (p.age > 2200) {
-          p.opacity -= 0.03 * dtFactor;
-        }
-      });
+          if (p.age > 2200) {
+            p.opacity -= 0.03 * dtFactor;
+          }
+        });
 
-      particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
-      if (particlesRef.current.length > 180) {
-        particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 180);
+        particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
+        if (particlesRef.current.length > 200) {
+          particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 200);
+        }
+
+        particlesRef.current.forEach((p) => {
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.opacity);
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation);
+          
+          if (p.themeKey === 'executive-light') {
+            ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = '#e5e4e2';
+            ctx.fillRect(-p.size * 0.25, -p.size * 1.8, p.size * 0.5, p.size * 3.6);
+          } else {
+            ctx.font = `${Math.max(22, p.size * 2.8)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(EMOJI_MAP[p.themeKey] || '✨', 0, 0);
+          }
+          ctx.restore();
+        });
       }
-
-      particlesRef.current.forEach((p) => {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, p.opacity);
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        
-        if (p.themeKey === 'executive-light') {
-          ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
-          ctx.shadowBlur = 12;
-          ctx.fillStyle = '#e5e4e2';
-          ctx.fillRect(-p.size * 0.25, -p.size * 1.8, p.size * 0.5, p.size * 3.6);
-        } else {
-          ctx.font = `${Math.max(22, p.size * 2.8)}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(EMOJI_MAP[p.themeKey] || '✨', 0, 0);
-        }
-        ctx.restore();
-      });
 
       animFrameRef.current = requestAnimationFrame(renderLoop);
     };
@@ -270,65 +337,40 @@ export default function CardExperience({
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (canvasRef.current) canvasRef.current.remove();
     };
-  }, [isEditing, isPreviewingAsRecipient]);
-
-  const triggerEffect = () => {
-    const now = performance.now();
-    if (now - lastClickTimeRef.current < 50) return;
-    lastClickTimeRef.current = now;
-
-    const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
-    const isDesktop = window.innerWidth > 768;
-    const count = isDesktop ? 25 : 35;
-    const startX = isDesktop ? Math.random() * window.innerWidth : window.innerWidth / 2;
-    const startY = isDesktop ? -20 : window.innerHeight / 2 - 30;
-
-    for (let i = 0; i < count; i++) {
-      const angle = isDesktop ? (Math.random() * Math.PI) + Math.PI * 0.25 : Math.random() * Math.PI * 2;
-      const speed = isDesktop ? (Math.random() * 10 + 4) : (Math.random() * 16 + 6) * Math.min(scale, 1.4);
-
-      particlesRef.current.push({
-        x: startX + (isDesktop ? (Math.random() - 0.5) * window.innerWidth * 0.8 : (Math.random() - 0.5) * 80),
-        y: startY + (isDesktop ? 0 : (Math.random() - 0.5) * 40),
-        vx: Math.cos(angle) * speed,
-        vy: isDesktop ? Math.random() * 6 + 2 : Math.sin(angle) * speed - 5,
-        size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.3,
-        opacity: 1,
-        sway: Math.random() * 3,
-        age: 0,
-        themeKey: effectType,
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (!isEditing || isPreviewingAsRecipient) {
-      const timer = setTimeout(() => {
-        triggerEffect();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isEditing, isPreviewingAsRecipient]);
+  }, [emojisActive]);
 
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
   return (
-    <div className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen text-white">
-      <div className={`bg-[#101014]/95 border ${activeThemeObj.border} rounded-xl p-6 md:p-8 text-center ${activeThemeObj.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500`}>
+    <div 
+      className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen text-white relative bg-cover bg-center transition-all duration-700"
+      style={photoUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(${photoUrl})` } : {}}
+    >
+      <div className={`bg-[#101014]/90 border ${activeThemeObj.border} rounded-xl p-6 md:p-8 text-center ${activeThemeObj.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500 shadow-2xl`}>
         
-        <div className={`inline-block self-center px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2.5px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
-          ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
+        {/* Top Header Badge & Emoji Toggle Switch */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className={`px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2.5px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
+            ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setEmojisActive(!emojisActive)}
+            className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
+          >
+            Emojis: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+          </button>
         </div>
 
         {isEditing && !isPreviewingAsRecipient ? (
-          <div className="space-y-4 text-left">
+          <div className="space-y-5 text-left">
             <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px] text-center`}>
               {activeThemeObj.name} Portal
             </h1>
-            <p className="text-[12px] text-[#b0aebf] text-center">Configure your custom message, media, and theme.</p>
+            <p className="text-[12px] text-[#b0aebf] text-center">Configure your recipient, background photo, multimedia audio/video note, and theme.</p>
             
+            {/* Recipient Name */}
             <div>
               <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
                 Recipient Name
@@ -342,6 +384,7 @@ export default function CardExperience({
               />
             </div>
 
+            {/* Personal Gift Message */}
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold`}>
@@ -361,25 +404,60 @@ export default function CardExperience({
               />
             </div>
 
+            {/* MEDIA 1: Background Image Only (JPEG, PNG, WEBP) */}
+            <div>
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
+                Media Attachment 1: Background Image (JPEG, PNG, WebP)
+              </label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/jpg"
+                onChange={handlePhotoSelect}
+                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
+              />
+              {photoUrl && (
+                <div className={`mt-2 flex items-center justify-between p-2 rounded bg-black/80 border ${activeThemeObj.badgeBorder}`}>
+                  <span className={`text-[11px] ${activeThemeObj.text} font-medium truncate max-w-[240px]`}>
+                    ✓ Background Image Attached
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoUrl('')}
+                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/40 rounded border border-red-500/30 transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* MEDIA 2: Multimedia Audio/Video/Recorder/Link */}
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold`}>
-                  Media Attachment
+                  Media Attachment 2: Auto-Playing Multimedia Note
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <button
                     type="button"
                     onClick={() => setInputMode('upload')}
-                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
                   >
                     Upload File
                   </button>
                   <button
                     type="button"
                     onClick={() => setInputMode('record')}
-                    className={`text-[10px] px-2.5 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
                   >
-                    Record Audio
+                    Record Voice
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('link')}
+                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'link' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                  >
+                    Media Link
                   </button>
                 </div>
               </div>
@@ -387,13 +465,12 @@ export default function CardExperience({
               {inputMode === 'upload' ? (
                 <input
                   type="file"
-                  accept="video/*,audio/*,image/*"
-                  onChange={handleLocalFileSelect}
+                  accept="video/*,audio/*"
+                  onChange={handleMediaUpload}
                   className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
                 />
-              ) : (
-                <div className="mt-2 flex flex-col items-center gap-2">
-                  <p className="text-[10px] text-[#b0aebf] italic">Note: Tap Allow on your browser's microphone permission prompt.</p>
+              ) : inputMode === 'record' ? (
+                <div className="mt-1 flex flex-col items-center gap-2">
                   <AudioRecorder
                     themeBorder={activeThemeObj.border}
                     themeText={activeThemeObj.text}
@@ -406,17 +483,34 @@ export default function CardExperience({
                     }}
                   />
                 </div>
+              ) : (
+                <div className="flex gap-2 mt-1">
+                  <input
+                    type="url"
+                    placeholder="Paste direct audio/video URL (.mp4, .mp3)"
+                    value={externalLinkInput}
+                    onChange={(e) => setExternalLinkInput(e.target.value)}
+                    className={`flex-1 bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-white rounded placeholder:text-zinc-600 focus:outline-none`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleExternalLinkSave}
+                    className={`px-3 py-2 text-xs uppercase font-bold rounded ${activeThemeObj.buttonBg}`}
+                  >
+                    Attach
+                  </button>
+                </div>
               )}
 
               {mediaUrl && (
-                <div className={`mt-3 flex items-center justify-between p-2.5 rounded bg-black/80 border ${activeThemeObj.badgeBorder}`}>
+                <div className={`mt-2 flex items-center justify-between p-2 rounded bg-black/80 border ${activeThemeObj.badgeBorder}`}>
                   <span className={`text-[11px] ${activeThemeObj.text} font-medium truncate max-w-[240px]`}>
-                    ✓ Media Attached Successfully
+                    ✓ Multimedia Note Attached
                   </span>
                   <button
                     type="button"
                     onClick={() => setMediaUrl('')}
-                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-1 bg-red-950/40 rounded border border-red-500/30 transition"
+                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/40 rounded border border-red-500/30 transition"
                   >
                     Remove
                   </button>
@@ -424,9 +518,10 @@ export default function CardExperience({
               )}
             </div>
 
+            {/* Theme Selector (27 Themes) */}
             <div>
               <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
-                Gift Note Theme & Effect (All 27 Themes)
+                Gift Note Theme & Emoji Cascade (All 27 Themes)
               </label>
               <select
                 value={effectType}
@@ -458,36 +553,32 @@ export default function CardExperience({
               <p className="text-base font-light leading-relaxed whitespace-pre-wrap">{message || 'Your personal gift message will appear here!'}</p>
             </div>
 
+            {/* Auto-Playing Media 2 Container */}
             {mediaUrl && (
-              <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black/60 p-4 flex flex-col items-center justify-center gap-4`}>
-                {mediaFileType === 'image' ? (
-                  <div className="w-full flex flex-col items-center justify-center">
-                    <img src={mediaUrl} alt="Uploaded Media" className="max-h-[350px] w-auto object-contain rounded-lg shadow-md" />
-                  </div>
-                ) : mediaFileType === 'audio' ? (
-                  <div className="w-full flex flex-col items-center gap-3 py-2">
-                    <div className={`relative w-24 h-24 rounded-full overflow-hidden border-2 ${activeThemeObj.border} ${activeThemeObj.glow} bg-black flex items-center justify-center p-2 shadow-xl animate-pulse`}>
-                      <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
-                    </div>
-                    <p className={`text-xs uppercase tracking-[2px] ${activeThemeObj.text} font-semibold`}>✦ Exclusive Media Note ✦</p>
-                    <audio ref={mediaRef as React.RefObject<HTMLAudioElement>} src={mediaUrl} controls className="w-full mt-2" />
-                  </div>
+              <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black/70 p-4 flex flex-col items-center justify-center gap-3`}>
+                <p className={`text-[10px] uppercase tracking-[2px] ${activeThemeObj.text} font-semibold`}>✦ Auto-Playing Media Note ✦</p>
+                {mediaFileType === 'audio' ? (
+                  <audio 
+                    ref={mediaRef as React.RefObject<HTMLAudioElement>} 
+                    src={mediaUrl} 
+                    autoPlay 
+                    controls 
+                    className="w-full mt-1" 
+                  />
                 ) : (
-                  <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black aspect-video`}>
-                    <video ref={mediaRef as React.RefObject<HTMLVideoElement>} src={mediaUrl} controls playsInline className="w-full h-full object-contain block" />
-                  </div>
+                  <video 
+                    ref={mediaRef as React.RefObject<HTMLVideoElement>} 
+                    src={mediaUrl} 
+                    autoPlay 
+                    playsInline 
+                    controls 
+                    className="w-full h-full max-h-[300px] object-contain rounded block" 
+                  />
                 )}
               </div>
             )}
 
             <div className="flex flex-col gap-3">
-              <button 
-                className={`w-full py-3.5 text-[11px] font-bold uppercase tracking-[1.5px] rounded cursor-pointer shadow-md ${activeThemeObj.buttonBg}`} 
-                onClick={triggerEffect}
-              >
-                ✦ Burst Gift Note Animation ✦
-              </button>
-
               {isSandbox && (
                 <div className="flex gap-2">
                   <button 
@@ -505,13 +596,37 @@ export default function CardExperience({
                 </div>
               )}
 
-              <button
-                onClick={handleSaveToDatabase}
-                disabled={isSaving}
-                className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
-              >
-                {isSaving ? 'Saving Vault...' : isSandbox ? 'TEST RECIPIENT VIEW ✦' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
-              </button>
+              {!isSandbox ? (
+                <button
+                  onClick={handleSaveToDatabase}
+                  disabled={isSaving}
+                  className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
+                >
+                  {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
+                </button>
+              ) : !isPreviewingAsRecipient ? (
+                <button
+                  onClick={handleSaveToDatabase}
+                  disabled={isSaving}
+                  className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
+                >
+                  TEST RECIPIENT VIEW ✦
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsPreviewingAsRecipient(false);
+                    setRecipient('');
+                    setMessage('');
+                    setPhotoUrl('');
+                    setMediaUrl('');
+                    setToastMessage('Demo reset! Create a new custom card ✨');
+                  }}
+                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/60 hover:bg-black/80 transition-all`}
+                >
+                  ✦ CREATE ANOTHER CUSTOM DEMO ✦
+                </button>
+              )}
 
               <div className={`pt-4 border-t ${activeThemeObj.badgeBorder} text-center space-y-2`}>
                 <p className="text-xs text-[#b0aebf]">Love this interactive smart card? Lock it in permanently.</p>
@@ -529,7 +644,7 @@ export default function CardExperience({
 
       </div>
 
-      {/* Custom Aura & Archive Theme-Matched Modal Toast */}
+      {/* Modal Toast Overlay */}
       {toastMessage && (
         <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className={`bg-[#101014] border ${activeThemeObj.border} rounded-xl p-6 text-center ${activeThemeObj.glow} max-w-sm w-full flex flex-col gap-4 shadow-2xl`}>
@@ -541,7 +656,12 @@ export default function CardExperience({
             </p>
             <button
               type="button"
-              onClick={() => setToastMessage(null)}
+              onClick={() => {
+                if (toastMessage.includes('Entering Recipient Experience Preview')) {
+                  setIsPreviewingAsRecipient(true);
+                }
+                setToastMessage(null);
+              }}
               className={`w-full py-2.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded transition-all cursor-pointer ${activeThemeObj.buttonBg}`}
             >
               CONTINUE ✦
