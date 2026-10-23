@@ -84,11 +84,7 @@ export default function CardExperience({
 }: CardExperienceProps) {
   const [recipient, setRecipient] = useState(initialRecipient);
   const [message, setMessage] = useState(initialMessage);
-  
-  // Media 1: Background Image Only (JPEG, PNG, WEBP)
   const [photoUrl, setPhotoUrl] = useState(initialPhotoUrl);
-
-  // Media 2: Multimedia (Audio, Video, Recorder, Link)
   const [mediaUrl, setMediaUrl] = useState(initialMediaUrl);
   const [mediaFileType, setMediaFileType] = useState<'video' | 'audio'>('video');
   const [inputMode, setInputMode] = useState<'upload' | 'record' | 'link'>('upload');
@@ -108,7 +104,6 @@ export default function CardExperience({
   const autoBurstIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
 
-  // Auto-load parameters from shared URL strings
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const query = new URLSearchParams(window.location.search);
@@ -130,36 +125,29 @@ export default function CardExperience({
     }
   }, [isSandbox]);
 
-  // Handle auto-playing Media 2 immediately when entering recipient preview
   useEffect(() => {
     if (isPreviewingAsRecipient && mediaRef.current) {
       mediaRef.current.play().catch((err) => {
-        console.log('Autoplay restricted by browser policy:', err);
+        console.log('Autoplay restricted:', err);
       });
     }
   }, [isPreviewingAsRecipient, mediaUrl]);
 
-  // Handler for Media 1: Background Image Only
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const localUrl = URL.createObjectURL(file);
-    setPhotoUrl(localUrl);
+    setPhotoUrl(URL.createObjectURL(file));
   };
 
-  // Handler for Media 2: Multimedia upload
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.type.startsWith('audio/')) {
       setMediaFileType('audio');
     } else {
       setMediaFileType('video');
     }
-
-    const localUrl = URL.createObjectURL(file);
-    setMediaUrl(localUrl);
+    setMediaUrl(URL.createObjectURL(file));
   };
 
   const handleExternalLinkSave = () => {
@@ -172,7 +160,6 @@ export default function CardExperience({
   const handleSaveToDatabase = async () => {
     if (isSandbox) {
       setIsPreviewingAsRecipient(true);
-      setToastMessage('Entering Recipient Experience Preview ✨');
       return;
     }
 
@@ -207,8 +194,7 @@ export default function CardExperience({
       if (mediaUrl) params.set('media', mediaUrl);
       if (effectType) params.set('theme', effectType);
 
-      const shareableLink = `${origin}${pathname}?${params.toString()}`;
-      navigator.clipboard.writeText(shareableLink);
+      navigator.clipboard.writeText(`${origin}${pathname}?${params.toString()}`);
       setToastMessage('Personalized demo link copied to clipboard ✨');
     } else {
       navigator.clipboard.writeText(window.location.href);
@@ -216,7 +202,6 @@ export default function CardExperience({
     }
   };
 
-  // Continuous Fireworks Burst Generator Every 1.5 Seconds
   const triggerFireworksBurst = () => {
     if (!emojisActive) return;
 
@@ -246,7 +231,6 @@ export default function CardExperience({
     }
   };
 
-  // Setup Continuous 1.5-second interval loop for emojis
   useEffect(() => {
     if (isPreviewingAsRecipient || isSandbox) {
       autoBurstIntervalRef.current = setInterval(() => {
@@ -258,7 +242,6 @@ export default function CardExperience({
     };
   }, [isPreviewingAsRecipient, isSandbox, emojisActive, effectType]);
 
-  // Canvas Particle Animation Renderer
   useEffect(() => {
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
@@ -344,24 +327,26 @@ export default function CardExperience({
   return (
     <div 
       className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen text-white relative bg-cover bg-center transition-all duration-700"
-      style={photoUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)), url(${photoUrl})` } : {}}
+      style={photoUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(${photoUrl})` } : {}}
     >
-      <div className={`bg-[#101014]/90 border ${activeThemeObj.border} rounded-xl p-6 md:p-8 text-center ${activeThemeObj.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500 shadow-2xl`}>
+      <div className={`bg-[#101014]/60 border ${activeThemeObj.border} rounded-xl p-6 md:p-8 text-center ${activeThemeObj.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500 shadow-2xl`}>
         
-        {/* Top Header Badge & Emoji Toggle Switch */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className={`px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2.5px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
-            ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
-          </div>
+        {/* Uniform Header Bar matching mobile & webview identically */}
+        {!isPreviewingAsRecipient && (
+          <div className="flex flex-row items-center justify-between gap-2 w-full">
+            <div className={`px-3 sm:px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[9px] sm:text-[10px] tracking-[1.5px] sm:tracking-[2.5px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} truncate`}>
+              ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
+            </div>
 
-          <button
-            type="button"
-            onClick={() => setEmojisActive(!emojisActive)}
-            className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
-          >
-            Emojis: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => setEmojisActive(!emojisActive)}
+              className={`shrink-0 px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
+            >
+              Emojis: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+            </button>
+          </div>
+        )}
 
         {isEditing && !isPreviewingAsRecipient ? (
           <div className="space-y-5 text-left">
@@ -543,10 +528,12 @@ export default function CardExperience({
           </div>
         ) : (
           <div className="space-y-6">
-            <div>
-              <h1 className={`font-serif text-[24px] uppercase ${activeThemeObj.text} tracking-[2px]`}>{activeThemeObj.name} Experience</h1>
-              <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1">{isSandbox ? 'LIVE CARD PREVIEW' : 'AURA MEMORY VAULT'}</p>
-            </div>
+            {!isPreviewingAsRecipient && (
+              <div>
+                <h1 className={`font-serif text-[24px] uppercase ${activeThemeObj.text} tracking-[2px]`}>{activeThemeObj.name} Experience</h1>
+                <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1">{isSandbox ? 'LIVE CARD PREVIEW' : 'AURA MEMORY VAULT'}</p>
+              </div>
+            )}
 
             <div className={`text-left bg-black/40 border ${activeThemeObj.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
               <p className={`text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold mb-2`}>To: {recipient || 'A Special Friend'}</p>
@@ -578,67 +565,71 @@ export default function CardExperience({
               </div>
             )}
 
-            <div className="flex flex-col gap-3">
-              {isSandbox && (
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => setIsPreviewingAsRecipient(false)}
-                    className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
-                  >
-                    Edit Message
-                  </button>
-                  <button 
-                    onClick={copyVaultLink}
-                    className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
-                  >
-                    Copy Link 📋
-                  </button>
-                </div>
-              )}
-
-              {!isSandbox ? (
+            {/* CLEAN IMMERSIVE RECIPIENT EXPERIENCE VIEW (Only shows Back to Editing button) */}
+            {isPreviewingAsRecipient ? (
+              <div className="pt-2">
                 <button
-                  onClick={handleSaveToDatabase}
-                  disabled={isSaving}
-                  className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
+                  onClick={() => setIsPreviewingAsRecipient(false)}
+                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/80 hover:bg-black transition-all shadow-lg`}
                 >
-                  {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
+                  ← Back to Editing
                 </button>
-              ) : !isPreviewingAsRecipient ? (
-                <button
-                  onClick={handleSaveToDatabase}
-                  disabled={isSaving}
-                  className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
-                >
-                  TEST RECIPIENT VIEW ✦
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setIsPreviewingAsRecipient(false);
-                    setRecipient('');
-                    setMessage('');
-                    setPhotoUrl('');
-                    setMediaUrl('');
-                    setToastMessage('Demo reset! Create a new custom card ✨');
-                  }}
-                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/60 hover:bg-black/80 transition-all`}
-                >
-                  ✦ CREATE ANOTHER CUSTOM DEMO ✦
-                </button>
-              )}
-
-              <div className={`pt-4 border-t ${activeThemeObj.badgeBorder} text-center space-y-2`}>
-                <p className="text-xs text-[#b0aebf]">Love this interactive smart card? Lock it in permanently.</p>
-                <a
-                  href="/"
-                  target="_blank"
-                  className={`block w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
-                >
-                  ORDER YOUR OWN PHYSICAL CARD NOW ✦
-                </a>
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {isSandbox && (
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setIsPreviewingAsRecipient(true)}
+                      className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
+                    >
+                      Test Recipient View ✦
+                    </button>
+                    <button 
+                      onClick={copyVaultLink}
+                      className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
+                    >
+                      Copy Link 📋
+                    </button>
+                  </div>
+                )}
+
+                {!isSandbox ? (
+                  <button
+                    onClick={handleSaveToDatabase}
+                    disabled={isSaving}
+                    className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
+                  >
+                    {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsPreviewingAsRecipient(false);
+                      setRecipient('');
+                      setMessage('');
+                      setPhotoUrl('');
+                      setMediaUrl('');
+                      setToastMessage('Demo reset! Create a new custom card ✨');
+                    }}
+                    className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/60 hover:bg-black/80 transition-all`}
+                  >
+                    ✦ CREATE ANOTHER CUSTOM DEMO ✦
+                  </button>
+                )}
+
+                <div className={`pt-4 border-t ${activeThemeObj.badgeBorder} text-center space-y-2`}>
+                  <p className="text-xs text-[#b0aebf]">Love this interactive smart card? Lock it in permanently.</p>
+                  <a
+                    href="/"
+                    target="_blank"
+                    className={`block w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
+                  >
+                    ORDER YOUR OWN PHYSICAL CARD NOW ✦
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
