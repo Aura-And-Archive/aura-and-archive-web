@@ -1,5 +1,6 @@
 'use client';
 
+// BUILD_CACHE_BUST: 2026-10-24-FULL-TRANSPARENCY-FIX
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -325,23 +326,36 @@ export default function CardExperience({
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
   return (
-    <div 
-      className="w-full max-w-[680px] p-4 md:p-6 mx-auto my-auto flex flex-col justify-center min-h-screen text-white relative bg-cover bg-center transition-all duration-700"
-      style={photoUrl ? { backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(${photoUrl})` } : {}}
-    >
-      <div className={`bg-[#101014]/60 border ${activeThemeObj.border} rounded-xl p-6 md:p-8 text-center ${activeThemeObj.glow} backdrop-blur-md flex flex-col gap-5 transition-all duration-500 shadow-2xl`}>
+    <div className={`w-full min-h-screen text-white relative flex flex-col overflow-x-hidden ${
+      isPreviewingAsRecipient ? 'justify-end pb-8 md:pb-12 px-4' : 'justify-center items-center p-4 md:p-6 my-auto'
+    }`}>
+      {/* Absolute Scaled Background Image Layer (Crisp, Perfectly Scaled, Unblurred) */}
+      {photoUrl && (
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
+          <img 
+            src={photoUrl} 
+            alt="Background" 
+            className="w-full h-full object-cover object-center filter brightness-[0.85]" 
+          />
+          {/* Ambient Cinematic Vignette for contrast */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/50" />
+        </div>
+      )}
+
+      {/* Full Transparency Container with Minimalist Theme Border */}
+      <div className={`w-full max-w-[680px] bg-transparent border ${activeThemeObj.border} rounded-xl p-5 md:p-8 text-center ${activeThemeObj.glow} flex flex-col gap-5 relative z-10 transition-all duration-500 shadow-2xl`}>
         
-        {/* Uniform Header Bar matching mobile & webview identically */}
+        {/* Uniform Header Bar (Stacked Vertically so text is never cut off) */}
         {!isPreviewingAsRecipient && (
-          <div className="flex flex-row items-center justify-between gap-2 w-full">
-            <div className={`px-3 sm:px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[9px] sm:text-[10px] tracking-[1.5px] sm:tracking-[2.5px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} truncate`}>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full bg-black/40 backdrop-blur-md p-3 rounded-lg border border-white/10">
+            <div className={`px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
               ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
             </div>
 
             <button
               type="button"
               onClick={() => setEmojisActive(!emojisActive)}
-              className={`shrink-0 px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
+              className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
             >
               Emojis: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
             </button>
@@ -349,7 +363,7 @@ export default function CardExperience({
         )}
 
         {isEditing && !isPreviewingAsRecipient ? (
-          <div className="space-y-5 text-left">
+          <div className="space-y-5 text-left bg-black/70 backdrop-blur-md p-5 rounded-lg border border-white/10">
             <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px] text-center`}>
               {activeThemeObj.name} Portal
             </h1>
@@ -527,23 +541,24 @@ export default function CardExperience({
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {!isPreviewingAsRecipient && (
-              <div>
-                <h1 className={`font-serif text-[24px] uppercase ${activeThemeObj.text} tracking-[2px]`}>{activeThemeObj.name} Experience</h1>
+              <div className="bg-black/50 backdrop-blur-md p-4 rounded-lg border border-white/10">
+                <h1 className={`font-serif text-[24px] uppercase ${activeThemeObj.text} tracking-[2px] drop-shadow-md`}>{activeThemeObj.name} Experience</h1>
                 <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1">{isSandbox ? 'LIVE CARD PREVIEW' : 'AURA MEMORY VAULT'}</p>
               </div>
             )}
 
-            <div className={`text-left bg-black/40 border ${activeThemeObj.badgeBorder} p-5 rounded-lg text-[#f4e6b0]`}>
-              <p className={`text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold mb-2`}>To: {recipient || 'A Special Friend'}</p>
-              <p className="text-base font-light leading-relaxed whitespace-pre-wrap">{message || 'Your personal gift message will appear here!'}</p>
+            {/* Bottom-docked translucent message box with high readability */}
+            <div className={`text-left bg-black/40 backdrop-blur-md border ${activeThemeObj.badgeBorder} p-5 rounded-lg text-[#f4e6b0] shadow-2xl`}>
+              <p className={`text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold mb-2 drop-shadow`}>To: {recipient || 'A Special Friend'}</p>
+              <p className="text-base font-light leading-relaxed whitespace-pre-wrap drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{message || 'Your personal gift message will appear here!'}</p>
             </div>
 
             {/* Auto-Playing Media 2 Container */}
             {mediaUrl && (
-              <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black/70 p-4 flex flex-col items-center justify-center gap-3`}>
-                <p className={`text-[10px] uppercase tracking-[2px] ${activeThemeObj.text} font-semibold`}>✦ Auto-Playing Media Note ✦</p>
+              <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black/50 backdrop-blur-md p-4 flex flex-col items-center justify-center gap-3 shadow-2xl`}>
+                <p className={`text-[10px] uppercase tracking-[2px] ${activeThemeObj.text} font-semibold drop-shadow`}>✦ Auto-Playing Media Note ✦</p>
                 {mediaFileType === 'audio' ? (
                   <audio 
                     ref={mediaRef as React.RefObject<HTMLAudioElement>} 
@@ -559,7 +574,7 @@ export default function CardExperience({
                     autoPlay 
                     playsInline 
                     controls 
-                    className="w-full h-full max-h-[300px] object-contain rounded block" 
+                    className="w-full h-full max-h-[240px] object-contain rounded block" 
                   />
                 )}
               </div>
@@ -570,13 +585,13 @@ export default function CardExperience({
               <div className="pt-2">
                 <button
                   onClick={() => setIsPreviewingAsRecipient(false)}
-                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/80 hover:bg-black transition-all shadow-lg`}
+                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/60 backdrop-blur-md hover:bg-black/80 transition-all shadow-2xl`}
                 >
                   ← Back to Editing
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 bg-black/70 backdrop-blur-md p-4 rounded-lg border border-white/10">
                 {isSandbox && (
                   <div className="flex gap-2">
                     <button 
