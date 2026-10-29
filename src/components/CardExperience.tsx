@@ -1,37 +1,37 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-24-FULL-TRANSPARENCY-FIX
+// BUILD_CACHE_BUST: 2026-10-29-IMMERSIVE-PHOTO-HERO-REDESIGN
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
 export const THEMES = [
-  { key: 'gold-confetti', name: 'Aura Gold', border: 'border-[#d4af37]', glow: 'shadow-[0_0_35px_rgba(212,175,55,0.2)]', text: 'text-[#d4af37]', badgeBg: 'bg-[#d4af37]/10', badgeBorder: 'border-[#d4af37]/40', buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] !text-black' },
-  { key: 'executive-light', name: 'Corporate Lumina', border: 'border-[#e5e4e2]', glow: 'shadow-[0_0_35px_rgba(229,228,226,0.2)]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40', buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] !text-black' },
-  { key: 'wealth-glamour', name: 'Wealth & Glamour', border: 'border-[#b9f2ff]', glow: 'shadow-[0_0_35px_rgba(185,242,255,0.25)]', text: 'text-[#b9f2ff]', badgeBg: 'bg-[#b9f2ff]/10', badgeBorder: 'border-[#b9f2ff]/40', buttonBg: 'bg-gradient-to-r from-[#b9f2ff] to-[#ffffff] !text-black' },
-  { key: 'ruby-petal', name: 'Crimson Romance', border: 'border-[#dc143c]', glow: 'shadow-[0_0_35px_rgba(220,20,60,0.25)]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#dc143c]/15', badgeBorder: 'border-[#dc143c]/40', buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] !text-white' },
-  { key: 'birthday', name: 'Happy Birthday', border: 'border-[#ffb6c1]', glow: 'shadow-[0_0_35px_rgba(255,182,193,0.25)]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40', buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#ff69b4] !text-black' },
-  { key: 'christmas', name: 'Winter & Christmas', border: 'border-[#2e8b57]', glow: 'shadow-[0_0_35px_rgba(46,139,87,0.25)]', text: 'text-[#2e8b57]', badgeBg: 'bg-[#2e8b57]/10', badgeBorder: 'border-[#2e8b57]/40', buttonBg: 'bg-gradient-to-r from-[#2e8b57] to-[#ffffff] !text-black' },
-  { key: 'halloween', name: 'Halloween', border: 'border-[#ff8c00]', glow: 'shadow-[0_0_35px_rgba(255,140,0,0.25)]', text: 'text-[#ff8c00]', badgeBg: 'bg-[#ff8c00]/10', badgeBorder: 'border-[#ff8c00]/40', buttonBg: 'bg-gradient-to-r from-[#ff8c00] to-[#000000] !text-white' },
-  { key: 'valentine', name: "Valentine's Day", border: 'border-[#ff69b4]', glow: 'shadow-[0_0_35px_rgba(255,105,180,0.25)]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/10', badgeBorder: 'border-[#ff69b4]/40', buttonBg: 'bg-gradient-to-r from-[#ff69b4] to-[#ffffff] !text-black' },
-  { key: 'april-fools', name: 'April Fools & Humor', border: 'border-[#ffd700]', glow: 'shadow-[0_0_35px_rgba(255,215,0,0.25)]', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/10', badgeBorder: 'border-[#ffd700]/40', buttonBg: 'bg-gradient-to-r from-[#ffd700] to-[#ffffff] !text-black' },
-  { key: 'new-years', name: "New Year's Eve", border: 'border-[#e5e4e2]', glow: 'shadow-[0_0_35px_rgba(229,228,226,0.25)]', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/10', badgeBorder: 'border-[#e5e4e2]/40', buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] !text-black' },
-  { key: 'christianity', name: 'Christianity', border: 'border-[#dda0dd]', glow: 'shadow-[0_0_35px_rgba(221,160,221,0.25)]', text: 'text-[#dda0dd]', badgeBg: 'bg-[#dda0dd]/10', badgeBorder: 'border-[#dda0dd]/40', buttonBg: 'bg-gradient-to-r from-[#dda0dd] to-[#ffffff] !text-black' },
-  { key: 'islam', name: 'Islam', border: 'border-[#98fb98]', glow: 'shadow-[0_0_35px_rgba(152,251,152,0.25)]', text: 'text-[#98fb98]', badgeBg: 'bg-[#98fb98]/10', badgeBorder: 'border-[#98fb98]/40', buttonBg: 'bg-gradient-to-r from-[#98fb98] to-[#ffffff] !text-black' },
-  { key: 'judaism', name: 'Judaism', border: 'border-[#87ceeb]', glow: 'shadow-[0_0_35px_rgba(135,206,235,0.25)]', text: 'text-[#87ceeb]', badgeBg: 'bg-[#87ceeb]/10', badgeBorder: 'border-[#87ceeb]/40', buttonBg: 'bg-gradient-to-r from-[#87ceeb] to-[#ffffff] !text-black' },
-  { key: 'hinduism', name: 'Hinduism (Diwali)', border: 'border-[#ffa500]', glow: 'shadow-[0_0_35px_rgba(255,165,0,0.25)]', text: 'text-[#ffa500]', badgeBg: 'bg-[#ffa500]/10', badgeBorder: 'border-[#ffa500]/40', buttonBg: 'bg-gradient-to-r from-[#ffa500] to-[#ffffff] !text-black' },
-  { key: 'buddhism', name: 'Buddhism', border: 'border-[#deb887]', glow: 'shadow-[0_0_35px_rgba(222,184,135,0.25)]', text: 'text-[#deb887]', badgeBg: 'bg-[#deb887]/10', badgeBorder: 'border-[#deb887]/40', buttonBg: 'bg-gradient-to-r from-[#deb887] to-[#ffffff] !text-black' },
-  { key: 'mothers-day', name: "Mother's Day", border: 'border-[#ffb6c1]', glow: 'shadow-[0_0_35px_rgba(255,182,193,0.25)]', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/10', badgeBorder: 'border-[#ffb6c1]/40', buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#ffffff] !text-black' },
-  { key: 'fathers-day', name: "Father's Day", border: 'border-[#4682b4]', glow: 'shadow-[0_0_35px_rgba(70,130,180,0.25)]', text: 'text-[#4682b4]', badgeBg: 'bg-[#4682b4]/10', badgeBorder: 'border-[#4682b4]/40', buttonBg: 'bg-gradient-to-r from-[#4682b4] to-[#ffffff] !text-black' },
-  { key: 'gender-reveal', name: 'New Arrival', border: 'border-[#87ceeb]', glow: 'shadow-[0_0_35px_rgba(135,206,235,0.25)]', text: 'text-[#87ceeb]', badgeBg: 'bg-[#87ceeb]/10', badgeBorder: 'border-[#87ceeb]/40', buttonBg: 'bg-gradient-to-r from-[#87ceeb] to-[#ffffff] !text-black' },
-  { key: 'graduation', name: 'Graduation', border: 'border-[#daa520]', glow: 'shadow-[0_0_35px_rgba(218,165,32,0.25)]', text: 'text-[#daa520]', badgeBg: 'bg-[#daa520]/10', badgeBorder: 'border-[#daa520]/40', buttonBg: 'bg-gradient-to-r from-[#daa520] to-[#ffffff] !text-black' },
-  { key: 'engagement', name: 'Engagement', border: 'border-[#e0ffff]', glow: 'shadow-[0_0_35px_rgba(224,255,255,0.25)]', text: 'text-[#e0ffff]', badgeBg: 'bg-[#e0ffff]/10', badgeBorder: 'border-[#e0ffff]/40', buttonBg: 'bg-gradient-to-r from-[#e0ffff] to-[#ffffff] !text-black' },
-  { key: 'retirement', name: 'Retirement & Farewell', border: 'border-[#f4a460]', glow: 'shadow-[0_0_35px_rgba(244,164,96,0.25)]', text: 'text-[#f4a460]', badgeBg: 'bg-[#f4a460]/10', badgeBorder: 'border-[#f4a460]/40', buttonBg: 'bg-gradient-to-r from-[#f4a460] to-[#ffffff] !text-black' },
-  { key: 'day-of-the-dead', name: 'Day of the Dead', border: 'border-[#ba55d3]', glow: 'shadow-[0_0_35px_rgba(186,85,211,0.25)]', text: 'text-[#ba55d3]', badgeBg: 'bg-[#ba55d3]/10', badgeBorder: 'border-[#ba55d3]/40', buttonBg: 'bg-gradient-to-r from-[#ba55d3] to-[#ffffff] !text-black' },
-  { key: 'eternal-dove', name: 'Eternal Remembrance', border: 'border-[#f0f8ff]', glow: 'shadow-[0_0_35px_rgba(240,248,255,0.15)]', text: 'text-[#f0f8ff]', badgeBg: 'bg-white/10', badgeBorder: 'border-white/30', buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] !text-black' },
-  { key: 'veteran', name: 'Veteran Appreciation', border: 'border-[#b22222]', glow: 'shadow-[0_0_35px_rgba(178,34,34,0.25)]', text: 'text-[#b22222]', badgeBg: 'bg-[#b22222]/10', badgeBorder: 'border-[#b22222]/40', buttonBg: 'bg-gradient-to-r from-[#b22222] to-[#ffffff] !text-black' },
-  { key: 'get-well', name: 'Get Well Soon', border: 'border-[#adff2f]', glow: 'shadow-[0_0_35px_rgba(173,255,47,0.25)]', text: 'text-[#adff2f]', badgeBg: 'bg-[#adff2f]/10', badgeBorder: 'border-[#adff2f]/40', buttonBg: 'bg-gradient-to-r from-[#adff2f] to-[#ffffff] !text-black' },
-  { key: 'thank-you', name: 'Thank You / Just Because', border: 'border-[#ffd700]', glow: 'shadow-[0_0_35px_rgba(255,215,0,0.25)]', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/10', badgeBorder: 'border-[#ffd700]/40', buttonBg: 'bg-gradient-to-r from-[#ffd700] to-[#ffffff] !text-black' },
-  { key: 'bff', name: "BFF's (Best Friends)", border: 'border-[#ff69b4]', glow: 'shadow-[0_0_35px_rgba(255,105,180,0.25)]', text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/10', badgeBorder: 'border-[#ff69b4]/40', buttonBg: 'bg-gradient-to-r from-[#ff69b4] to-[#ffffff] !text-black' },
+  { key: 'gold-confetti', name: 'Aura Gold', text: 'text-[#d4af37]', badgeBg: 'bg-[#d4af37]/20', badgeBorder: 'border-[#d4af37]/60', buttonBg: 'bg-gradient-to-r from-[#d4af37] to-[#f4e6b0] !text-black' },
+  { key: 'executive-light', name: 'Corporate Lumina', text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/20', badgeBorder: 'border-[#e5e4e2]/60', buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] !text-black' },
+  { key: 'wealth-glamour', name: 'Wealth & Glamour', text: 'text-[#b9f2ff]', badgeBg: 'bg-[#b9f2ff]/20', badgeBorder: 'border-[#b9f2ff]/60', buttonBg: 'bg-gradient-to-r from-[#b9f2ff] to-[#ffffff] !text-black' },
+  { key: 'ruby-petal', name: 'Crimson Romance', text: 'text-[#ff69b4]', badgeBg: 'bg-[#dc143c]/30', badgeBorder: 'border-[#dc143c]/60', buttonBg: 'bg-gradient-to-r from-[#dc143c] to-[#ff1493] !text-white' },
+  { key: 'birthday', name: 'Happy Birthday', text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/20', badgeBorder: 'border-[#ffb6c1]/60', buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#ff69b4] !text-black' },
+  { key: 'christmas', name: 'Winter & Christmas', text: 'text-[#2e8b57]', badgeBg: 'bg-[#2e8b57]/20', badgeBorder: 'border-[#2e8b57]/60', buttonBg: 'bg-gradient-to-r from-[#2e8b57] to-[#ffffff] !text-black' },
+  { key: 'halloween', name: 'Halloween', text: 'text-[#ff8c00]', badgeBg: 'bg-[#ff8c00]/20', badgeBorder: 'border-[#ff8c00]/60', buttonBg: 'bg-gradient-to-r from-[#ff8c00] to-[#000000] !text-white' },
+  { key: 'valentine', name: "Valentine's Day", text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/20', badgeBorder: 'border-[#ff69b4]/60', buttonBg: 'bg-gradient-to-r from-[#ff69b4] to-[#ffffff] !text-black' },
+  { key: 'april-fools', name: 'April Fools & Humor', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/20', badgeBorder: 'border-[#ffd700]/60', buttonBg: 'bg-gradient-to-r from-[#ffd700] to-[#ffffff] !text-black' },
+  { key: 'new-years', name: "New Year's Eve", text: 'text-[#e5e4e2]', badgeBg: 'bg-[#e5e4e2]/20', badgeBorder: 'border-[#e5e4e2]/60', buttonBg: 'bg-gradient-to-r from-[#e5e4e2] to-[#ffffff] !text-black' },
+  { key: 'christianity', name: 'Christianity', text: 'text-[#dda0dd]', badgeBg: 'bg-[#dda0dd]/20', badgeBorder: 'border-[#dda0dd]/60', buttonBg: 'bg-gradient-to-r from-[#dda0dd] to-[#ffffff] !text-black' },
+  { key: 'islam', name: 'Islam', text: 'text-[#98fb98]', badgeBg: 'bg-[#98fb98]/20', badgeBorder: 'border-[#98fb98]/60', buttonBg: 'bg-gradient-to-r from-[#98fb98] to-[#ffffff] !text-black' },
+  { key: 'judaism', name: 'Judaism', text: 'text-[#87ceeb]', badgeBg: 'bg-[#87ceeb]/20', badgeBorder: 'border-[#87ceeb]/60', buttonBg: 'bg-gradient-to-r from-[#87ceeb] to-[#ffffff] !text-black' },
+  { key: 'hinduism', name: 'Hinduism (Diwali)', text: 'text-[#ffa500]', badgeBg: 'bg-[#ffa500]/20', badgeBorder: 'border-[#ffa500]/60', buttonBg: 'bg-gradient-to-r from-[#ffa500] to-[#ffffff] !text-black' },
+  { key: 'buddhism', name: 'Buddhism', text: 'text-[#deb887]', badgeBg: 'bg-[#deb887]/20', badgeBorder: 'border-[#deb887]/60', buttonBg: 'bg-gradient-to-r from-[#deb887] to-[#ffffff] !text-black' },
+  { key: 'mothers-day', name: "Mother's Day", text: 'text-[#ffb6c1]', badgeBg: 'bg-[#ffb6c1]/20', badgeBorder: 'border-[#ffb6c1]/60', buttonBg: 'bg-gradient-to-r from-[#ffb6c1] to-[#ffffff] !text-black' },
+  { key: 'fathers-day', name: "Father's Day", text: 'text-[#4682b4]', badgeBg: 'bg-[#4682b4]/20', badgeBorder: 'border-[#4682b4]/60', buttonBg: 'bg-gradient-to-r from-[#4682b4] to-[#ffffff] !text-black' },
+  { key: 'gender-reveal', name: 'New Arrival', text: 'text-[#87ceeb]', badgeBg: 'bg-[#87ceeb]/20', badgeBorder: 'border-[#87ceeb]/60', buttonBg: 'bg-gradient-to-r from-[#87ceeb] to-[#ffffff] !text-black' },
+  { key: 'graduation', name: 'Graduation', text: 'text-[#daa520]', badgeBg: 'bg-[#daa520]/20', badgeBorder: 'border-[#daa520]/60', buttonBg: 'bg-gradient-to-r from-[#daa520] to-[#ffffff] !text-black' },
+  { key: 'engagement', name: 'Engagement', text: 'text-[#e0ffff]', badgeBg: 'bg-[#e0ffff]/20', badgeBorder: 'border-[#e0ffff]/60', buttonBg: 'bg-gradient-to-r from-[#e0ffff] to-[#ffffff] !text-black' },
+  { key: 'retirement', name: 'Retirement & Farewell', text: 'text-[#f4a460]', badgeBg: 'bg-[#f4a460]/20', badgeBorder: 'border-[#f4a460]/60', buttonBg: 'bg-gradient-to-r from-[#f4a460] to-[#ffffff] !text-black' },
+  { key: 'day-of-the-dead', name: 'Day of the Dead', text: 'text-[#ba55d3]', badgeBg: 'bg-[#ba55d3]/20', badgeBorder: 'border-[#ba55d3]/60', buttonBg: 'bg-gradient-to-r from-[#ba55d3] to-[#ffffff] !text-black' },
+  { key: 'eternal-dove', name: 'Eternal Remembrance', text: 'text-[#f0f8ff]', badgeBg: 'bg-white/20', badgeBorder: 'border-white/50', buttonBg: 'bg-gradient-to-r from-[#ffffff] to-[#dcdcdc] !text-black' },
+  { key: 'veteran', name: 'Veteran Appreciation', text: 'text-[#b22222]', badgeBg: 'bg-[#b22222]/20', badgeBorder: 'border-[#b22222]/60', buttonBg: 'bg-gradient-to-r from-[#b22222] to-[#ffffff] !text-black' },
+  { key: 'get-well', name: 'Get Well Soon', text: 'text-[#adff2f]', badgeBg: 'bg-[#adff2f]/20', badgeBorder: 'border-[#adff2f]/60', buttonBg: 'bg-gradient-to-r from-[#adff2f] to-[#ffffff] !text-black' },
+  { key: 'thank-you', name: 'Thank You / Just Because', text: 'text-[#ffd700]', badgeBg: 'bg-[#ffd700]/20', badgeBorder: 'border-[#ffd700]/60', buttonBg: 'bg-gradient-to-r from-[#ffd700] to-[#ffffff] !text-black' },
+  { key: 'bff', name: "BFF's (Best Friends)", text: 'text-[#ff69b4]', badgeBg: 'bg-[#ff69b4]/20', badgeBorder: 'border-[#ff69b4]/60', buttonBg: 'bg-gradient-to-r from-[#ff69b4] to-[#ffffff] !text-black' },
 ];
 
 export const EMOJI_MAP: Record<string, string> = {
@@ -326,52 +326,64 @@ export default function CardExperience({
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
   return (
-    <div className={`w-full min-h-screen text-white relative flex flex-col overflow-x-hidden ${
-      isPreviewingAsRecipient ? 'justify-end pb-8 md:pb-12 px-4' : 'justify-center items-center p-4 md:p-6 my-auto'
-    }`}>
-      {/* Absolute Scaled Background Image Layer (Crisp, Perfectly Scaled, Unblurred) */}
-      {photoUrl && (
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
-          <img 
-            src={photoUrl} 
-            alt="Background" 
-            className="w-full h-full object-cover object-center filter brightness-[0.85]" 
-          />
-          {/* Ambient Cinematic Vignette for contrast */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/50" />
+    <div className="fixed inset-0 w-screen h-screen text-white flex items-center justify-center overflow-y-auto overflow-x-hidden p-4 md:p-6" style={{ background: '#000000 !important' }}>
+      
+      {/* 1. HERO BACKGROUND PHOTO LAYER (Full Screen, Unstretched bg-contain) */}
+      {photoUrl ? (
+        <div 
+          className="fixed inset-0 w-full h-full bg-contain bg-center bg-no-repeat bg-black z-0 pointer-events-none"
+          style={{ backgroundImage: `url("${photoUrl}")` }}
+        />
+      ) : (
+        <div className="fixed inset-0 w-full h-full bg-[#0a0a0c] z-0 pointer-events-none flex items-center justify-center">
+          <p className="text-zinc-600 text-xs uppercase tracking-[3px] font-mono">✦ Upload a background photo to ignite your custom card ✦</p>
         </div>
       )}
 
-      {/* Full Transparency Container with Minimalist Theme Border */}
-      <div className={`w-full max-w-[680px] bg-transparent border ${activeThemeObj.border} rounded-xl p-5 md:p-8 text-center ${activeThemeObj.glow} flex flex-col gap-5 relative z-10 transition-all duration-500 shadow-2xl`}>
+      {/* 2. CINEMATIC GRADIENT VIGNETTE (Softens edges so text pops while photo remains pristine in center) */}
+      <div className="fixed inset-0 w-full h-full bg-gradient-to-t from-black/90 via-black/30 to-black/70 pointer-events-none z-0" />
+
+      {/* 3. IMMERSIVE FLOATING CONTAINER (Zero solid boxes, absolute focus on custom photo & floating elements) */}
+      <div 
+        className="w-full max-w-[680px] p-5 md:p-8 text-center flex flex-col gap-6 relative z-10 my-auto"
+        style={{ background: 'transparent !important', border: 'none !important' }}
+      >
         
-        {/* Uniform Header Bar (Stacked Vertically so text is never cut off) */}
+        {/* Top Header Bar */}
         {!isPreviewingAsRecipient && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full bg-black/40 backdrop-blur-md p-3 rounded-lg border border-white/10">
-            <div className={`px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
-              ✦ AURA & ARCHIVE™ LIVE ACTIVATION ✦
+          <div 
+            className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full p-3 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl"
+            style={{ background: 'rgba(0, 0, 0, 0.45)' }}
+          >
+            <div className={`px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} font-bold`}>
+              ✦ UNDISCARDABLE™ CUSTOM EXPERIENCE ✦
             </div>
 
             <button
               type="button"
               onClick={() => setEmojisActive(!emojisActive)}
-              className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
+              className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
             >
-              Emojis: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+              Effects: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
             </button>
           </div>
         )}
 
         {isEditing && !isPreviewingAsRecipient ? (
-          <div className="space-y-5 text-left bg-black/70 backdrop-blur-md p-5 rounded-lg border border-white/10">
-            <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px] text-center`}>
-              {activeThemeObj.name} Portal
-            </h1>
-            <p className="text-[12px] text-[#b0aebf] text-center">Configure your recipient, background photo, multimedia audio/video note, and theme.</p>
+          <div 
+            className="space-y-5 text-left p-6 rounded-2xl backdrop-blur-xl border border-white/15 shadow-2xl"
+            style={{ background: 'rgba(8, 8, 12, 0.75)' }}
+          >
+            <div className="text-center space-y-1">
+              <h1 className={`font-serif text-[24px] uppercase ${activeThemeObj.text} tracking-[2px]`}>
+                Design Your Custom Card
+              </h1>
+              <p className="text-[12px] text-zinc-300">Skip generic store cards. Customize your background photo and message exactly as pictured in your head.</p>
+            </div>
             
             {/* Recipient Name */}
             <div>
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1.5 font-bold`}>
                 Recipient Name
               </label>
               <input
@@ -379,14 +391,14 @@ export default function CardExperience({
                 value={recipient}
                 placeholder="e.g. Sarah"
                 onChange={(e) => setRecipient(e.target.value)}
-                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm placeholder:text-zinc-600 focus:outline-none focus:border-white transition-all`}
+                className="w-full bg-black/60 border border-white/20 p-3 text-white rounded-xl text-sm placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
               />
             </div>
 
             {/* Personal Gift Message */}
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold`}>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
                   Personal Gift Message
                 </label>
                 <span className={`text-[10px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-400'}`}>
@@ -399,30 +411,31 @@ export default function CardExperience({
                 value={message}
                 placeholder="Type your personal note here..."
                 onChange={(e) => setMessage(e.target.value)}
-                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm placeholder:text-zinc-600 focus:outline-none focus:border-white transition-all`}
+                className="w-full bg-black/60 border border-white/20 p-3 text-white rounded-xl text-sm placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
               />
             </div>
 
-            {/* MEDIA 1: Background Image Only (JPEG, PNG, WEBP) */}
-            <div>
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
-                Media Attachment 1: Background Image (JPEG, PNG, WebP)
+            {/* HERO BACKGROUND PHOTO UPLOAD */}
+            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-bold flex items-center gap-2`}>
+                <span>⭐ Major Selling Point: Custom Background Photo</span>
               </label>
+              <p className="text-[11px] text-zinc-300 mb-2">Upload any image to serve as the immersive background of your card experience.</p>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/jpg"
                 onChange={handlePhotoSelect}
-                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
+                className="w-full bg-black/60 border border-white/20 p-2.5 text-xs text-[#f4e6b0] rounded-xl cursor-pointer file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#d4af37] file:text-black hover:file:brightness-110"
               />
               {photoUrl && (
-                <div className={`mt-2 flex items-center justify-between p-2 rounded bg-black/80 border ${activeThemeObj.badgeBorder}`}>
-                  <span className={`text-[11px] ${activeThemeObj.text} font-medium truncate max-w-[240px]`}>
-                    ✓ Background Image Attached
+                <div className="mt-2.5 flex items-center justify-between p-2 rounded-lg bg-black/80 border border-emerald-500/40">
+                  <span className="text-[11px] text-emerald-400 font-semibold truncate max-w-[240px]">
+                    ✓ Custom Background Loaded Successfully
                   </span>
                   <button
                     type="button"
                     onClick={() => setPhotoUrl('')}
-                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/40 rounded border border-red-500/30 transition"
+                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
                   >
                     Remove
                   </button>
@@ -430,33 +443,33 @@ export default function CardExperience({
               )}
             </div>
 
-            {/* MEDIA 2: Multimedia Audio/Video/Recorder/Link */}
+            {/* Multimedia Note */}
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold`}>
-                  Media Attachment 2: Auto-Playing Multimedia Note
+              <div className="flex justify-between items-center mb-1.5">
+                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
+                  Multimedia Audio/Video Note
                 </label>
                 <div className="flex gap-1.5">
                   <button
                     type="button"
                     onClick={() => setInputMode('upload')}
-                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/50 text-zinc-400'}`}
                   >
-                    Upload File
+                    Upload
                   </button>
                   <button
                     type="button"
                     onClick={() => setInputMode('record')}
-                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/50 text-zinc-400'}`}
                   >
-                    Record Voice
+                    Record
                   </button>
                   <button
                     type="button"
                     onClick={() => setInputMode('link')}
-                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'link' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'link' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/50 text-zinc-400'}`}
                   >
-                    Media Link
+                    Link
                   </button>
                 </div>
               </div>
@@ -466,12 +479,12 @@ export default function CardExperience({
                   type="file"
                   accept="video/*,audio/*"
                   onChange={handleMediaUpload}
-                  className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-[#f4e6b0] rounded cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black hover:file:brightness-110`}
+                  className="w-full bg-black/60 border border-white/20 p-2.5 text-xs text-[#f4e6b0] rounded-xl cursor-pointer file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black"
                 />
               ) : inputMode === 'record' ? (
                 <div className="mt-1 flex flex-col items-center gap-2">
                   <AudioRecorder
-                    themeBorder={activeThemeObj.border}
+                    themeBorder={activeThemeObj.text}
                     themeText={activeThemeObj.text}
                     themeBadgeBorder={activeThemeObj.badgeBorder}
                     themeButtonBg={activeThemeObj.buttonBg}
@@ -486,15 +499,15 @@ export default function CardExperience({
                 <div className="flex gap-2 mt-1">
                   <input
                     type="url"
-                    placeholder="Paste direct audio/video URL (.mp4, .mp3)"
+                    placeholder="Direct audio/video URL (.mp4, .mp3)"
                     value={externalLinkInput}
                     onChange={(e) => setExternalLinkInput(e.target.value)}
-                    className={`flex-1 bg-black/60 border ${activeThemeObj.badgeBorder} p-2.5 text-xs text-white rounded placeholder:text-zinc-600 focus:outline-none`}
+                    className="flex-1 bg-black/60 border border-white/20 p-2.5 text-xs text-white rounded-xl placeholder:text-zinc-500 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleExternalLinkSave}
-                    className={`px-3 py-2 text-xs uppercase font-bold rounded ${activeThemeObj.buttonBg}`}
+                    className={`px-3 py-2 text-xs uppercase font-bold rounded-xl ${activeThemeObj.buttonBg}`}
                   >
                     Attach
                   </button>
@@ -502,14 +515,14 @@ export default function CardExperience({
               )}
 
               {mediaUrl && (
-                <div className={`mt-2 flex items-center justify-between p-2 rounded bg-black/80 border ${activeThemeObj.badgeBorder}`}>
-                  <span className={`text-[11px] ${activeThemeObj.text} font-medium truncate max-w-[240px]`}>
-                    ✓ Multimedia Note Attached
+                <div className="mt-2 flex items-center justify-between p-2 rounded-lg bg-black/80 border border-emerald-500/40">
+                  <span className="text-[11px] text-emerald-400 font-semibold truncate max-w-[240px]">
+                    ✓ Media Note Attached
                   </span>
                   <button
                     type="button"
                     onClick={() => setMediaUrl('')}
-                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/40 rounded border border-red-500/30 transition"
+                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
                   >
                     Remove
                   </button>
@@ -517,15 +530,15 @@ export default function CardExperience({
               )}
             </div>
 
-            {/* Theme Selector (27 Themes) */}
+            {/* Theme Selector */}
             <div>
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-semibold`}>
-                Gift Note Theme & Emoji Cascade (All 27 Themes)
+              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1.5 font-bold`}>
+                Vibe & Animation Theme
               </label>
               <select
                 value={effectType}
                 onChange={(e) => setEffectType(e.target.value)}
-                className={`w-full bg-black/60 border ${activeThemeObj.badgeBorder} p-3 text-white rounded text-sm focus:outline-none focus:border-white cursor-pointer transition-all`}
+                className="w-full bg-black/60 border border-white/20 p-3 text-white rounded-xl text-sm focus:outline-none focus:border-white cursor-pointer transition-all"
               >
                 {THEMES.map((t) => (
                   <option key={t.key} value={t.key} className="bg-[#101014] text-white">{t.name}</option>
@@ -535,30 +548,43 @@ export default function CardExperience({
 
             <button
               onClick={() => setIsPreviewingAsRecipient(true)}
-              className={`w-full py-3.5 font-bold rounded text-[11px] uppercase tracking-[1.5px] cursor-pointer shadow-lg transition-all ${activeThemeObj.buttonBg}`}
+              className={`w-full py-4 font-extrabold rounded-xl text-[12px] uppercase tracking-[2px] cursor-pointer shadow-xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
             >
-              Preview Live Card Experience ✦
+              Preview Live Experience with Your Photo ✦
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {!isPreviewingAsRecipient && (
-              <div className="bg-black/50 backdrop-blur-md p-4 rounded-lg border border-white/10">
-                <h1 className={`font-serif text-[24px] uppercase ${activeThemeObj.text} tracking-[2px] drop-shadow-md`}>{activeThemeObj.name} Experience</h1>
-                <p className="text-[12px] text-[#b0aebf] tracking-[1px] mt-1">{isSandbox ? 'LIVE CARD PREVIEW' : 'AURA MEMORY VAULT'}</p>
+              <div 
+                className="p-4 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl"
+                style={{ background: 'rgba(0, 0, 0, 0.4)' }}
+              >
+                <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px] drop-shadow-md`}>{activeThemeObj.name} Card</h1>
+                <p className="text-[11px] text-zinc-300 tracking-[1px] mt-0.5">IMMERSIVE CUSTOM BACKGROUND EXPERIENCE</p>
               </div>
             )}
 
-            {/* Bottom-docked translucent message box with high readability */}
-            <div className={`text-left bg-black/40 backdrop-blur-md border ${activeThemeObj.badgeBorder} p-5 rounded-lg text-[#f4e6b0] shadow-2xl`}>
-              <p className={`text-xs uppercase tracking-widest ${activeThemeObj.text} font-semibold mb-2 drop-shadow`}>To: {recipient || 'A Special Friend'}</p>
-              <p className="text-base font-light leading-relaxed whitespace-pre-wrap drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">{message || 'Your personal gift message will appear here!'}</p>
+            {/* IMMERSIVE FLOATING MESSAGE (Zero solid box, high-contrast readable typography directly over background photo) */}
+            <div 
+              className="text-center p-6 rounded-2xl backdrop-blur-sm border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
+              style={{ background: 'rgba(0, 0, 0, 0.55)' }}
+            >
+              <p className={`text-xs uppercase tracking-[3px] ${activeThemeObj.text} font-bold mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]`}>
+                ✦ To: {recipient || 'Someone Special'} ✦
+              </p>
+              <p className="text-lg font-light leading-relaxed text-white whitespace-pre-wrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+                {message || 'Your custom background photo and personal message shine through right here!'}
+              </p>
             </div>
 
-            {/* Auto-Playing Media 2 Container */}
+            {/* IMMERSIVE MEDIA PLAYER */}
             {mediaUrl && (
-              <div className={`relative w-full rounded-lg overflow-hidden border ${activeThemeObj.badgeBorder} bg-black/50 backdrop-blur-md p-4 flex flex-col items-center justify-center gap-3 shadow-2xl`}>
-                <p className={`text-[10px] uppercase tracking-[2px] ${activeThemeObj.text} font-semibold drop-shadow`}>✦ Auto-Playing Media Note ✦</p>
+              <div 
+                className="relative w-full rounded-2xl overflow-hidden backdrop-blur-md border border-white/10 p-5 flex flex-col items-center justify-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
+                style={{ background: 'rgba(0, 0, 0, 0.6)' }}
+              >
+                <p className={`text-[10px] uppercase tracking-[2px] ${activeThemeObj.text} font-bold drop-shadow`}>✦ Auto-Playing Media Note ✦</p>
                 {mediaFileType === 'audio' ? (
                   <audio 
                     ref={mediaRef as React.RefObject<HTMLAudioElement>} 
@@ -574,35 +600,38 @@ export default function CardExperience({
                     autoPlay 
                     playsInline 
                     controls 
-                    className="w-full h-full max-h-[240px] object-contain rounded block" 
+                    className="w-full h-full max-h-[260px] object-contain rounded-xl block shadow-2xl" 
                   />
                 )}
               </div>
             )}
 
-            {/* CLEAN IMMERSIVE RECIPIENT EXPERIENCE VIEW (Only shows Back to Editing button) */}
+            {/* RECIPIENT VIEW / ACTIONS */}
             {isPreviewingAsRecipient ? (
               <div className="pt-2">
                 <button
                   onClick={() => setIsPreviewingAsRecipient(false)}
-                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/60 backdrop-blur-md hover:bg-black/80 transition-all shadow-2xl`}
+                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all shadow-2xl`}
                 >
-                  ← Back to Editing
+                  ← Back to Customizing
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-3 bg-black/70 backdrop-blur-md p-4 rounded-lg border border-white/10">
+              <div 
+                className="flex flex-col gap-3 p-4 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl"
+                style={{ background: 'rgba(0, 0, 0, 0.5)' }}
+              >
                 {isSandbox && (
                   <div className="flex gap-2">
                     <button 
                       onClick={() => setIsPreviewingAsRecipient(true)}
-                      className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
+                      className={`flex-1 py-3 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
                     >
-                      Test Recipient View ✦
+                      Test Immersive View ✦
                     </button>
                     <button 
                       onClick={copyVaultLink}
-                      className={`flex-1 py-3 text-[10px] bg-black/60 border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} font-semibold rounded uppercase tracking-wider hover:bg-black/80 transition-all`}
+                      className={`flex-1 py-3 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
                     >
                       Copy Link 📋
                     </button>
@@ -613,9 +642,9 @@ export default function CardExperience({
                   <button
                     onClick={handleSaveToDatabase}
                     disabled={isSaving}
-                    className={`w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-lg transition-all ${activeThemeObj.buttonBg}`}
+                    className={`w-full py-4 font-extrabold text-[12px] uppercase tracking-[2px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
                   >
-                    {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CARD CONFIGURATION ✦'}
+                    {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CUSTOM CARD ✦'}
                   </button>
                 ) : (
                   <button
@@ -625,22 +654,22 @@ export default function CardExperience({
                       setMessage('');
                       setPhotoUrl('');
                       setMediaUrl('');
-                      setToastMessage('Demo reset! Create a new custom card ✨');
+                      setToastMessage('Demo reset! Create your next custom background card ✨');
                     }}
-                    className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded border ${activeThemeObj.badgeBorder} ${activeThemeObj.text} bg-black/60 hover:bg-black/80 transition-all`}
+                    className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all`}
                   >
-                    ✦ CREATE ANOTHER CUSTOM DEMO ✦
+                    ✦ CREATE ANOTHER CUSTOM CARD ✦
                   </button>
                 )}
 
-                <div className={`pt-4 border-t ${activeThemeObj.badgeBorder} text-center space-y-2`}>
-                  <p className="text-xs text-[#b0aebf]">Love this interactive smart card? Lock it in permanently.</p>
+                <div className={`pt-3 border-t border-white/10 text-center space-y-2`}>
+                  <p className="text-[11px] text-zinc-300">Tired of generic store cards? Give your giftee a custom background experience.</p>
                   <a
                     href="/"
                     target="_blank"
-                    className={`block w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[1.5px] rounded shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
+                    className={`block w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[2px] rounded-xl shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
                   >
-                    ORDER YOUR OWN PHYSICAL CARD NOW ✦
+                    ORDER YOUR OWN PHYSICAL SMART CARD NOW ✦
                   </a>
                 </div>
               </div>
@@ -652,9 +681,9 @@ export default function CardExperience({
 
       {/* Modal Toast Overlay */}
       {toastMessage && (
-        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className={`bg-[#101014] border ${activeThemeObj.border} rounded-xl p-6 text-center ${activeThemeObj.glow} max-w-sm w-full flex flex-col gap-4 shadow-2xl`}>
-            <div className={`inline-block self-center px-3 py-1 border ${activeThemeObj.badgeBorder} rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg}`}>
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className={`bg-[#101014] border ${activeThemeObj.text} rounded-2xl p-6 text-center max-w-sm w-full flex flex-col gap-4 shadow-2xl`}>
+            <div className={`inline-block self-center px-3 py-1 border ${activeThemeObj.badgeBorder} rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} font-bold`}>
               ✦ AURA & ARCHIVE ✦
             </div>
             <p className="text-sm text-white font-light leading-relaxed">
@@ -668,7 +697,7 @@ export default function CardExperience({
                 }
                 setToastMessage(null);
               }}
-              className={`w-full py-2.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded transition-all cursor-pointer ${activeThemeObj.buttonBg}`}
+              className={`w-full py-3 font-bold text-[11px] uppercase tracking-[1.5px] rounded-xl transition-all cursor-pointer ${activeThemeObj.buttonBg}`}
             >
               CONTINUE ✦
             </button>

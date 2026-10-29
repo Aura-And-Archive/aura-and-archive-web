@@ -1,9 +1,8 @@
 @import "tailwindcss";
 
-/* Baseline dark canvas forced BEFORE standard CSS evaluates to prevent white flash */
 html,
 body {
-  background-color: #070709 !important;
+  background-color: transparent !important;
   color: #f3f3f7 !important;
   color-scheme: dark !important;
   min-height: 100vh;
@@ -11,21 +10,9 @@ body {
   padding: 0;
 }
 
-body {
-  background-image: radial-gradient(
-    circle at 50% 30%,
-    #2a220d 0%,
-    #0c0b07 50%,
-    #070709 100%
-  ) !important;
-  background-repeat: no-repeat !important;
-  background-attachment: fixed !important;
-  background-size: cover !important;
-}
-
 :root {
   color-scheme: dark !important;
-  --background: #070709;
+  --background: transparent;
   --foreground: #f3f3f7;
   --accent-gold: #d4af37;
   --accent-gold-hover: #c59f2c;
@@ -64,10 +51,4 @@ body {
   background-color: transparent;
   color: var(--text-gold-light);
   border: 1px solid rgba(212, 175, 55, 0.35);
-}
-
-.btn-outline:hover {
-  border-color: var(--accent-gold);
-  color: #ffffff;
-  background-color: rgba(212, 175, 55, 0.1);
 }

@@ -44,6 +44,7 @@ export default function ExperienceClient({ cardId }: ExperienceClientProps) {
       cardId={cardId}
       initialRecipient={cardData?.recipient_name || cardData?.recipient || ''}
       initialMessage={cardData?.message || ''}
+      initialPhotoUrl={cardData?.photo_url || cardData?.photoUrl || ''} // FIXED: Now passes database background photo url
       initialMediaUrl={cardData?.media_url || cardData?.mediaUrl || ''}
       initialTheme={cardData?.theme_key || cardData?.theme || 'gold-confetti'}
       isSandbox={!isCardConfigured}
