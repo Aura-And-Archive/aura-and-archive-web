@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-REFINED-FB-REACTIONS-AND-INTEGRATED-VIDEO
+// BUILD_CACHE_BUST: 2026-10-30-TRUE-VIEW-TEXT-EDITING-FINAL
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -150,28 +150,28 @@ export default function CardExperience({
   };
 
   // ==========================================
-  // REFINED FACEBOOK LIVE REACTION STREAM (NATURAL ARC)
+  // FACEBOOK LIVE REACTION STREAM SIMULATION
   // ==========================================
   const triggerFacebookLiveReaction = () => {
     if (!emojisActive) return;
 
     const count = 2;
-    const startX = window.innerWidth - 70; // Spawn near bottom-right
+    const startX = window.innerWidth - 70;
     const startY = window.innerHeight + 20;
 
     for (let i = 0; i < count; i++) {
       particlesRef.current.push({
         x: startX + (Math.random() - 0.5) * 20,
         y: startY,
-        vx: -(Math.random() * 1.8 + 0.8), // Smooth organic drift inward
-        vy: -(Math.random() * 2.2 + 2.5), // Natural ascending speed
+        vx: -(Math.random() * 1.8 + 0.8),
+        vy: -(Math.random() * 2.2 + 2.5),
         size: Math.random() * 6 + 14,
         scale: 0.2,
         targetScale: Math.random() * 0.3 + 0.95,
         rotation: (Math.random() - 0.5) * 0.4,
         rotSpeed: (Math.random() - 0.5) * 0.04,
         opacity: 0.95,
-        swayAmplitude: Math.random() * 45 + 20, // Gentle natural arc
+        swayAmplitude: Math.random() * 45 + 20,
         swaySpeed: Math.random() * 0.006 + 0.003,
         age: 0,
         themeKey: effectType,
@@ -182,13 +182,12 @@ export default function CardExperience({
   useEffect(() => {
     autoBurstIntervalRef.current = setInterval(() => {
       triggerFacebookLiveReaction();
-    }, 550); // Fluid, continuous live reaction cadence
+    }, 550);
     return () => {
       if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
     };
   }, [emojisActive, effectType]);
 
-  // Touch interactive ripples & reaction burst on tap
   const handleScreenTouch = (e: React.MouseEvent | React.TouchEvent) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
@@ -250,7 +249,6 @@ export default function CardExperience({
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Render Touch Ripples
       ripplesRef.current.forEach((r) => {
         r.radius += 4 * dtFactor;
         r.opacity -= 0.04 * dtFactor;
@@ -266,7 +264,6 @@ export default function CardExperience({
       });
       ripplesRef.current = ripplesRef.current.filter((r) => r.opacity > 0);
 
-      // Render Facebook Live Reaction Stream
       if (emojisActive) {
         particlesRef.current.forEach((p) => {
           p.age += deltaTime;
@@ -369,17 +366,17 @@ export default function CardExperience({
             </button>
           </header>
 
-          {/* Center Typography */}
+          {/* Center Typography with whitespace-pre-wrap to preserve real line breaks */}
           <main className="my-auto space-y-4 max-w-lg px-4 pointer-events-none">
             <p className={`text-xs uppercase tracking-[3px] ${activeThemeObj.text} font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,1)]`}>
               ✦ To: {recipient || 'Someone Special'} ✦
             </p>
-            <h1 className="text-2xl md:text-4xl font-serif leading-relaxed text-white drop-shadow-[0_2px_12px_rgba(0,0,0,1)]">
+            <h1 className="text-xl md:text-3xl font-serif leading-relaxed text-white drop-shadow-[0_2px_12px_rgba(0,0,0,1)] whitespace-pre-wrap">
               "{message || 'Your custom background gift note.'}"
             </h1>
           </main>
 
-          {/* Bottom Floating Media (Borderless Integrated Video or Audio) & Purchase Callout */}
+          {/* Bottom Floating Media & Purchase Callout */}
           <footer className="pb-6 w-full max-w-sm space-y-3 pointer-events-auto">
             {mediaUrl && mediaFileType === 'video' ? (
               <div className="w-full backdrop-blur-xl bg-black/40 border border-white/20 rounded-2xl overflow-hidden shadow-2xl aspect-video relative group">
@@ -474,23 +471,23 @@ export default function CardExperience({
             />
           </div>
 
-          {/* Personal Message */}
+          {/* Personal Message with rows for multiline editing */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
-                Personal Message
+                Personal Message (Line breaks preserved)
               </label>
               <span className={`text-[9px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-500'}`}>
                 {message.length}/500
               </span>
             </div>
             <textarea
-              rows={2}
+              rows={4}
               maxLength={500}
               value={message}
-              placeholder="Type your personal note here..."
+              placeholder="Type your personal note here... (Press Enter for line breaks)"
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 transition-all"
+              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 transition-all whitespace-pre-wrap"
             />
           </div>
 
