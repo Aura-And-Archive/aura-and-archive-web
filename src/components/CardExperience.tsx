@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-CLEAN-LABEL-FINAL
+// BUILD_CACHE_BUST: 2026-10-30-CLEAN-URL-DIRECT-PREVIEW-FIXED
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -109,19 +109,18 @@ export default function CardExperience({
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const query = new URLSearchParams(window.location.search);
-      if (query.get('to')) setRecipient(query.get('to') || '');
-      if (query.get('msg')) setMessage(query.get('msg') || '');
-      if (query.get('photo')) setPhotoUrl(query.get('photo') || '');
-      if (query.get('media')) {
-        const mUrl = query.get('media') || '';
-        setMediaUrl(mUrl);
-        if (mUrl.includes('audio') || mUrl.endsWith('.mp3') || mUrl.endsWith('.wav')) {
-          setMediaFileType('audio');
-        } else {
-          setMediaFileType('video');
-        }
+      const toParam = query.get('to');
+      const msgParam = query.get('msg');
+      const themeParam = query.get('theme');
+
+      if (toParam) setRecipient(toParam);
+      if (msgParam) setMessage(msgParam);
+      if (themeParam) setEffectType(themeParam);
+
+      // Automatically launch directly into Immersive Preview Mode when opening a shared link!
+      if (toParam || msgParam) {
+        setIsPreviewMode(true);
       }
-      if (query.get('theme')) setEffectType(query.get('theme') || 'gold-confetti');
     }
   }, []);
 
@@ -150,7 +149,7 @@ export default function CardExperience({
   };
 
   // ==========================================
-  // SHARE DEMO HANDLER
+  // SHARE DEMO HANDLER (Clean & Short URLs)
   // ==========================================
   const handleShareDemo = async () => {
     const baseUrl = window.location.origin + window.location.pathname;
@@ -158,8 +157,8 @@ export default function CardExperience({
     if (recipient) params.set('to', recipient);
     if (message) params.set('msg', message);
     if (effectType) params.set('theme', effectType);
-    if (photoUrl && !photoUrl.startsWith('blob:')) params.set('photo', photoUrl);
-    if (mediaUrl && !mediaUrl.startsWith('blob:')) params.set('media', mediaUrl);
+
+    // Note: Base64 photo strings are intentionally omitted from share URLs to prevent link bloat and image pixelation.
 
     const shareUrl = `${baseUrl}?${params.toString()}`;
 
