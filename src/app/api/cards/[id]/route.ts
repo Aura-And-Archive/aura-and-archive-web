@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -14,7 +9,12 @@ export async function GET(
     const { id } = await params;
     const cleanId = decodeURIComponent(id || '');
 
-    // Query Supabase using serial_number (matching your table schema)
+    // Initialize Supabase inside the handler so build-time env checks don't fail
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    );
+
     const { data, error } = await supabase
       .from('cards')
       .select('*')
@@ -25,7 +25,6 @@ export async function GET(
       return NextResponse.json({ error: 'Card not found' }, { status: 404 });
     }
 
-    // Map database columns to client properties
     return NextResponse.json({
       recipient: data.recipient_name,
       message: data.message_text,
