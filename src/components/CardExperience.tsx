@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-29-DECOUPLED-BASE64-CANVAS
+// BUILD_CACHE_BUST: 2026-10-29-UNBOXED-FULLBLEED-CANVAS
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -93,7 +93,7 @@ export default function CardExperience({
 
   const [effectType, setEffectType] = useState(initialTheme);
   const [emojisActive, setEmojisActive] = useState(true);
-  const [isEditing, setIsEditing] = useState(isSandbox);
+  const [isPreviewMode, setIsPreviewMode] = useState(false); // Toggle between Studio form & Immersive Unboxed View
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -102,6 +102,7 @@ export default function CardExperience({
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
   const autoBurstIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const mediaRef = useRef<HTMLAudioElement | HTMLVideoElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -120,7 +121,6 @@ export default function CardExperience({
     }
   }, []);
 
-  // UPDATED: Base64 FileReader implementation for indestructible mobile image caching
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -154,7 +154,7 @@ export default function CardExperience({
 
   const handleSaveToDatabase = async () => {
     if (isSandbox) {
-      launchDecoupledViewer();
+      setIsPreviewMode(true);
       return;
     }
 
@@ -169,7 +169,6 @@ export default function CardExperience({
       if (!res.ok) throw new Error(data.error || 'Failed to save card configuration.');
       
       setToastMessage('Card successfully saved & locked in your memory vault ✨');
-      setIsEditing(false);
     } catch (err: any) {
       setToastMessage(err.message || 'Error saving card.');
     } finally {
@@ -177,36 +176,18 @@ export default function CardExperience({
     }
   };
 
-  // UPDATED: Launches the decoupled standalone viewer route
-  const launchDecoupledViewer = () => {
+  const copyVaultLink = () => {
+    const origin = window.location.origin;
     const params = new URLSearchParams();
+
     if (recipient) params.set('to', recipient);
     if (message) params.set('msg', message);
     if (photoUrl) params.set('photo', photoUrl);
     if (mediaUrl) params.set('media', mediaUrl);
     if (effectType) params.set('theme', effectType);
 
-    const targetId = cardId || 'demo';
-    window.open(`/c/${targetId}?${params.toString()}`, '_blank');
-  };
-
-  const copyVaultLink = () => {
-    if (isSandbox) {
-      const origin = window.location.origin;
-      const params = new URLSearchParams();
-
-      if (recipient) params.set('to', recipient);
-      if (message) params.set('msg', message);
-      if (photoUrl) params.set('photo', photoUrl);
-      if (mediaUrl) params.set('media', mediaUrl);
-      if (effectType) params.set('theme', effectType);
-
-      navigator.clipboard.writeText(`${origin}/c/demo?${params.toString()}`);
-      setToastMessage('Decoupled viewer link copied to clipboard ✨');
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      setToastMessage('Vault link copied to clipboard ✨');
-    }
+    navigator.clipboard.writeText(`${origin}/demo?${params.toString()}`);
+    setToastMessage('Sandbox shareable link copied to clipboard ✨');
   };
 
   const triggerFireworksBurst = () => {
@@ -239,15 +220,13 @@ export default function CardExperience({
   };
 
   useEffect(() => {
-    if (isSandbox) {
-      autoBurstIntervalRef.current = setInterval(() => {
-        triggerFireworksBurst();
-      }, 1500);
-    }
+    autoBurstIntervalRef.current = setInterval(() => {
+      triggerFireworksBurst();
+    }, 1800);
     return () => {
       if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
     };
-  }, [isSandbox, emojisActive, effectType]);
+  }, [emojisActive, effectType]);
 
   useEffect(() => {
     const canvas = document.createElement('canvas');
@@ -331,13 +310,87 @@ export default function CardExperience({
 
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
+  // ==========================================
+  // UNBOXED FULL-BLEED IMMERSIVE VIEWER (NO GREY BOXES)
+  // ==========================================
+  if (isPreviewMode) {
+    return (
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none">
+        {/* LAYER 0: HERO FULL-SCREEN BACKGROUND PHOTO */}
+        {photoUrl && (
+          <div 
+            className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat pointer-events-none z-0 transition-all duration-700"
+            style={{ backgroundImage: `url("${photoUrl}")` }}
+          />
+        )}
+
+        {/* LAYER 1: CINEMATIC VIGNETTE (Zero solid container boxes) */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-black/85 via-black/25 to-black/65 pointer-events-none z-0" />
+
+        {/* LAYER 2: FLOATING CANVAS CONTENT */}
+        <div className="relative z-10 w-full h-full flex flex-col items-center justify-between p-6 text-center">
+          
+          {/* Top Bar */}
+          <header className="w-full max-w-xl flex items-center justify-between pt-4">
+            <p className={`text-[10px] uppercase tracking-[3px] ${activeThemeObj.text} font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]`}>
+              ✦ AURA & ARCHIVE ✦
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsPreviewMode(false)}
+              className="px-3 py-1 bg-black/60 border border-white/20 text-xs text-white rounded-full uppercase tracking-widest backdrop-blur-md hover:bg-black/80 transition"
+            >
+              ← Back to Studio
+            </button>
+          </header>
+
+          {/* Center Typography (Floating directly over background) */}
+          <main className="my-auto space-y-4 max-w-lg px-4">
+            <p className={`text-xs uppercase tracking-[3px] ${activeThemeObj.text} font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,1)]`}>
+              ✦ To: {recipient || 'Someone Special'} ✦
+            </p>
+            <h1 className="text-2xl md:text-4xl font-light leading-relaxed text-white drop-shadow-[0_2px_12px_rgba(0,0,0,1)]">
+              "{message || 'Your custom background keepsake.'}"
+            </h1>
+          </main>
+
+          {/* Bottom Floating Media & Actions */}
+          <footer className="pb-6 w-full max-w-sm space-y-3">
+            {mediaUrl && (
+              <div className="w-full backdrop-blur-md bg-black/40 border border-white/20 p-2 rounded-2xl shadow-2xl">
+                <audio 
+                  ref={mediaRef as React.RefObject<HTMLAudioElement>}
+                  src={mediaUrl} 
+                  controls 
+                  autoPlay 
+                  className="w-full h-8"
+                />
+              </div>
+            )}
+            <a
+              href="/"
+              target="_blank"
+              className={`block w-full py-3 font-extrabold text-[11px] uppercase tracking-[1.5px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
+            >
+              ORDER YOUR OWN PHYSICAL SMART CARD ✦
+            </a>
+          </footer>
+
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // STUDIO CONFIGURATION FORM
+  // ==========================================
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none flex flex-col justify-between p-4 md:p-8">
       
-      {/* Top Navigation / Controls Bar */}
+      {/* Top Navigation Bar */}
       <header className="w-full max-w-xl mx-auto flex items-center justify-between gap-2 pt-2 z-20">
         <div className={`px-3 py-1 rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} border ${activeThemeObj.badgeBorder} font-bold backdrop-blur-md`}>
-          ✦ UNDISCARDABLE™ STUDIO ✦
+          ✦ FLYER SANDBOX STUDIO ✦
         </div>
 
         <button
@@ -349,14 +402,14 @@ export default function CardExperience({
         </button>
       </header>
 
-      {/* Main Studio Editor Workspace (Pure Form Interface) */}
-      <main className="w-full max-w-lg mx-auto my-auto py-2 z-20 overflow-y-auto max-h-[80vh]">
-        <div className="w-full space-y-4 text-left p-6 rounded-3xl backdrop-blur-xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9)] bg-black/70">
+      {/* Main Studio Editor Workspace */}
+      <main className="w-full max-w-lg mx-auto my-auto py-2 z-20 overflow-y-auto max-h-[82vh]">
+        <div className="w-full space-y-4 text-left p-6 rounded-3xl backdrop-blur-xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9)] bg-black/80">
           <div className="text-center space-y-1">
             <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px]`}>
-              Custom Card Studio
+              Sample Gift Note Studio
             </h1>
-            <p className="text-[11px] text-zinc-300">Design your background photo & message exactly as you pictured it.</p>
+            <p className="text-[11px] text-zinc-300">Design your background photo & message preview instantly.</p>
           </div>
           
           {/* Recipient Name */}
@@ -523,12 +576,12 @@ export default function CardExperience({
             </select>
           </div>
 
-          {/* LAUNCH DECOUPLED VIEWER BUTTON */}
+          {/* LAUNCH IMMERSIVE VIEWER BUTTON */}
           <button
-            onClick={launchDecoupledViewer}
+            onClick={() => setIsPreviewMode(true)}
             className={`w-full py-4 font-extrabold rounded-xl text-[12px] uppercase tracking-[2px] cursor-pointer shadow-xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
           >
-            Preview Immersive Canvas (Decoupled) ✦
+            Preview Unboxed Immersive Canvas ✦
           </button>
         </div>
       </main>
@@ -536,45 +589,33 @@ export default function CardExperience({
       {/* Bottom Actions Footer */}
       <footer className="w-full max-w-lg mx-auto pb-2 z-20">
         <div className="flex flex-col gap-2.5 p-3 rounded-2xl backdrop-blur-md border border-white/10 bg-black/40 shadow-2xl">
-          {isSandbox && (
-            <div className="flex gap-2">
-              <button 
-                onClick={launchDecoupledViewer}
-                className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
-              >
-                Launch Viewer ✦
-              </button>
-              <button 
-                onClick={copyVaultLink}
-                className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
-              >
-                Copy Link 📋
-              </button>
-            </div>
-          )}
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setIsPreviewMode(true)}
+              className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
+            >
+              Launch Viewer ✦
+            </button>
+            <button 
+              onClick={copyVaultLink}
+              className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
+            >
+              Copy Link 📋
+            </button>
+          </div>
 
-          {!isSandbox ? (
-            <button
-              onClick={handleSaveToDatabase}
-              disabled={isSaving}
-              className={`w-full py-3.5 font-extrabold text-[11px] uppercase tracking-[2px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
-            >
-              {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CUSTOM CARD ✦'}
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setRecipient('');
-                setMessage('');
-                setPhotoUrl('');
-                setMediaUrl('');
-                setToastMessage('Studio reset! Create your next custom background card ✨');
-              }}
-              className="w-full py-3 font-bold text-[10px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all"
-            >
-              ✦ RESET STUDIO ✦
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setRecipient('');
+              setMessage('');
+              setPhotoUrl('');
+              setMediaUrl('');
+              setToastMessage('Studio reset! Create your next sample card ✨');
+            }}
+            className="w-full py-3 font-bold text-[10px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all"
+          >
+            ✦ RESET STUDIO ✦
+          </button>
 
           <div className="pt-2 border-t border-white/10 text-center">
             <a
