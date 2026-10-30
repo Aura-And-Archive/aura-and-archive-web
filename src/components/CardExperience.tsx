@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-ULTRA-LUXURY-GIFTNOTE
+// BUILD_CACHE_BUST: 2026-10-30-FB-LIVE-REACTIONS-AND-UNIVERSAL-MEDIA
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -104,6 +104,7 @@ export default function CardExperience({
   const lastTimeRef = useRef<number>(performance.now());
   const autoBurstIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -111,7 +112,15 @@ export default function CardExperience({
       if (query.get('to')) setRecipient(query.get('to') || '');
       if (query.get('msg')) setMessage(query.get('msg') || '');
       if (query.get('photo')) setPhotoUrl(query.get('photo') || '');
-      if (query.get('media')) setMediaUrl(query.get('media') || '');
+      if (query.get('media')) {
+        const mUrl = query.get('media') || '';
+        setMediaUrl(mUrl);
+        if (mUrl.includes('audio') || mUrl.endsWith('.mp3') || mUrl.endsWith('.wav')) {
+          setMediaFileType('audio');
+        } else {
+          setMediaFileType('video');
+        }
+      }
       if (query.get('theme')) setEffectType(query.get('theme') || 'gold-confetti');
     }
   }, []);
@@ -140,25 +149,30 @@ export default function CardExperience({
     setMediaUrl(URL.createObjectURL(file));
   };
 
-  // Calm ambient upward drift
-  const triggerAmbientDrift = () => {
+  // ==========================================
+  // FACEBOOK LIVE REACTION STREAM SIMULATION
+  // ==========================================
+  const triggerFacebookLiveReaction = () => {
     if (!emojisActive) return;
 
-    const count = 3;
-    const startX = Math.random() * window.innerWidth;
+    const count = 2; // Continuous gentle stream from bottom right
+    const startX = window.innerWidth - 60;
     const startY = window.innerHeight + 20;
 
     for (let i = 0; i < count; i++) {
       particlesRef.current.push({
-        x: startX + (Math.random() - 0.5) * 80,
+        x: startX + (Math.random() - 0.5) * 30,
         y: startY,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: -(Math.random() * 1.0 + 0.6),
-        size: Math.random() * 4 + 5,
-        rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.04,
-        opacity: 0.45,
-        sway: Math.random() * 2,
+        vx: -(Math.random() * 1.5 + 0.5),
+        vy: -(Math.random() * 2.5 + 2.0),
+        size: Math.random() * 6 + 12,
+        scale: 0.2,
+        targetScale: Math.random() * 0.4 + 0.9,
+        rotation: (Math.random() - 0.5) * 0.5,
+        rotSpeed: (Math.random() - 0.5) * 0.05,
+        opacity: 0.95,
+        swayAmplitude: Math.random() * 35 + 15,
+        swaySpeed: Math.random() * 0.008 + 0.004,
         age: 0,
         themeKey: effectType,
       });
@@ -167,14 +181,14 @@ export default function CardExperience({
 
   useEffect(() => {
     autoBurstIntervalRef.current = setInterval(() => {
-      triggerAmbientDrift();
-    }, 3500);
+      triggerFacebookLiveReaction();
+    }, 600); // Live reaction stream frequency
     return () => {
       if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
     };
   }, [emojisActive, effectType]);
 
-  // Interactive touch ripples
+  // Touch interactive ripples & reaction burst on tap
   const handleScreenTouch = (e: React.MouseEvent | React.TouchEvent) => {
     const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
@@ -183,10 +197,31 @@ export default function CardExperience({
       x: clientX,
       y: clientY,
       radius: 10,
-      maxRadius: 120,
+      maxRadius: 100,
       opacity: 0.8,
       themeKey: effectType,
     });
+
+    if (emojisActive) {
+      for (let i = 0; i < 3; i++) {
+        particlesRef.current.push({
+          x: clientX + (Math.random() - 0.5) * 40,
+          y: clientY,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -(Math.random() * 3 + 2),
+          size: 14,
+          scale: 0.5,
+          targetScale: 1.2,
+          rotation: 0,
+          rotSpeed: (Math.random() - 0.5) * 0.1,
+          opacity: 1,
+          swayAmplitude: 20,
+          swaySpeed: 0.01,
+          age: 0,
+          themeKey: effectType,
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -215,10 +250,10 @@ export default function CardExperience({
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Render Ripples
+      // Render Touch Ripples
       ripplesRef.current.forEach((r) => {
         r.radius += 4 * dtFactor;
-        r.opacity -= 0.03 * dtFactor;
+        r.opacity -= 0.04 * dtFactor;
 
         ctx.save();
         ctx.beginPath();
@@ -231,30 +266,45 @@ export default function CardExperience({
       });
       ripplesRef.current = ripplesRef.current.filter((r) => r.opacity > 0);
 
-      // Render Ambient Particles
+      // Render Facebook Live Reaction Stream
       if (emojisActive) {
         particlesRef.current.forEach((p) => {
-          p.x += (p.vx + Math.sin(p.age * 0.003 + p.sway) * 0.4) * dtFactor;
-          p.y += p.vy * dtFactor;
-          p.rotation += p.rotSpeed * dtFactor;
           p.age += deltaTime;
+          p.y += p.vy * dtFactor;
+          
+          if (p.scale < p.targetScale) {
+            p.scale += 0.08 * dtFactor;
+          }
 
-          if (p.age > 3000) {
-            p.opacity -= 0.015 * dtFactor;
+          if (p.y < window.innerHeight * 0.4) {
+            p.opacity -= 0.025 * dtFactor;
           }
         });
 
-        particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
+        particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0 && p.y > -50);
+        if (particlesRef.current.length > 120) {
+          particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 120);
+        }
 
         particlesRef.current.forEach((p) => {
           ctx.save();
           ctx.globalAlpha = Math.max(0, p.opacity);
-          ctx.translate(p.x, p.y);
+          const xOffset = Math.sin(p.age * p.swaySpeed) * p.swayAmplitude;
+          ctx.translate(p.x + xOffset, p.y);
+          ctx.scale(p.scale, p.scale);
           ctx.rotate(p.rotation);
-          ctx.font = `${Math.max(18, p.size * 2.2)}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(EMOJI_MAP[p.themeKey] || '✨', 0, 0);
+          
+          if (p.themeKey === 'executive-light') {
+            ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = '#e5e4e2';
+            ctx.fillRect(-10, -25, 20, 50);
+          } else {
+            ctx.font = '32px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(EMOJI_MAP[p.themeKey] || '✨', 0, 0);
+          }
           ctx.restore();
         });
       }
@@ -313,7 +363,7 @@ export default function CardExperience({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setIsPreviewMode(false); }}
-              className="px-4 py-1.5 bg-black/60 border border-white/25 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/80 transition shadow-lg"
+              className="px-4 py-1.5 bg-black/60 border border-white/25 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/80 transition shadow-lg pointer-events-auto"
             >
               ← Back to Studio
             </button>
@@ -329,9 +379,19 @@ export default function CardExperience({
             </h1>
           </main>
 
-          {/* Bottom Minimal Audio Dock & Purchase Callout */}
+          {/* Bottom Floating Media (Video or Audio) & Purchase Callout */}
           <footer className="pb-6 w-full max-w-sm space-y-3 pointer-events-auto">
-            {mediaUrl && (
+            {mediaUrl && mediaFileType === 'video' ? (
+              <div className="w-full backdrop-blur-md bg-black/60 border border-white/20 rounded-2xl overflow-hidden shadow-2xl aspect-video">
+                <video 
+                  ref={videoRef}
+                  src={mediaUrl} 
+                  controls 
+                  playsInline
+                  className="w-full h-full object-contain"
+                />
+              </div>
+            ) : mediaUrl && mediaFileType === 'audio' ? (
               <div className="w-full backdrop-blur-md bg-black/60 border border-white/20 p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3">
                 <audio ref={audioRef} src={mediaUrl} onEnded={() => setIsPlayingAudio(false)} className="hidden" />
                 <button 
@@ -341,7 +401,7 @@ export default function CardExperience({
                   {isPlayingAudio ? '⏸' : '▶'}
                 </button>
                 <div className="flex-1 text-left">
-                  <p className={`text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>Voice / Audio Note</p>
+                  <p className={`text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>Voice Note</p>
                   <p className="text-[11px] text-zinc-300 font-mono">{isPlayingAudio ? 'Playing audio...' : 'Tap to listen'}</p>
                 </div>
                 {isPlayingAudio && (
@@ -352,7 +412,8 @@ export default function CardExperience({
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
+
             <a
               href="/"
               target="_blank"
@@ -385,7 +446,7 @@ export default function CardExperience({
           onClick={() => setEmojisActive(!emojisActive)}
           className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border transition-all backdrop-blur-md ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-black/60 border-zinc-700 text-zinc-400'}`}
         >
-          Atmosphere: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+          Reactions: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
         </button>
       </header>
 
@@ -396,7 +457,7 @@ export default function CardExperience({
             <h1 className={`font-serif text-[20px] uppercase ${activeThemeObj.text} tracking-[2px]`}>
               Customize Your Gift Note
             </h1>
-            <p className="text-[11px] text-zinc-400">Configure your custom background photo, message, and audio.</p>
+            <p className="text-[11px] text-zinc-400">Configure your custom background photo, message, and video or audio.</p>
           </div>
           
           {/* Recipient Name */}
@@ -460,11 +521,11 @@ export default function CardExperience({
             )}
           </div>
 
-          {/* Audio / Video Note */}
+          {/* Video / Audio Note Attachment */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
-                Voice / Media Note
+                Video or Voice Note
               </label>
               <div className="flex gap-1">
                 <button
@@ -479,7 +540,7 @@ export default function CardExperience({
                   onClick={() => setInputMode('record')}
                   className={`text-[9px] px-2 py-0.5 rounded uppercase font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
                 >
-                  Record
+                  Record Audio
                 </button>
               </div>
             </div>
@@ -510,7 +571,7 @@ export default function CardExperience({
             {mediaUrl && (
               <div className="mt-2 flex items-center justify-between p-1.5 rounded-lg bg-black/90 border border-emerald-500/50">
                 <span className="text-[10px] text-emerald-400 font-semibold truncate max-w-[200px]">
-                  ✓ Media Attached
+                  ✓ {mediaFileType === 'video' ? 'Video' : 'Audio'} Attached
                 </span>
                 <button
                   type="button"
