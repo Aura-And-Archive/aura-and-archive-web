@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-SANDBOX-GUARD-DESKTOP-FIT-FIXED
+// BUILD_CACHE_BUST: 2026-10-30-AUTOPLAY-MEDIA-IMMEDIATE-WOW
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -469,6 +469,7 @@ export default function CardExperience({
                 <video 
                   ref={videoRef}
                   src={mediaUrl} 
+                  autoPlay
                   controls 
                   playsInline
                   className="w-full h-full object-cover rounded-2xl"
@@ -476,7 +477,14 @@ export default function CardExperience({
               </div>
             ) : mediaUrl && mediaFileType === 'audio' ? (
               <div className="w-full backdrop-blur-md bg-black/60 border border-white/20 p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3">
-                <audio ref={audioRef} src={mediaUrl} onEnded={() => setIsPlayingAudio(false)} className="hidden" />
+                <audio 
+                  ref={audioRef} 
+                  src={mediaUrl} 
+                  autoPlay
+                  onPlay={() => setIsPlayingAudio(true)}
+                  onEnded={() => setIsPlayingAudio(false)} 
+                  className="hidden" 
+                />
                 <button 
                   onClick={toggleAudioPlayback}
                   className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${activeThemeObj.buttonBg}`}
