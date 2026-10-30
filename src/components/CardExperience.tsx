@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-CLEAN-MASKED-EXPIRED-FINAL
+// BUILD_CACHE_BUST: 2026-10-30-SANDBOX-GUARD-DESKTOP-FIT-FIXED
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -89,7 +89,6 @@ export default function CardExperience({
   const [mediaUrl, setMediaUrl] = useState(initialMediaUrl);
   const [mediaFileType, setMediaFileType] = useState<'video' | 'audio'>('video');
   const [inputMode, setInputMode] = useState<'upload' | 'record' | 'link'>('upload');
-  const [externalLinkInput, setExternalLinkInput] = useState('');
 
   const [effectType, setEffectType] = useState(initialTheme);
   const [emojisActive, setEmojisActive] = useState(true);
@@ -107,12 +106,18 @@ export default function CardExperience({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // GRACEFUL EXPIRED LINK & CARD ID FETCHING
+  // GRACEFUL EXPIRED LINK & CARD ID FETCHING WITH SANDBOX GUARD
   useEffect(() => {
+    // ✦ DO NOT ATTEMPT DATABASE FETCH IF IN SANDBOX MODE ✦
+    if (isSandbox) return;
+
     if (typeof window !== 'undefined') {
       const pathSegments = window.location.pathname.split('/');
       const cIndex = pathSegments.indexOf('c');
       const dynamicId = cIndex !== -1 && pathSegments[cIndex + 1] ? pathSegments[cIndex + 1] : null;
+
+      // Skip fetching if the segment is 'live-demo'
+      if (dynamicId === 'live-demo') return;
 
       const query = new URLSearchParams(window.location.search);
       const queryId = query.get('id') || query.get('card') || query.get('note');
@@ -149,7 +154,7 @@ export default function CardExperience({
           });
       }
     }
-  }, []);
+  }, [isSandbox]);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -196,7 +201,6 @@ export default function CardExperience({
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || 'Failed to generate demo');
 
-      // Masked clean URL structure showing only the URL
       const maskedShareUrl = `${window.location.origin}/c/${json.cardId}`;
 
       if (navigator.share) {
@@ -410,10 +414,10 @@ export default function CardExperience({
         onClick={handleScreenTouch}
         className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none cursor-pointer"
       >
-        {/* HERO BACKGROUND PHOTO */}
+        {/* HERO BACKGROUND PHOTO (bg-cover on mobile, md:bg-contain on desktop widescreen) */}
         {photoUrl && (
           <div 
-            className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat pointer-events-none z-0 transition-all duration-700"
+            className="absolute inset-0 w-full h-full bg-cover md:bg-contain bg-center bg-no-repeat pointer-events-none z-0 transition-all duration-700"
             style={{ backgroundImage: `url("${photoUrl}")` }}
           />
         )}
@@ -562,7 +566,7 @@ export default function CardExperience({
             />
           </div>
 
-          {/* Personal Message without internal mentioning */}
+          {/* Personal Message */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
