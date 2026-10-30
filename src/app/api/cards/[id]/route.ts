@@ -25,12 +25,17 @@ export async function GET(
       return NextResponse.json({ error: 'Card not found' }, { status: 404 });
     }
 
+    // Verify if the demo has exceeded its 24-hour expiration window
+    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      return NextResponse.json({ error: 'Demo card has expired' }, { status: 404 });
+    }
+
     return NextResponse.json({
       recipient: data.recipient_name,
       message: data.message_text,
       photoUrl: data.photo_url,
       mediaUrl: data.media_url,
-      theme: data.theme || 'gold-confetti',
+      theme: data.theme || data.effect_type || 'gold-confetti',
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

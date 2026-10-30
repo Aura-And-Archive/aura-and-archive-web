@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-CLEAN-URL-DIRECT-PREVIEW-FIXED
+// BUILD_CACHE_BUST: 2026-10-30-CLEAN-MASKED-EXPIRED-FINAL
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -96,6 +96,7 @@ export default function CardExperience({
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
@@ -106,20 +107,46 @@ export default function CardExperience({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  // GRACEFUL EXPIRED LINK & CARD ID FETCHING
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const pathSegments = window.location.pathname.split('/');
+      const cIndex = pathSegments.indexOf('c');
+      const dynamicId = cIndex !== -1 && pathSegments[cIndex + 1] ? pathSegments[cIndex + 1] : null;
+
       const query = new URLSearchParams(window.location.search);
-      const toParam = query.get('to');
-      const msgParam = query.get('msg');
-      const themeParam = query.get('theme');
+      const queryId = query.get('id') || query.get('card') || query.get('note');
 
-      if (toParam) setRecipient(toParam);
-      if (msgParam) setMessage(msgParam);
-      if (themeParam) setEffectType(themeParam);
+      const targetId = dynamicId || queryId;
 
-      // Automatically launch directly into Immersive Preview Mode when opening a shared link!
-      if (toParam || msgParam) {
-        setIsPreviewMode(true);
+      if (targetId) {
+        fetch(`/api/cards/${targetId}`)
+          .then(async (res) => {
+            const json = await res.json();
+            if (!res.ok || !json || json.error) {
+              setToastMessage('✦ This demo gift note has expired after 24 hours or is no longer available. Create a new one in the studio! ✦');
+              setIsPreviewMode(false);
+              return;
+            }
+
+            if (json.recipient) setRecipient(json.recipient);
+            if (json.message) setMessage(json.message);
+            if (json.photoUrl) setPhotoUrl(json.photoUrl);
+            if (json.mediaUrl) {
+              setMediaUrl(json.mediaUrl);
+              if (json.mediaUrl.includes('audio') || json.mediaUrl.endsWith('.mp3')) {
+                setMediaFileType('audio');
+              } else {
+                setMediaFileType('video');
+              }
+            }
+            if (json.theme) setEffectType(json.theme);
+            setIsPreviewMode(true);
+          })
+          .catch(() => {
+            setToastMessage('✦ This demo link is unavailable or has expired. ✦');
+            setIsPreviewMode(false);
+          });
       }
     }
   }, []);
@@ -149,37 +176,48 @@ export default function CardExperience({
   };
 
   // ==========================================
-  // SHARE DEMO HANDLER (Clean & Short URLs)
+  // MASKED CLEAN URL SHARE HANDLER
   // ==========================================
   const handleShareDemo = async () => {
-    const baseUrl = window.location.origin + window.location.pathname;
-    const params = new URLSearchParams();
-    if (recipient) params.set('to', recipient);
-    if (message) params.set('msg', message);
-    if (effectType) params.set('theme', effectType);
-
-    // Note: Base64 photo strings are intentionally omitted from share URLs to prevent link bloat and image pixelation.
-
-    const shareUrl = `${baseUrl}?${params.toString()}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Aura & Archive Gift Note',
-          text: `Check out this custom gift note for ${recipient || 'you'}!`,
-          url: shareUrl,
-        });
-        return;
-      } catch (err) {
-        // User cancelled or share failed, fallback to clipboard
-      }
-    }
-
+    setIsSharing(true);
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      setToastMessage('✦ Share link copied to clipboard! Paste it anywhere to share your demo. ✦');
-    } catch (err) {
-      setToastMessage('Unable to generate share link.');
+      const res = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient,
+          message,
+          photoUrl,
+          mediaUrl,
+          effectType,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || 'Failed to generate demo');
+
+      // Masked clean URL structure showing only the URL
+      const maskedShareUrl = `${window.location.origin}/c/${json.cardId}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Aura & Archive Gift Note',
+            url: maskedShareUrl,
+          });
+          setIsSharing(false);
+          return;
+        } catch (err) {
+          // Fallback to clipboard
+        }
+      }
+
+      await navigator.clipboard.writeText(maskedShareUrl);
+      setToastMessage('✦ Clean masked share link copied to clipboard! (Valid for 24 hours) ✦');
+    } catch (err: any) {
+      setToastMessage('Failed to create demo share link.');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -394,10 +432,11 @@ export default function CardExperience({
             <div className="flex items-center gap-2 pointer-events-auto">
               <button
                 type="button"
+                disabled={isSharing}
                 onClick={(e) => { e.stopPropagation(); handleShareDemo(); }}
-                className="px-3.5 py-1.5 bg-black/70 border border-white/30 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/90 transition shadow-lg font-semibold"
+                className="px-3.5 py-1.5 bg-black/70 border border-white/30 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/90 transition shadow-lg font-semibold disabled:opacity-50"
               >
-                Share ✦
+                {isSharing ? 'Sharing...' : 'Share ✦'}
               </button>
               <button
                 type="button"
@@ -483,10 +522,11 @@ export default function CardExperience({
 
         <button
           type="button"
+          disabled={isSharing}
           onClick={handleShareDemo}
-          className="flex-1 flex items-center justify-center px-2 py-2 rounded-2xl text-[9px] uppercase tracking-wider font-bold border border-white/30 bg-black/60 text-white transition-all backdrop-blur-md hover:bg-black/80 text-center h-10 shadow-lg cursor-pointer"
+          className="flex-1 flex items-center justify-center px-2 py-2 rounded-2xl text-[9px] uppercase tracking-wider font-bold border border-white/30 bg-black/60 text-white transition-all backdrop-blur-md hover:bg-black/80 text-center h-10 shadow-lg cursor-pointer disabled:opacity-50"
         >
-          Share Demo ✦
+          {isSharing ? 'Saving...' : 'Share Demo ✦'}
         </button>
 
         <button
