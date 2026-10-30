@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-TRUE-VIEW-TEXT-EDITING-FINAL
+// BUILD_CACHE_BUST: 2026-10-30-TRUE-VIEW-TEXT-EDITING-AND-SHARE
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -147,6 +147,41 @@ export default function CardExperience({
       setMediaFileType('video');
     }
     setMediaUrl(URL.createObjectURL(file));
+  };
+
+  // ==========================================
+  // SHARE DEMO HANDLER
+  // ==========================================
+  const handleShareDemo = async () => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams();
+    if (recipient) params.set('to', recipient);
+    if (message) params.set('msg', message);
+    if (effectType) params.set('theme', effectType);
+    if (photoUrl && !photoUrl.startsWith('blob:')) params.set('photo', photoUrl);
+    if (mediaUrl && !mediaUrl.startsWith('blob:')) params.set('media', mediaUrl);
+
+    const shareUrl = `${baseUrl}?${params.toString()}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Aura & Archive Gift Note',
+          text: `Check out this custom gift note for ${recipient || 'you'}!`,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // User cancelled or share failed, fallback to clipboard
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setToastMessage('✦ Share link copied to clipboard! Paste it anywhere to share your demo. ✦');
+    } catch (err) {
+      setToastMessage('Unable to generate share link.');
+    }
   };
 
   // ==========================================
@@ -357,13 +392,22 @@ export default function CardExperience({
             <p className={`text-[10px] uppercase tracking-[3px] ${activeThemeObj.text} font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]`}>
               ✦ AURA & ARCHIVE ✦
             </p>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setIsPreviewMode(false); }}
-              className="px-4 py-1.5 bg-black/60 border border-white/25 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/80 transition shadow-lg pointer-events-auto"
-            >
-              ← Back to Studio
-            </button>
+            <div className="flex items-center gap-2 pointer-events-auto">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleShareDemo(); }}
+                className="px-3.5 py-1.5 bg-black/70 border border-white/30 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/90 transition shadow-lg font-semibold"
+              >
+                Share ✦
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setIsPreviewMode(false); }}
+                className="px-4 py-1.5 bg-black/60 border border-white/25 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/80 transition shadow-lg"
+              >
+                ← Studio
+              </button>
+            </div>
           </header>
 
           {/* Center Typography with whitespace-pre-wrap to preserve real line breaks */}
@@ -438,13 +482,22 @@ export default function CardExperience({
           ✦ GIFT NOTE STUDIO ✦
         </div>
 
-        <button
-          type="button"
-          onClick={() => setEmojisActive(!emojisActive)}
-          className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border transition-all backdrop-blur-md ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-black/60 border-zinc-700 text-zinc-400'}`}
-        >
-          Reactions: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleShareDemo}
+            className="px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border border-white/30 bg-black/60 text-white transition-all backdrop-blur-md hover:bg-black/80"
+          >
+            Share Demo ✦
+          </button>
+          <button
+            type="button"
+            onClick={() => setEmojisActive(!emojisActive)}
+            className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border transition-all backdrop-blur-md ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-black/60 border-zinc-700 text-zinc-400'}`}
+          >
+            Reactions: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+          </button>
+        </div>
       </header>
 
       {/* Main Form Box */}
