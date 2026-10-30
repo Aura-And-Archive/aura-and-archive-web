@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-FB-LIVE-REACTIONS-AND-UNIVERSAL-MEDIA
+// BUILD_CACHE_BUST: 2026-10-30-REFINED-FB-REACTIONS-AND-INTEGRATED-VIDEO
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -150,29 +150,29 @@ export default function CardExperience({
   };
 
   // ==========================================
-  // FACEBOOK LIVE REACTION STREAM SIMULATION
+  // REFINED FACEBOOK LIVE REACTION STREAM (NATURAL ARC)
   // ==========================================
   const triggerFacebookLiveReaction = () => {
     if (!emojisActive) return;
 
-    const count = 2; // Continuous gentle stream from bottom right
-    const startX = window.innerWidth - 60;
+    const count = 2;
+    const startX = window.innerWidth - 70; // Spawn near bottom-right
     const startY = window.innerHeight + 20;
 
     for (let i = 0; i < count; i++) {
       particlesRef.current.push({
-        x: startX + (Math.random() - 0.5) * 30,
+        x: startX + (Math.random() - 0.5) * 20,
         y: startY,
-        vx: -(Math.random() * 1.5 + 0.5),
-        vy: -(Math.random() * 2.5 + 2.0),
-        size: Math.random() * 6 + 12,
+        vx: -(Math.random() * 1.8 + 0.8), // Smooth organic drift inward
+        vy: -(Math.random() * 2.2 + 2.5), // Natural ascending speed
+        size: Math.random() * 6 + 14,
         scale: 0.2,
-        targetScale: Math.random() * 0.4 + 0.9,
-        rotation: (Math.random() - 0.5) * 0.5,
-        rotSpeed: (Math.random() - 0.5) * 0.05,
+        targetScale: Math.random() * 0.3 + 0.95,
+        rotation: (Math.random() - 0.5) * 0.4,
+        rotSpeed: (Math.random() - 0.5) * 0.04,
         opacity: 0.95,
-        swayAmplitude: Math.random() * 35 + 15,
-        swaySpeed: Math.random() * 0.008 + 0.004,
+        swayAmplitude: Math.random() * 45 + 20, // Gentle natural arc
+        swaySpeed: Math.random() * 0.006 + 0.003,
         age: 0,
         themeKey: effectType,
       });
@@ -182,7 +182,7 @@ export default function CardExperience({
   useEffect(() => {
     autoBurstIntervalRef.current = setInterval(() => {
       triggerFacebookLiveReaction();
-    }, 600); // Live reaction stream frequency
+    }, 550); // Fluid, continuous live reaction cadence
     return () => {
       if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
     };
@@ -203,19 +203,19 @@ export default function CardExperience({
     });
 
     if (emojisActive) {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         particlesRef.current.push({
           x: clientX + (Math.random() - 0.5) * 40,
           y: clientY,
-          vx: (Math.random() - 0.5) * 2,
-          vy: -(Math.random() * 3 + 2),
-          size: 14,
-          scale: 0.5,
-          targetScale: 1.2,
+          vx: (Math.random() - 0.5) * 2.5,
+          vy: -(Math.random() * 3.5 + 2.5),
+          size: 16,
+          scale: 0.4,
+          targetScale: 1.25,
           rotation: 0,
           rotSpeed: (Math.random() - 0.5) * 0.1,
           opacity: 1,
-          swayAmplitude: 20,
+          swayAmplitude: 25,
           swaySpeed: 0.01,
           age: 0,
           themeKey: effectType,
@@ -276,14 +276,14 @@ export default function CardExperience({
             p.scale += 0.08 * dtFactor;
           }
 
-          if (p.y < window.innerHeight * 0.4) {
-            p.opacity -= 0.025 * dtFactor;
+          if (p.y < window.innerHeight * 0.35) {
+            p.opacity -= 0.02 * dtFactor;
           }
         });
 
         particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0 && p.y > -50);
-        if (particlesRef.current.length > 120) {
-          particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 120);
+        if (particlesRef.current.length > 140) {
+          particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 140);
         }
 
         particlesRef.current.forEach((p) => {
@@ -379,16 +379,16 @@ export default function CardExperience({
             </h1>
           </main>
 
-          {/* Bottom Floating Media (Video or Audio) & Purchase Callout */}
+          {/* Bottom Floating Media (Borderless Integrated Video or Audio) & Purchase Callout */}
           <footer className="pb-6 w-full max-w-sm space-y-3 pointer-events-auto">
             {mediaUrl && mediaFileType === 'video' ? (
-              <div className="w-full backdrop-blur-md bg-black/60 border border-white/20 rounded-2xl overflow-hidden shadow-2xl aspect-video">
+              <div className="w-full backdrop-blur-xl bg-black/40 border border-white/20 rounded-2xl overflow-hidden shadow-2xl aspect-video relative group">
                 <video 
                   ref={videoRef}
                   src={mediaUrl} 
                   controls 
                   playsInline
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover rounded-2xl"
                 />
               </div>
             ) : mediaUrl && mediaFileType === 'audio' ? (
