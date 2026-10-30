@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-TRUE-VIEW-TEXT-EDITING-AND-SHARE
+// BUILD_CACHE_BUST: 2026-10-30-EQUAL-HEADER-BUTTONS-FINAL
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -476,28 +476,27 @@ export default function CardExperience({
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none flex flex-col justify-between p-4 md:p-8">
       
-      {/* Studio Header */}
+      {/* Studio Header - Equally Sized 3-Column Layout */}
       <header className="w-full max-w-xl mx-auto flex items-center justify-between gap-2 pt-2 z-20">
-        <div className={`px-3.5 py-1 rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} border ${activeThemeObj.badgeBorder} font-bold backdrop-blur-md`}>
+        <div className={`flex-1 flex items-center justify-center px-2 py-2 rounded-2xl text-[9px] tracking-[1px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} border ${activeThemeObj.badgeBorder} font-bold backdrop-blur-md text-center h-10`}>
           ✦ GIFT NOTE STUDIO ✦
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleShareDemo}
-            className="px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border border-white/30 bg-black/60 text-white transition-all backdrop-blur-md hover:bg-black/80"
-          >
-            Share Demo ✦
-          </button>
-          <button
-            type="button"
-            onClick={() => setEmojisActive(!emojisActive)}
-            className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border transition-all backdrop-blur-md ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-black/60 border-zinc-700 text-zinc-400'}`}
-          >
-            Reactions: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleShareDemo}
+          className="flex-1 flex items-center justify-center px-2 py-2 rounded-2xl text-[9px] uppercase tracking-wider font-bold border border-white/30 bg-black/60 text-white transition-all backdrop-blur-md hover:bg-black/80 text-center h-10 shadow-lg cursor-pointer"
+        >
+          Share Demo ✦
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setEmojisActive(!emojisActive)}
+          className={`flex-1 flex items-center justify-center px-2 py-2 rounded-2xl text-[9px] uppercase tracking-wider font-bold border transition-all backdrop-blur-md text-center h-10 shadow-lg cursor-pointer ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-black/60 border-zinc-700 text-zinc-400'}`}
+        >
+          Reactions: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+        </button>
       </header>
 
       {/* Main Form Box */}
