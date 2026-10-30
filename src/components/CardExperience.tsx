@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-29-IMMERSIVE-PHOTO-HERO-REDESIGN
+// BUILD_CACHE_BUST: 2026-10-29-DECOUPLED-BASE64-CANVAS
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -94,7 +94,6 @@ export default function CardExperience({
   const [effectType, setEffectType] = useState(initialTheme);
   const [emojisActive, setEmojisActive] = useState(true);
   const [isEditing, setIsEditing] = useState(isSandbox);
-  const [isPreviewingAsRecipient, setIsPreviewingAsRecipient] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -103,7 +102,6 @@ export default function CardExperience({
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
   const autoBurstIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -119,25 +117,21 @@ export default function CardExperience({
       if (paramPhoto) setPhotoUrl(paramPhoto);
       if (paramMedia) setMediaUrl(paramMedia);
       if (paramTheme) setEffectType(paramTheme);
-
-      if (paramTo || paramMsg || paramPhoto || paramMedia || paramTheme) {
-        if (isSandbox) setIsPreviewingAsRecipient(true);
-      }
     }
-  }, [isSandbox]);
+  }, []);
 
-  useEffect(() => {
-    if (isPreviewingAsRecipient && mediaRef.current) {
-      mediaRef.current.play().catch((err) => {
-        console.log('Autoplay restricted:', err);
-      });
-    }
-  }, [isPreviewingAsRecipient, mediaUrl]);
-
+  // UPDATED: Base64 FileReader implementation for indestructible mobile image caching
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPhotoUrl(URL.createObjectURL(file));
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setPhotoUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,7 +154,7 @@ export default function CardExperience({
 
   const handleSaveToDatabase = async () => {
     if (isSandbox) {
-      setIsPreviewingAsRecipient(true);
+      launchDecoupledViewer();
       return;
     }
 
@@ -183,10 +177,22 @@ export default function CardExperience({
     }
   };
 
+  // UPDATED: Launches the decoupled standalone viewer route
+  const launchDecoupledViewer = () => {
+    const params = new URLSearchParams();
+    if (recipient) params.set('to', recipient);
+    if (message) params.set('msg', message);
+    if (photoUrl) params.set('photo', photoUrl);
+    if (mediaUrl) params.set('media', mediaUrl);
+    if (effectType) params.set('theme', effectType);
+
+    const targetId = cardId || 'demo';
+    window.open(`/c/${targetId}?${params.toString()}`, '_blank');
+  };
+
   const copyVaultLink = () => {
     if (isSandbox) {
       const origin = window.location.origin;
-      const pathname = window.location.pathname;
       const params = new URLSearchParams();
 
       if (recipient) params.set('to', recipient);
@@ -195,8 +201,8 @@ export default function CardExperience({
       if (mediaUrl) params.set('media', mediaUrl);
       if (effectType) params.set('theme', effectType);
 
-      navigator.clipboard.writeText(`${origin}${pathname}?${params.toString()}`);
-      setToastMessage('Personalized demo link copied to clipboard ✨');
+      navigator.clipboard.writeText(`${origin}/c/demo?${params.toString()}`);
+      setToastMessage('Decoupled viewer link copied to clipboard ✨');
     } else {
       navigator.clipboard.writeText(window.location.href);
       setToastMessage('Vault link copied to clipboard ✨');
@@ -233,7 +239,7 @@ export default function CardExperience({
   };
 
   useEffect(() => {
-    if (isPreviewingAsRecipient || isSandbox) {
+    if (isSandbox) {
       autoBurstIntervalRef.current = setInterval(() => {
         triggerFireworksBurst();
       }, 1500);
@@ -241,7 +247,7 @@ export default function CardExperience({
     return () => {
       if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
     };
-  }, [isPreviewingAsRecipient, isSandbox, emojisActive, effectType]);
+  }, [isSandbox, emojisActive, effectType]);
 
   useEffect(() => {
     const canvas = document.createElement('canvas');
@@ -326,358 +332,261 @@ export default function CardExperience({
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
   return (
-    <div className="fixed inset-0 w-screen h-screen text-white flex items-center justify-center overflow-y-auto overflow-x-hidden p-4 md:p-6" style={{ background: '#000000 !important' }}>
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none flex flex-col justify-between p-4 md:p-8">
       
-      {/* 1. HERO BACKGROUND PHOTO LAYER (Full Screen, Unstretched bg-contain) */}
-      {photoUrl ? (
-        <div 
-          className="fixed inset-0 w-full h-full bg-contain bg-center bg-no-repeat bg-black z-0 pointer-events-none"
-          style={{ backgroundImage: `url("${photoUrl}")` }}
-        />
-      ) : (
-        <div className="fixed inset-0 w-full h-full bg-[#0a0a0c] z-0 pointer-events-none flex items-center justify-center">
-          <p className="text-zinc-600 text-xs uppercase tracking-[3px] font-mono">✦ Upload a background photo to ignite your custom card ✦</p>
+      {/* Top Navigation / Controls Bar */}
+      <header className="w-full max-w-xl mx-auto flex items-center justify-between gap-2 pt-2 z-20">
+        <div className={`px-3 py-1 rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} border ${activeThemeObj.badgeBorder} font-bold backdrop-blur-md`}>
+          ✦ UNDISCARDABLE™ STUDIO ✦
         </div>
-      )}
 
-      {/* 2. CINEMATIC GRADIENT VIGNETTE (Softens edges so text pops while photo remains pristine in center) */}
-      <div className="fixed inset-0 w-full h-full bg-gradient-to-t from-black/90 via-black/30 to-black/70 pointer-events-none z-0" />
+        <button
+          type="button"
+          onClick={() => setEmojisActive(!emojisActive)}
+          className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border transition-all backdrop-blur-md ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-black/60 border-zinc-700 text-zinc-400'}`}
+        >
+          Effects: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+        </button>
+      </header>
 
-      {/* 3. IMMERSIVE FLOATING CONTAINER (Zero solid boxes, absolute focus on custom photo & floating elements) */}
-      <div 
-        className="w-full max-w-[680px] p-5 md:p-8 text-center flex flex-col gap-6 relative z-10 my-auto"
-        style={{ background: 'transparent !important', border: 'none !important' }}
-      >
-        
-        {/* Top Header Bar */}
-        {!isPreviewingAsRecipient && (
-          <div 
-            className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full p-3 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl"
-            style={{ background: 'rgba(0, 0, 0, 0.45)' }}
-          >
-            <div className={`px-4 py-1.5 border ${activeThemeObj.badgeBorder} rounded-[30px] text-[10px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} font-bold`}>
-              ✦ UNDISCARDABLE™ CUSTOM EXPERIENCE ✦
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setEmojisActive(!emojisActive)}
-              className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border transition-all ${emojisActive ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-400' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
-            >
-              Effects: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
-            </button>
+      {/* Main Studio Editor Workspace (Pure Form Interface) */}
+      <main className="w-full max-w-lg mx-auto my-auto py-2 z-20 overflow-y-auto max-h-[80vh]">
+        <div className="w-full space-y-4 text-left p-6 rounded-3xl backdrop-blur-xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9)] bg-black/70">
+          <div className="text-center space-y-1">
+            <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px]`}>
+              Custom Card Studio
+            </h1>
+            <p className="text-[11px] text-zinc-300">Design your background photo & message exactly as you pictured it.</p>
           </div>
-        )}
+          
+          {/* Recipient Name */}
+          <div>
+            <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} mb-1 font-bold`}>
+              Recipient Name
+            </label>
+            <input
+              type="text"
+              value={recipient}
+              placeholder="e.g. Sarah"
+              onChange={(e) => setRecipient(e.target.value)}
+              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
+            />
+          </div>
 
-        {isEditing && !isPreviewingAsRecipient ? (
-          <div 
-            className="space-y-5 text-left p-6 rounded-2xl backdrop-blur-xl border border-white/15 shadow-2xl"
-            style={{ background: 'rgba(8, 8, 12, 0.75)' }}
-          >
-            <div className="text-center space-y-1">
-              <h1 className={`font-serif text-[24px] uppercase ${activeThemeObj.text} tracking-[2px]`}>
-                Design Your Custom Card
-              </h1>
-              <p className="text-[12px] text-zinc-300">Skip generic store cards. Customize your background photo and message exactly as pictured in your head.</p>
-            </div>
-            
-            {/* Recipient Name */}
-            <div>
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1.5 font-bold`}>
-                Recipient Name
+          {/* Personal Gift Message */}
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
+                Personal Gift Message
               </label>
-              <input
-                type="text"
-                value={recipient}
-                placeholder="e.g. Sarah"
-                onChange={(e) => setRecipient(e.target.value)}
-                className="w-full bg-black/60 border border-white/20 p-3 text-white rounded-xl text-sm placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
-              />
+              <span className={`text-[9px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-400'}`}>
+                {message.length}/500
+              </span>
             </div>
+            <textarea
+              rows={2}
+              maxLength={500}
+              value={message}
+              placeholder="Type your personal note here..."
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
+            />
+          </div>
 
-            {/* Personal Gift Message */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
-                  Personal Gift Message
-                </label>
-                <span className={`text-[10px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-400'}`}>
-                  {message.length}/500
+          {/* HERO BACKGROUND PHOTO UPLOAD */}
+          <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 backdrop-blur-md">
+            <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} mb-1 font-bold flex items-center gap-1.5`}>
+              <span>⭐ Custom Background Photo (Core Selling Point)</span>
+            </label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/jpg"
+              onChange={handlePhotoSelect}
+              className="w-full bg-black/70 border border-white/20 p-2 text-[11px] text-[#f4e6b0] rounded-xl cursor-pointer file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#d4af37] file:text-black"
+            />
+            {photoUrl && (
+              <div className="mt-2 flex items-center justify-between p-1.5 rounded-lg bg-black/90 border border-emerald-500/50">
+                <span className="text-[10px] text-emerald-400 font-semibold truncate max-w-[200px]">
+                  ✓ Background Photo Cached (Base64)
                 </span>
-              </div>
-              <textarea
-                rows={3}
-                maxLength={500}
-                value={message}
-                placeholder="Type your personal note here..."
-                onChange={(e) => setMessage(e.target.value)}
-                className="w-full bg-black/60 border border-white/20 p-3 text-white rounded-xl text-sm placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
-              />
-            </div>
-
-            {/* HERO BACKGROUND PHOTO UPLOAD */}
-            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1 font-bold flex items-center gap-2`}>
-                <span>⭐ Major Selling Point: Custom Background Photo</span>
-              </label>
-              <p className="text-[11px] text-zinc-300 mb-2">Upload any image to serve as the immersive background of your card experience.</p>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/jpg"
-                onChange={handlePhotoSelect}
-                className="w-full bg-black/60 border border-white/20 p-2.5 text-xs text-[#f4e6b0] rounded-xl cursor-pointer file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#d4af37] file:text-black hover:file:brightness-110"
-              />
-              {photoUrl && (
-                <div className="mt-2.5 flex items-center justify-between p-2 rounded-lg bg-black/80 border border-emerald-500/40">
-                  <span className="text-[11px] text-emerald-400 font-semibold truncate max-w-[240px]">
-                    ✓ Custom Background Loaded Successfully
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setPhotoUrl('')}
-                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Multimedia Note */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
-                  Multimedia Audio/Video Note
-                </label>
-                <div className="flex gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('upload')}
-                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'upload' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/50 text-zinc-400'}`}
-                  >
-                    Upload
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('record')}
-                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/50 text-zinc-400'}`}
-                  >
-                    Record
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('link')}
-                    className={`text-[9px] px-2 py-1 rounded uppercase tracking-wider font-semibold transition ${inputMode === 'link' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/50 text-zinc-400'}`}
-                  >
-                    Link
-                  </button>
-                </div>
-              </div>
-
-              {inputMode === 'upload' ? (
-                <input
-                  type="file"
-                  accept="video/*,audio/*"
-                  onChange={handleMediaUpload}
-                  className="w-full bg-black/60 border border-white/20 p-2.5 text-xs text-[#f4e6b0] rounded-xl cursor-pointer file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#d4af37] file:text-black"
-                />
-              ) : inputMode === 'record' ? (
-                <div className="mt-1 flex flex-col items-center gap-2">
-                  <AudioRecorder
-                    themeBorder={activeThemeObj.text}
-                    themeText={activeThemeObj.text}
-                    themeBadgeBorder={activeThemeObj.badgeBorder}
-                    themeButtonBg={activeThemeObj.buttonBg}
-                    onShowToast={(msg) => setToastMessage(msg)}
-                    onUploadComplete={(publicUrl) => {
-                      setMediaUrl(publicUrl);
-                      setMediaFileType('audio');
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="flex gap-2 mt-1">
-                  <input
-                    type="url"
-                    placeholder="Direct audio/video URL (.mp4, .mp3)"
-                    value={externalLinkInput}
-                    onChange={(e) => setExternalLinkInput(e.target.value)}
-                    className="flex-1 bg-black/60 border border-white/20 p-2.5 text-xs text-white rounded-xl placeholder:text-zinc-500 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleExternalLinkSave}
-                    className={`px-3 py-2 text-xs uppercase font-bold rounded-xl ${activeThemeObj.buttonBg}`}
-                  >
-                    Attach
-                  </button>
-                </div>
-              )}
-
-              {mediaUrl && (
-                <div className="mt-2 flex items-center justify-between p-2 rounded-lg bg-black/80 border border-emerald-500/40">
-                  <span className="text-[11px] text-emerald-400 font-semibold truncate max-w-[240px]">
-                    ✓ Media Note Attached
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMediaUrl('')}
-                    className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Theme Selector */}
-            <div>
-              <label className={`block text-xs uppercase tracking-widest ${activeThemeObj.text} mb-1.5 font-bold`}>
-                Vibe & Animation Theme
-              </label>
-              <select
-                value={effectType}
-                onChange={(e) => setEffectType(e.target.value)}
-                className="w-full bg-black/60 border border-white/20 p-3 text-white rounded-xl text-sm focus:outline-none focus:border-white cursor-pointer transition-all"
-              >
-                {THEMES.map((t) => (
-                  <option key={t.key} value={t.key} className="bg-[#101014] text-white">{t.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              onClick={() => setIsPreviewingAsRecipient(true)}
-              className={`w-full py-4 font-extrabold rounded-xl text-[12px] uppercase tracking-[2px] cursor-pointer shadow-xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
-            >
-              Preview Live Experience with Your Photo ✦
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {!isPreviewingAsRecipient && (
-              <div 
-                className="p-4 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl"
-                style={{ background: 'rgba(0, 0, 0, 0.4)' }}
-              >
-                <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px] drop-shadow-md`}>{activeThemeObj.name} Card</h1>
-                <p className="text-[11px] text-zinc-300 tracking-[1px] mt-0.5">IMMERSIVE CUSTOM BACKGROUND EXPERIENCE</p>
-              </div>
-            )}
-
-            {/* IMMERSIVE FLOATING MESSAGE (Zero solid box, high-contrast readable typography directly over background photo) */}
-            <div 
-              className="text-center p-6 rounded-2xl backdrop-blur-sm border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
-              style={{ background: 'rgba(0, 0, 0, 0.55)' }}
-            >
-              <p className={`text-xs uppercase tracking-[3px] ${activeThemeObj.text} font-bold mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]`}>
-                ✦ To: {recipient || 'Someone Special'} ✦
-              </p>
-              <p className="text-lg font-light leading-relaxed text-white whitespace-pre-wrap drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
-                {message || 'Your custom background photo and personal message shine through right here!'}
-              </p>
-            </div>
-
-            {/* IMMERSIVE MEDIA PLAYER */}
-            {mediaUrl && (
-              <div 
-                className="relative w-full rounded-2xl overflow-hidden backdrop-blur-md border border-white/10 p-5 flex flex-col items-center justify-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
-                style={{ background: 'rgba(0, 0, 0, 0.6)' }}
-              >
-                <p className={`text-[10px] uppercase tracking-[2px] ${activeThemeObj.text} font-bold drop-shadow`}>✦ Auto-Playing Media Note ✦</p>
-                {mediaFileType === 'audio' ? (
-                  <audio 
-                    ref={mediaRef as React.RefObject<HTMLAudioElement>} 
-                    src={mediaUrl} 
-                    autoPlay 
-                    controls 
-                    className="w-full mt-1" 
-                  />
-                ) : (
-                  <video 
-                    ref={mediaRef as React.RefObject<HTMLVideoElement>} 
-                    src={mediaUrl} 
-                    autoPlay 
-                    playsInline 
-                    controls 
-                    className="w-full h-full max-h-[260px] object-contain rounded-xl block shadow-2xl" 
-                  />
-                )}
-              </div>
-            )}
-
-            {/* RECIPIENT VIEW / ACTIONS */}
-            {isPreviewingAsRecipient ? (
-              <div className="pt-2">
                 <button
-                  onClick={() => setIsPreviewingAsRecipient(false)}
-                  className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all shadow-2xl`}
+                  type="button"
+                  onClick={() => setPhotoUrl('')}
+                  className="text-[9px] text-red-400 hover:text-red-300 uppercase font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
                 >
-                  ← Back to Customizing
+                  Remove
                 </button>
               </div>
+            )}
+          </div>
+
+          {/* Multimedia Note */}
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
+                Audio/Video Note
+              </label>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setInputMode('upload')}
+                  className={`text-[9px] px-2 py-0.5 rounded uppercase font-semibold transition ${inputMode === 'upload' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                >
+                  Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode('record')}
+                  className={`text-[9px] px-2 py-0.5 rounded uppercase font-semibold transition ${inputMode === 'record' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                >
+                  Record
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode('link')}
+                  className={`text-[9px] px-2 py-0.5 rounded uppercase font-semibold transition ${inputMode === 'link' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
+                >
+                  Link
+                </button>
+              </div>
+            </div>
+
+            {inputMode === 'upload' ? (
+              <input
+                type="file"
+                accept="video/*,audio/*"
+                onChange={handleMediaUpload}
+                className="w-full bg-black/70 border border-white/20 p-2 text-[11px] text-[#f4e6b0] rounded-xl cursor-pointer file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-[#d4af37] file:text-black"
+              />
+            ) : inputMode === 'record' ? (
+              <div className="mt-1 flex flex-col items-center gap-1">
+                <AudioRecorder
+                  themeBorder={activeThemeObj.text}
+                  themeText={activeThemeObj.text}
+                  themeBadgeBorder={activeThemeObj.badgeBorder}
+                  themeButtonBg={activeThemeObj.buttonBg}
+                  onShowToast={(msg) => setToastMessage(msg)}
+                  onUploadComplete={(publicUrl) => {
+                    setMediaUrl(publicUrl);
+                    setMediaFileType('audio');
+                  }}
+                />
+              </div>
             ) : (
-              <div 
-                className="flex flex-col gap-3 p-4 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl"
-                style={{ background: 'rgba(0, 0, 0, 0.5)' }}
-              >
-                {isSandbox && (
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => setIsPreviewingAsRecipient(true)}
-                      className={`flex-1 py-3 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
-                    >
-                      Test Immersive View ✦
-                    </button>
-                    <button 
-                      onClick={copyVaultLink}
-                      className={`flex-1 py-3 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
-                    >
-                      Copy Link 📋
-                    </button>
-                  </div>
-                )}
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="url"
+                  placeholder="Direct URL (.mp4, .mp3)"
+                  value={externalLinkInput}
+                  onChange={(e) => setExternalLinkInput(e.target.value)}
+                  className="flex-1 bg-black/70 border border-white/20 p-2 text-xs text-white rounded-xl placeholder:text-zinc-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleExternalLinkSave}
+                  className={`px-3 py-1.5 text-[10px] uppercase font-bold rounded-xl ${activeThemeObj.buttonBg}`}
+                >
+                  Attach
+                </button>
+              </div>
+            )}
 
-                {!isSandbox ? (
-                  <button
-                    onClick={handleSaveToDatabase}
-                    disabled={isSaving}
-                    className={`w-full py-4 font-extrabold text-[12px] uppercase tracking-[2px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
-                  >
-                    {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CUSTOM CARD ✦'}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setIsPreviewingAsRecipient(false);
-                      setRecipient('');
-                      setMessage('');
-                      setPhotoUrl('');
-                      setMediaUrl('');
-                      setToastMessage('Demo reset! Create your next custom background card ✨');
-                    }}
-                    className={`w-full py-3.5 font-bold text-[11px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all`}
-                  >
-                    ✦ CREATE ANOTHER CUSTOM CARD ✦
-                  </button>
-                )}
-
-                <div className={`pt-3 border-t border-white/10 text-center space-y-2`}>
-                  <p className="text-[11px] text-zinc-300">Tired of generic store cards? Give your giftee a custom background experience.</p>
-                  <a
-                    href="/"
-                    target="_blank"
-                    className={`block w-full py-3.5 font-extrabold text-[12px] uppercase tracking-[2px] rounded-xl shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
-                  >
-                    ORDER YOUR OWN PHYSICAL SMART CARD NOW ✦
-                  </a>
-                </div>
+            {mediaUrl && (
+              <div className="mt-2 flex items-center justify-between p-1.5 rounded-lg bg-black/90 border border-emerald-500/50">
+                <span className="text-[10px] text-emerald-400 font-semibold truncate max-w-[200px]">
+                  ✓ Media Attached
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMediaUrl('')}
+                  className="text-[9px] text-red-400 hover:text-red-300 uppercase font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
+                >
+                  Remove
+                </button>
               </div>
             )}
           </div>
-        )}
 
-      </div>
+          {/* Theme Selector */}
+          <div>
+            <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} mb-1 font-bold`}>
+              Vibe Theme
+            </label>
+            <select
+              value={effectType}
+              onChange={(e) => setEffectType(e.target.value)}
+              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs focus:outline-none cursor-pointer"
+            >
+              {THEMES.map((t) => (
+                <option key={t.key} value={t.key} className="bg-[#101014] text-white">{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* LAUNCH DECOUPLED VIEWER BUTTON */}
+          <button
+            onClick={launchDecoupledViewer}
+            className={`w-full py-4 font-extrabold rounded-xl text-[12px] uppercase tracking-[2px] cursor-pointer shadow-xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
+          >
+            Preview Immersive Canvas (Decoupled) ✦
+          </button>
+        </div>
+      </main>
+
+      {/* Bottom Actions Footer */}
+      <footer className="w-full max-w-lg mx-auto pb-2 z-20">
+        <div className="flex flex-col gap-2.5 p-3 rounded-2xl backdrop-blur-md border border-white/10 bg-black/40 shadow-2xl">
+          {isSandbox && (
+            <div className="flex gap-2">
+              <button 
+                onClick={launchDecoupledViewer}
+                className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
+              >
+                Launch Viewer ✦
+              </button>
+              <button 
+                onClick={copyVaultLink}
+                className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
+              >
+                Copy Link 📋
+              </button>
+            </div>
+          )}
+
+          {!isSandbox ? (
+            <button
+              onClick={handleSaveToDatabase}
+              disabled={isSaving}
+              className={`w-full py-3.5 font-extrabold text-[11px] uppercase tracking-[2px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
+            >
+              {isSaving ? 'Saving Vault...' : 'LOCK & SAVE CUSTOM CARD ✦'}
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setRecipient('');
+                setMessage('');
+                setPhotoUrl('');
+                setMediaUrl('');
+                setToastMessage('Studio reset! Create your next custom background card ✨');
+              }}
+              className="w-full py-3 font-bold text-[10px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all"
+            >
+              ✦ RESET STUDIO ✦
+            </button>
+          )}
+
+          <div className="pt-2 border-t border-white/10 text-center">
+            <a
+              href="/"
+              target="_blank"
+              className={`block w-full py-3 font-extrabold text-[11px] uppercase tracking-[1.5px] rounded-xl shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
+            >
+              ORDER YOUR OWN PHYSICAL SMART CARD NOW ✦
+            </a>
+          </div>
+        </div>
+      </footer>
 
       {/* Modal Toast Overlay */}
       {toastMessage && (
@@ -691,12 +600,7 @@ export default function CardExperience({
             </p>
             <button
               type="button"
-              onClick={() => {
-                if (toastMessage.includes('Entering Recipient Experience Preview')) {
-                  setIsPreviewingAsRecipient(true);
-                }
-                setToastMessage(null);
-              }}
+              onClick={() => setToastMessage(null)}
               className={`w-full py-3 font-bold text-[11px] uppercase tracking-[1.5px] rounded-xl transition-all cursor-pointer ${activeThemeObj.buttonBg}`}
             >
               CONTINUE ✦

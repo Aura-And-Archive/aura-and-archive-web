@@ -147,7 +147,7 @@ function ActivateForm() {
 
       setSuccessMsg('✦ Card successfully activated & saved! Redirecting... ✦');
       setTimeout(() => {
-        router.push(`/v/${cleanSerial}`);
+        router.push(`/c/${cleanSerial}`);
       }, 1500);
 
     } catch (err: any) {
@@ -175,7 +175,7 @@ function ActivateForm() {
     };
     
     sessionStorage.setItem(`preview_${cleanSerial}`, JSON.stringify(previewPayload));
-    router.push(`/v/${cleanSerial}`);
+    router.push(`/c/${cleanSerial}`);
   };
 
   return (

@@ -38,7 +38,7 @@ export default async function RedirectPage({
 
         // If a message or media is saved, card is activated -> Go straight to experience viewer
         if ((card.message_text && card.message_text.trim().length > 0) || (card.media_url && card.media_url.trim().length > 0)) {
-          redirect(`/v/${encodeURIComponent(cleanSerial)}`);
+          redirect(`/c/${encodeURIComponent(cleanSerial)}`);
         }
       }
     } catch (err) {
