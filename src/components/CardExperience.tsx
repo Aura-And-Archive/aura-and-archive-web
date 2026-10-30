@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-EQUAL-HEADER-BUTTONS-FINAL
+// BUILD_CACHE_BUST: 2026-10-30-CLEAN-LABEL-FINAL
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -523,11 +523,11 @@ export default function CardExperience({
             />
           </div>
 
-          {/* Personal Message with rows for multiline editing */}
+          {/* Personal Message without internal mentioning */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
-                Personal Message (Line breaks preserved)
+                Personal Message
               </label>
               <span className={`text-[9px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-500'}`}>
                 {message.length}/500
@@ -537,7 +537,7 @@ export default function CardExperience({
               rows={4}
               maxLength={500}
               value={message}
-              placeholder="Type your personal note here... (Press Enter for line breaks)"
+              placeholder="Type your personal note here..."
               onChange={(e) => setMessage(e.target.value)}
               className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 transition-all whitespace-pre-wrap"
             />
