@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-29-UNBOXED-FULLBLEED-GIFTNOTE
+// BUILD_CACHE_BUST: 2026-10-30-ULTRA-LUXURY-GIFTNOTE
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -94,30 +94,25 @@ export default function CardExperience({
   const [effectType, setEffectType] = useState(initialTheme);
   const [emojisActive, setEmojisActive] = useState(true);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const particlesRef = useRef<Array<any>>([]);
+  const ripplesRef = useRef<Array<any>>([]);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
   const autoBurstIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const mediaRef = useRef<HTMLAudioElement | HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const query = new URLSearchParams(window.location.search);
-      const paramTo = query.get('to');
-      const paramMsg = query.get('msg');
-      const paramPhoto = query.get('photo');
-      const paramMedia = query.get('media');
-      const paramTheme = query.get('theme');
-
-      if (paramTo) setRecipient(paramTo);
-      if (paramMsg) setMessage(paramMsg);
-      if (paramPhoto) setPhotoUrl(paramPhoto);
-      if (paramMedia) setMediaUrl(paramMedia);
-      if (paramTheme) setEffectType(paramTheme);
+      if (query.get('to')) setRecipient(query.get('to') || '');
+      if (query.get('msg')) setMessage(query.get('msg') || '');
+      if (query.get('photo')) setPhotoUrl(query.get('photo') || '');
+      if (query.get('media')) setMediaUrl(query.get('media') || '');
+      if (query.get('theme')) setEffectType(query.get('theme') || 'gold-confetti');
     }
   }, []);
 
@@ -145,36 +140,25 @@ export default function CardExperience({
     setMediaUrl(URL.createObjectURL(file));
   };
 
-  const handleExternalLinkSave = () => {
-    if (!externalLinkInput) return;
-    setMediaUrl(externalLinkInput);
-    setMediaFileType('video');
-    setToastMessage('External media link attached successfully ✨');
-  };
-
-  const triggerFireworksBurst = () => {
+  // Calm ambient upward drift
+  const triggerAmbientDrift = () => {
     if (!emojisActive) return;
 
-    const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
-    const isDesktop = window.innerWidth > 768;
-    const count = isDesktop ? 16 : 22;
-    const startX = isDesktop ? Math.random() * window.innerWidth : window.innerWidth / 2;
-    const startY = isDesktop ? -20 : window.innerHeight / 2 - 30;
+    const count = 3;
+    const startX = Math.random() * window.innerWidth;
+    const startY = window.innerHeight + 20;
 
     for (let i = 0; i < count; i++) {
-      const angle = isDesktop ? (Math.random() * Math.PI) + Math.PI * 0.25 : Math.random() * Math.PI * 2;
-      const speed = isDesktop ? (Math.random() * 8 + 3) : (Math.random() * 12 + 4) * Math.min(scale, 1.4);
-
       particlesRef.current.push({
-        x: startX + (isDesktop ? (Math.random() - 0.5) * window.innerWidth * 0.8 : (Math.random() - 0.5) * 80),
-        y: startY + (isDesktop ? 0 : (Math.random() - 0.5) * 40),
-        vx: Math.cos(angle) * speed,
-        vy: isDesktop ? Math.random() * 5 + 2 : Math.sin(angle) * speed - 4,
-        size: (Math.random() * 6 + 8) * Math.min(scale, 1.3),
+        x: startX + (Math.random() - 0.5) * 80,
+        y: startY,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: -(Math.random() * 1.0 + 0.6),
+        size: Math.random() * 4 + 5,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.3,
-        opacity: 0.9,
-        sway: Math.random() * 3,
+        rotSpeed: (Math.random() - 0.5) * 0.04,
+        opacity: 0.45,
+        sway: Math.random() * 2,
         age: 0,
         themeKey: effectType,
       });
@@ -183,12 +167,27 @@ export default function CardExperience({
 
   useEffect(() => {
     autoBurstIntervalRef.current = setInterval(() => {
-      triggerFireworksBurst();
-    }, 2000);
+      triggerAmbientDrift();
+    }, 3500);
     return () => {
       if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
     };
   }, [emojisActive, effectType]);
+
+  // Interactive touch ripples
+  const handleScreenTouch = (e: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+
+    ripplesRef.current.push({
+      x: clientX,
+      y: clientY,
+      radius: 10,
+      maxRadius: 120,
+      opacity: 0.8,
+      themeKey: effectType,
+    });
+  };
 
   useEffect(() => {
     const canvas = document.createElement('canvas');
@@ -213,48 +212,49 @@ export default function CardExperience({
       const deltaTime = currentTime - lastTimeRef.current;
       lastTimeRef.current = currentTime;
       const dtFactor = Math.min(deltaTime / 16.66, 3.0);
-      const isDesktop = window.innerWidth > 768;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // Render Ripples
+      ripplesRef.current.forEach((r) => {
+        r.radius += 4 * dtFactor;
+        r.opacity -= 0.03 * dtFactor;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = r.themeKey === 'executive-light' ? 'rgba(229,228,226,' : 'rgba(212,175,55,';
+        ctx.globalAlpha = Math.max(0, r.opacity);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      });
+      ripplesRef.current = ripplesRef.current.filter((r) => r.opacity > 0);
+
+      // Render Ambient Particles
       if (emojisActive) {
         particlesRef.current.forEach((p) => {
-          p.x += (p.vx + Math.sin(p.age * 0.004 + p.sway) * 0.6) * dtFactor;
+          p.x += (p.vx + Math.sin(p.age * 0.003 + p.sway) * 0.4) * dtFactor;
           p.y += p.vy * dtFactor;
-          if (p.themeKey !== 'executive-light') {
-            p.vy += (isDesktop ? 0.65 : 0.15) * dtFactor;
-            p.vx *= Math.pow(isDesktop ? 0.96 : 0.98, dtFactor);
-          }
           p.rotation += p.rotSpeed * dtFactor;
           p.age += deltaTime;
 
-          if (p.age > 2200) {
-            p.opacity -= 0.03 * dtFactor;
+          if (p.age > 3000) {
+            p.opacity -= 0.015 * dtFactor;
           }
         });
 
         particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
-        if (particlesRef.current.length > 150) {
-          particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 150);
-        }
 
         particlesRef.current.forEach((p) => {
           ctx.save();
           ctx.globalAlpha = Math.max(0, p.opacity);
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
-          
-          if (p.themeKey === 'executive-light') {
-            ctx.shadowColor = 'rgba(229, 228, 226, 0.9)';
-            ctx.shadowBlur = 12;
-            ctx.fillStyle = '#e5e4e2';
-            ctx.fillRect(-p.size * 0.25, -p.size * 1.8, p.size * 0.5, p.size * 3.6);
-          } else {
-            ctx.font = `${Math.max(20, p.size * 2.5)}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(EMOJI_MAP[p.themeKey] || '✨', 0, 0);
-          }
+          ctx.font = `${Math.max(18, p.size * 2.2)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(EMOJI_MAP[p.themeKey] || '✨', 0, 0);
           ctx.restore();
         });
       }
@@ -270,15 +270,28 @@ export default function CardExperience({
     };
   }, [emojisActive]);
 
+  const toggleAudioPlayback = () => {
+    if (!audioRef.current) return;
+    if (isPlayingAudio) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioRef.current.play().then(() => setIsPlayingAudio(true)).catch(() => {});
+    }
+  };
+
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
   // ==========================================
-  // UNBOXED FULL-BLEED IMMERSIVE GIFT NOTE VIEW
+  // UNBOXED IMMERSIVE GIFT NOTE VIEW
   // ==========================================
   if (isPreviewMode) {
     return (
-      <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none">
-        {/* HERO FULL-SCREEN BACKGROUND PHOTO */}
+      <div 
+        onClick={handleScreenTouch}
+        className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none cursor-pointer"
+      >
+        {/* HERO BACKGROUND PHOTO */}
         {photoUrl && (
           <div 
             className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat pointer-events-none z-0 transition-all duration-700"
@@ -286,28 +299,28 @@ export default function CardExperience({
           />
         )}
 
-        {/* CINEMATIC VIGNETTE (Zero solid container boxes) */}
+        {/* CINEMATIC VIGNETTE */}
         <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-black/90 via-black/30 to-black/70 pointer-events-none z-0" />
 
         {/* FLOATING CANVAS CONTENT */}
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-between p-6 text-center">
           
-          {/* Top Bar with Single 'Back to Demo' / 'Back to Studio' Button */}
+          {/* Top Bar */}
           <header className="w-full max-w-xl flex items-center justify-between pt-3">
             <p className={`text-[10px] uppercase tracking-[3px] ${activeThemeObj.text} font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]`}>
               ✦ AURA & ARCHIVE ✦
             </p>
             <button
               type="button"
-              onClick={() => setIsPreviewMode(false)}
+              onClick={(e) => { e.stopPropagation(); setIsPreviewMode(false); }}
               className="px-4 py-1.5 bg-black/60 border border-white/25 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/80 transition shadow-lg"
             >
               ← Back to Studio
             </button>
           </header>
 
-          {/* Center Typography (Floating directly over background artwork) */}
-          <main className="my-auto space-y-4 max-w-lg px-4">
+          {/* Center Typography */}
+          <main className="my-auto space-y-4 max-w-lg px-4 pointer-events-none">
             <p className={`text-xs uppercase tracking-[3px] ${activeThemeObj.text} font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,1)]`}>
               ✦ To: {recipient || 'Someone Special'} ✦
             </p>
@@ -316,22 +329,34 @@ export default function CardExperience({
             </h1>
           </main>
 
-          {/* Bottom Floating Media & Purchase Callout */}
-          <footer className="pb-6 w-full max-w-sm space-y-3">
+          {/* Bottom Minimal Audio Dock & Purchase Callout */}
+          <footer className="pb-6 w-full max-w-sm space-y-3 pointer-events-auto">
             {mediaUrl && (
-              <div className="w-full backdrop-blur-md bg-black/50 border border-white/20 p-2 rounded-2xl shadow-2xl">
-                <audio 
-                  ref={mediaRef as React.RefObject<HTMLAudioElement>}
-                  src={mediaUrl} 
-                  controls 
-                  autoPlay 
-                  className="w-full h-8"
-                />
+              <div className="w-full backdrop-blur-md bg-black/60 border border-white/20 p-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3">
+                <audio ref={audioRef} src={mediaUrl} onEnded={() => setIsPlayingAudio(false)} className="hidden" />
+                <button 
+                  onClick={toggleAudioPlayback}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 ${activeThemeObj.buttonBg}`}
+                >
+                  {isPlayingAudio ? '⏸' : '▶'}
+                </button>
+                <div className="flex-1 text-left">
+                  <p className={`text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>Voice / Audio Note</p>
+                  <p className="text-[11px] text-zinc-300 font-mono">{isPlayingAudio ? 'Playing audio...' : 'Tap to listen'}</p>
+                </div>
+                {isPlayingAudio && (
+                  <div className="flex items-center gap-1">
+                    <span className="w-1 h-3 bg-amber-400 animate-pulse rounded-full" />
+                    <span className="w-1 h-5 bg-amber-400 animate-pulse delay-75 rounded-full" />
+                    <span className="w-1 h-2 bg-amber-400 animate-pulse delay-150 rounded-full" />
+                  </div>
+                )}
               </div>
             )}
             <a
               href="/"
               target="_blank"
+              onClick={(e) => e.stopPropagation()}
               className={`block w-full py-3.5 font-extrabold text-[11px] uppercase tracking-[2px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
             >
               ORDER YOUR PHYSICAL SMART CARD ✦
@@ -514,7 +539,7 @@ export default function CardExperience({
             </select>
           </div>
 
-          {/* SINGLE CLEAN PRIMARY PREVIEW ACTION */}
+          {/* PRIMARY PREVIEW ACTION */}
           <button
             onClick={() => setIsPreviewMode(true)}
             className={`w-full py-4 font-extrabold rounded-xl text-[12px] uppercase tracking-[2px] cursor-pointer shadow-xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
