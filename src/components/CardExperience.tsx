@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-29-UNBOXED-FULLBLEED-CANVAS
+// BUILD_CACHE_BUST: 2026-10-29-UNBOXED-FULLBLEED-GIFTNOTE
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -93,7 +93,7 @@ export default function CardExperience({
 
   const [effectType, setEffectType] = useState(initialTheme);
   const [emojisActive, setEmojisActive] = useState(true);
-  const [isPreviewMode, setIsPreviewMode] = useState(false); // Toggle between Studio form & Immersive Unboxed View
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -152,66 +152,28 @@ export default function CardExperience({
     setToastMessage('External media link attached successfully ✨');
   };
 
-  const handleSaveToDatabase = async () => {
-    if (isSandbox) {
-      setIsPreviewMode(true);
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const res = await fetch('/api/cards/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cardId, recipient, message, photoUrl, mediaUrl, theme: effectType }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save card configuration.');
-      
-      setToastMessage('Card successfully saved & locked in your memory vault ✨');
-    } catch (err: any) {
-      setToastMessage(err.message || 'Error saving card.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const copyVaultLink = () => {
-    const origin = window.location.origin;
-    const params = new URLSearchParams();
-
-    if (recipient) params.set('to', recipient);
-    if (message) params.set('msg', message);
-    if (photoUrl) params.set('photo', photoUrl);
-    if (mediaUrl) params.set('media', mediaUrl);
-    if (effectType) params.set('theme', effectType);
-
-    navigator.clipboard.writeText(`${origin}/demo?${params.toString()}`);
-    setToastMessage('Sandbox shareable link copied to clipboard ✨');
-  };
-
   const triggerFireworksBurst = () => {
     if (!emojisActive) return;
 
     const scale = Math.max(window.innerWidth, window.innerHeight) / 800;
     const isDesktop = window.innerWidth > 768;
-    const count = isDesktop ? 20 : 28;
+    const count = isDesktop ? 16 : 22;
     const startX = isDesktop ? Math.random() * window.innerWidth : window.innerWidth / 2;
     const startY = isDesktop ? -20 : window.innerHeight / 2 - 30;
 
     for (let i = 0; i < count; i++) {
       const angle = isDesktop ? (Math.random() * Math.PI) + Math.PI * 0.25 : Math.random() * Math.PI * 2;
-      const speed = isDesktop ? (Math.random() * 8 + 3) : (Math.random() * 14 + 5) * Math.min(scale, 1.4);
+      const speed = isDesktop ? (Math.random() * 8 + 3) : (Math.random() * 12 + 4) * Math.min(scale, 1.4);
 
       particlesRef.current.push({
         x: startX + (isDesktop ? (Math.random() - 0.5) * window.innerWidth * 0.8 : (Math.random() - 0.5) * 80),
         y: startY + (isDesktop ? 0 : (Math.random() - 0.5) * 40),
         vx: Math.cos(angle) * speed,
         vy: isDesktop ? Math.random() * 5 + 2 : Math.sin(angle) * speed - 4,
-        size: (Math.random() * 8 + 10) * Math.min(scale, 1.3),
+        size: (Math.random() * 6 + 8) * Math.min(scale, 1.3),
         rotation: Math.random() * Math.PI * 2,
         rotSpeed: (Math.random() - 0.5) * 0.3,
-        opacity: 1,
+        opacity: 0.9,
         sway: Math.random() * 3,
         age: 0,
         themeKey: effectType,
@@ -222,7 +184,7 @@ export default function CardExperience({
   useEffect(() => {
     autoBurstIntervalRef.current = setInterval(() => {
       triggerFireworksBurst();
-    }, 1800);
+    }, 2000);
     return () => {
       if (autoBurstIntervalRef.current) clearInterval(autoBurstIntervalRef.current);
     };
@@ -272,8 +234,8 @@ export default function CardExperience({
         });
 
         particlesRef.current = particlesRef.current.filter((p) => p.opacity > 0);
-        if (particlesRef.current.length > 200) {
-          particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 200);
+        if (particlesRef.current.length > 150) {
+          particlesRef.current = particlesRef.current.slice(particlesRef.current.length - 150);
         }
 
         particlesRef.current.forEach((p) => {
@@ -288,7 +250,7 @@ export default function CardExperience({
             ctx.fillStyle = '#e5e4e2';
             ctx.fillRect(-p.size * 0.25, -p.size * 1.8, p.size * 0.5, p.size * 3.6);
           } else {
-            ctx.font = `${Math.max(22, p.size * 2.8)}px sans-serif`;
+            ctx.font = `${Math.max(20, p.size * 2.5)}px sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(EMOJI_MAP[p.themeKey] || '✨', 0, 0);
@@ -311,12 +273,12 @@ export default function CardExperience({
   const activeThemeObj = THEMES.find((t) => t.key === effectType) || THEMES[0];
 
   // ==========================================
-  // UNBOXED FULL-BLEED IMMERSIVE VIEWER (NO GREY BOXES)
+  // UNBOXED FULL-BLEED IMMERSIVE GIFT NOTE VIEW
   // ==========================================
   if (isPreviewMode) {
     return (
       <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none">
-        {/* LAYER 0: HERO FULL-SCREEN BACKGROUND PHOTO */}
+        {/* HERO FULL-SCREEN BACKGROUND PHOTO */}
         {photoUrl && (
           <div 
             className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat pointer-events-none z-0 transition-all duration-700"
@@ -324,40 +286,40 @@ export default function CardExperience({
           />
         )}
 
-        {/* LAYER 1: CINEMATIC VIGNETTE (Zero solid container boxes) */}
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-black/85 via-black/25 to-black/65 pointer-events-none z-0" />
+        {/* CINEMATIC VIGNETTE (Zero solid container boxes) */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-t from-black/90 via-black/30 to-black/70 pointer-events-none z-0" />
 
-        {/* LAYER 2: FLOATING CANVAS CONTENT */}
+        {/* FLOATING CANVAS CONTENT */}
         <div className="relative z-10 w-full h-full flex flex-col items-center justify-between p-6 text-center">
           
-          {/* Top Bar */}
-          <header className="w-full max-w-xl flex items-center justify-between pt-4">
+          {/* Top Bar with Single 'Back to Demo' / 'Back to Studio' Button */}
+          <header className="w-full max-w-xl flex items-center justify-between pt-3">
             <p className={`text-[10px] uppercase tracking-[3px] ${activeThemeObj.text} font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]`}>
               ✦ AURA & ARCHIVE ✦
             </p>
             <button
               type="button"
               onClick={() => setIsPreviewMode(false)}
-              className="px-3 py-1 bg-black/60 border border-white/20 text-xs text-white rounded-full uppercase tracking-widest backdrop-blur-md hover:bg-black/80 transition"
+              className="px-4 py-1.5 bg-black/60 border border-white/25 text-[10px] text-white rounded-full uppercase tracking-wider backdrop-blur-md hover:bg-black/80 transition shadow-lg"
             >
               ← Back to Studio
             </button>
           </header>
 
-          {/* Center Typography (Floating directly over background) */}
+          {/* Center Typography (Floating directly over background artwork) */}
           <main className="my-auto space-y-4 max-w-lg px-4">
             <p className={`text-xs uppercase tracking-[3px] ${activeThemeObj.text} font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,1)]`}>
               ✦ To: {recipient || 'Someone Special'} ✦
             </p>
-            <h1 className="text-2xl md:text-4xl font-light leading-relaxed text-white drop-shadow-[0_2px_12px_rgba(0,0,0,1)]">
-              "{message || 'Your custom background keepsake.'}"
+            <h1 className="text-2xl md:text-4xl font-serif leading-relaxed text-white drop-shadow-[0_2px_12px_rgba(0,0,0,1)]">
+              "{message || 'Your custom background gift note.'}"
             </h1>
           </main>
 
-          {/* Bottom Floating Media & Actions */}
+          {/* Bottom Floating Media & Purchase Callout */}
           <footer className="pb-6 w-full max-w-sm space-y-3">
             {mediaUrl && (
-              <div className="w-full backdrop-blur-md bg-black/40 border border-white/20 p-2 rounded-2xl shadow-2xl">
+              <div className="w-full backdrop-blur-md bg-black/50 border border-white/20 p-2 rounded-2xl shadow-2xl">
                 <audio 
                   ref={mediaRef as React.RefObject<HTMLAudioElement>}
                   src={mediaUrl} 
@@ -370,9 +332,9 @@ export default function CardExperience({
             <a
               href="/"
               target="_blank"
-              className={`block w-full py-3 font-extrabold text-[11px] uppercase tracking-[1.5px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
+              className={`block w-full py-3.5 font-extrabold text-[11px] uppercase tracking-[2px] rounded-xl shadow-2xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
             >
-              ORDER YOUR OWN PHYSICAL SMART CARD ✦
+              ORDER YOUR PHYSICAL SMART CARD ✦
             </a>
           </footer>
 
@@ -382,15 +344,15 @@ export default function CardExperience({
   }
 
   // ==========================================
-  // STUDIO CONFIGURATION FORM
+  // PREMIUM STUDIO FORM INTERFACE
   // ==========================================
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none flex flex-col justify-between p-4 md:p-8">
       
-      {/* Top Navigation Bar */}
+      {/* Studio Header */}
       <header className="w-full max-w-xl mx-auto flex items-center justify-between gap-2 pt-2 z-20">
-        <div className={`px-3 py-1 rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} border ${activeThemeObj.badgeBorder} font-bold backdrop-blur-md`}>
-          ✦ FLYER SANDBOX STUDIO ✦
+        <div className={`px-3.5 py-1 rounded-full text-[9px] tracking-[2px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} border ${activeThemeObj.badgeBorder} font-bold backdrop-blur-md`}>
+          ✦ GIFT NOTE STUDIO ✦
         </div>
 
         <button
@@ -398,18 +360,18 @@ export default function CardExperience({
           onClick={() => setEmojisActive(!emojisActive)}
           className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold border transition-all backdrop-blur-md ${emojisActive ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-400' : 'bg-black/60 border-zinc-700 text-zinc-400'}`}
         >
-          Effects: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
+          Atmosphere: {emojisActive ? 'ON ✨' : 'OFF 🚫'}
         </button>
       </header>
 
-      {/* Main Studio Editor Workspace */}
+      {/* Main Form Box */}
       <main className="w-full max-w-lg mx-auto my-auto py-2 z-20 overflow-y-auto max-h-[82vh]">
-        <div className="w-full space-y-4 text-left p-6 rounded-3xl backdrop-blur-xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9)] bg-black/80">
+        <div className="w-full space-y-4 text-left p-6 rounded-3xl backdrop-blur-xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.95)] bg-black/85">
           <div className="text-center space-y-1">
-            <h1 className={`font-serif text-[22px] uppercase ${activeThemeObj.text} tracking-[2px]`}>
-              Sample Gift Note Studio
+            <h1 className={`font-serif text-[20px] uppercase ${activeThemeObj.text} tracking-[2px]`}>
+              Customize Your Gift Note
             </h1>
-            <p className="text-[11px] text-zinc-300">Design your background photo & message preview instantly.</p>
+            <p className="text-[11px] text-zinc-400">Configure your custom background photo, message, and audio.</p>
           </div>
           
           {/* Recipient Name */}
@@ -422,17 +384,17 @@ export default function CardExperience({
               value={recipient}
               placeholder="e.g. Sarah"
               onChange={(e) => setRecipient(e.target.value)}
-              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
+              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 transition-all"
             />
           </div>
 
-          {/* Personal Gift Message */}
+          {/* Personal Message */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
-                Personal Gift Message
+                Personal Message
               </label>
-              <span className={`text-[9px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-400'}`}>
+              <span className={`text-[9px] ${message.length > 500 ? 'text-red-400' : 'text-zinc-500'}`}>
                 {message.length}/500
               </span>
             </div>
@@ -442,30 +404,30 @@ export default function CardExperience({
               value={message}
               placeholder="Type your personal note here..."
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-500 focus:outline-none focus:border-white transition-all"
+              className="w-full bg-black/70 border border-white/20 p-2.5 text-white rounded-xl text-xs placeholder:text-zinc-600 focus:outline-none focus:border-amber-400 transition-all"
             />
           </div>
 
-          {/* HERO BACKGROUND PHOTO UPLOAD */}
-          <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 backdrop-blur-md">
-            <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} mb-1 font-bold flex items-center gap-1.5`}>
-              <span>⭐ Custom Background Photo (Core Selling Point)</span>
+          {/* Background Photo Upload */}
+          <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 backdrop-blur-md">
+            <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} mb-1.5 font-bold`}>
+              Background Artwork / Photo
             </label>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/jpg"
               onChange={handlePhotoSelect}
-              className="w-full bg-black/70 border border-white/20 p-2 text-[11px] text-[#f4e6b0] rounded-xl cursor-pointer file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#d4af37] file:text-black"
+              className="w-full bg-black/70 border border-white/20 p-2 text-[11px] text-zinc-200 rounded-xl cursor-pointer file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#d4af37] file:text-black"
             />
             {photoUrl && (
               <div className="mt-2 flex items-center justify-between p-1.5 rounded-lg bg-black/90 border border-emerald-500/50">
                 <span className="text-[10px] text-emerald-400 font-semibold truncate max-w-[200px]">
-                  ✓ Background Photo Cached (Base64)
+                  ✓ Image Cached
                 </span>
                 <button
                   type="button"
                   onClick={() => setPhotoUrl('')}
-                  className="text-[9px] text-red-400 hover:text-red-300 uppercase font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
+                  className="text-[9px] text-red-400 uppercase font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
                 >
                   Remove
                 </button>
@@ -473,11 +435,11 @@ export default function CardExperience({
             )}
           </div>
 
-          {/* Multimedia Note */}
+          {/* Audio / Video Note */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} font-bold`}>
-                Audio/Video Note
+                Voice / Media Note
               </label>
               <div className="flex gap-1">
                 <button
@@ -494,13 +456,6 @@ export default function CardExperience({
                 >
                   Record
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setInputMode('link')}
-                  className={`text-[9px] px-2 py-0.5 rounded uppercase font-semibold transition ${inputMode === 'link' ? `${activeThemeObj.buttonBg} font-bold` : 'bg-black/60 text-zinc-400'}`}
-                >
-                  Link
-                </button>
               </div>
             </div>
 
@@ -509,9 +464,9 @@ export default function CardExperience({
                 type="file"
                 accept="video/*,audio/*"
                 onChange={handleMediaUpload}
-                className="w-full bg-black/70 border border-white/20 p-2 text-[11px] text-[#f4e6b0] rounded-xl cursor-pointer file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-[#d4af37] file:text-black"
+                className="w-full bg-black/70 border border-white/20 p-2 text-[11px] text-zinc-200 rounded-xl cursor-pointer file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-[#d4af37] file:text-black"
               />
-            ) : inputMode === 'record' ? (
+            ) : (
               <div className="mt-1 flex flex-col items-center gap-1">
                 <AudioRecorder
                   themeBorder={activeThemeObj.text}
@@ -525,23 +480,6 @@ export default function CardExperience({
                   }}
                 />
               </div>
-            ) : (
-              <div className="flex gap-2 mt-1">
-                <input
-                  type="url"
-                  placeholder="Direct URL (.mp4, .mp3)"
-                  value={externalLinkInput}
-                  onChange={(e) => setExternalLinkInput(e.target.value)}
-                  className="flex-1 bg-black/70 border border-white/20 p-2 text-xs text-white rounded-xl placeholder:text-zinc-500 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={handleExternalLinkSave}
-                  className={`px-3 py-1.5 text-[10px] uppercase font-bold rounded-xl ${activeThemeObj.buttonBg}`}
-                >
-                  Attach
-                </button>
-              </div>
             )}
 
             {mediaUrl && (
@@ -552,7 +490,7 @@ export default function CardExperience({
                 <button
                   type="button"
                   onClick={() => setMediaUrl('')}
-                  className="text-[9px] text-red-400 hover:text-red-300 uppercase font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
+                  className="text-[9px] text-red-400 uppercase font-bold px-2 py-0.5 bg-red-950/60 rounded border border-red-500/30 transition"
                 >
                   Remove
                 </button>
@@ -563,7 +501,7 @@ export default function CardExperience({
           {/* Theme Selector */}
           <div>
             <label className={`block text-[10px] uppercase tracking-widest ${activeThemeObj.text} mb-1 font-bold`}>
-              Vibe Theme
+              Atmosphere Theme
             </label>
             <select
               value={effectType}
@@ -576,60 +514,30 @@ export default function CardExperience({
             </select>
           </div>
 
-          {/* LAUNCH IMMERSIVE VIEWER BUTTON */}
+          {/* SINGLE CLEAN PRIMARY PREVIEW ACTION */}
           <button
             onClick={() => setIsPreviewMode(true)}
             className={`w-full py-4 font-extrabold rounded-xl text-[12px] uppercase tracking-[2px] cursor-pointer shadow-xl transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
           >
-            Preview Unboxed Immersive Canvas ✦
+            PREVIEW GIFT NOTE ✦
           </button>
         </div>
       </main>
 
-      {/* Bottom Actions Footer */}
+      {/* Footer Store CTA */}
       <footer className="w-full max-w-lg mx-auto pb-2 z-20">
-        <div className="flex flex-col gap-2.5 p-3 rounded-2xl backdrop-blur-md border border-white/10 bg-black/40 shadow-2xl">
-          <div className="flex gap-2">
-            <button 
-              onClick={() => setIsPreviewMode(true)}
-              className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
-            >
-              Launch Viewer ✦
-            </button>
-            <button 
-              onClick={copyVaultLink}
-              className={`flex-1 py-2.5 text-[10px] bg-black/60 border border-white/20 ${activeThemeObj.text} font-bold rounded-xl uppercase tracking-wider hover:bg-black/80 transition-all`}
-            >
-              Copy Link 📋
-            </button>
-          </div>
-
-          <button
-            onClick={() => {
-              setRecipient('');
-              setMessage('');
-              setPhotoUrl('');
-              setMediaUrl('');
-              setToastMessage('Studio reset! Create your next sample card ✨');
-            }}
-            className="w-full py-3 font-bold text-[10px] uppercase tracking-[1.5px] rounded-xl border border-white/20 text-white bg-black/60 hover:bg-black/80 transition-all"
+        <div className="p-3 rounded-2xl backdrop-blur-md border border-white/10 bg-black/40 shadow-2xl text-center">
+          <a
+            href="/"
+            target="_blank"
+            className={`block w-full py-3.5 font-extrabold text-[11px] uppercase tracking-[1.5px] rounded-xl shadow-[0_0_25px_rgba(212,175,55,0.3)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
           >
-            ✦ RESET STUDIO ✦
-          </button>
-
-          <div className="pt-2 border-t border-white/10 text-center">
-            <a
-              href="/"
-              target="_blank"
-              className={`block w-full py-3 font-extrabold text-[11px] uppercase tracking-[1.5px] rounded-xl shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all hover:brightness-110 ${activeThemeObj.buttonBg}`}
-            >
-              ORDER YOUR OWN PHYSICAL SMART CARD NOW ✦
-            </a>
-          </div>
+            ORDER YOUR PHYSICAL SMART CARD NOW ✦
+          </a>
         </div>
       </footer>
 
-      {/* Modal Toast Overlay */}
+      {/* Toast Modal */}
       {toastMessage && (
         <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
           <div className={`bg-[#101014] border ${activeThemeObj.text} rounded-2xl p-6 text-center max-w-sm w-full flex flex-col gap-4 shadow-2xl`}>
