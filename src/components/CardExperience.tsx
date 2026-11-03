@@ -1,6 +1,6 @@
 'use client';
 
-// BUILD_CACHE_BUST: 2026-10-30-AUTOPLAY-MEDIA-IMMEDIATE-WOW
+// BUILD_CACHE_BUST: 2026-10-30-SANDBOX-GUARD-FIXED
 import React, { useState, useEffect, useRef } from 'react';
 import AudioRecorder from '@/components/AudioRecorder';
 
@@ -106,25 +106,32 @@ export default function CardExperience({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // GRACEFUL EXPIRED LINK & CARD ID FETCHING WITH SANDBOX GUARD
+  // ==========================================
+  // GRACEFUL EXPIRED LINK & SANDBOX GUARD
+  // ==========================================
   useEffect(() => {
-    // ✦ DO NOT ATTEMPT DATABASE FETCH IF IN SANDBOX MODE ✦
+    // ✦ STRICT SANDBOX GUARD: Never query database on sandbox/live-demo ✦
     if (isSandbox) return;
 
     if (typeof window !== 'undefined') {
-      const pathSegments = window.location.pathname.split('/');
+      const pathname = window.location.pathname;
+
+      // Immediately exit if on the live-demo route
+      if (pathname.includes('/live-demo')) return;
+
+      const pathSegments = pathname.split('/');
       const cIndex = pathSegments.indexOf('c');
       const dynamicId = cIndex !== -1 && pathSegments[cIndex + 1] ? pathSegments[cIndex + 1] : null;
 
-      // Skip fetching if the segment is 'live-demo'
-      if (dynamicId === 'live-demo') return;
+      // Skip fetching if the parameter itself is live-demo
+      if (!dynamicId || dynamicId === 'live-demo') return;
 
       const query = new URLSearchParams(window.location.search);
       const queryId = query.get('id') || query.get('card') || query.get('note');
 
       const targetId = dynamicId || queryId;
 
-      if (targetId) {
+      if (targetId && targetId !== 'live-demo') {
         fetch(`/api/cards/${targetId}`)
           .then(async (res) => {
             const json = await res.json();
@@ -414,7 +421,7 @@ export default function CardExperience({
         onClick={handleScreenTouch}
         className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none cursor-pointer"
       >
-        {/* HERO BACKGROUND PHOTO (bg-cover on mobile, md:bg-contain on desktop widescreen) */}
+        {/* HERO BACKGROUND PHOTO */}
         {photoUrl && (
           <div 
             className="absolute inset-0 w-full h-full bg-cover md:bg-contain bg-center bg-no-repeat pointer-events-none z-0 transition-all duration-700"
@@ -452,7 +459,7 @@ export default function CardExperience({
             </div>
           </header>
 
-          {/* Center Typography with whitespace-pre-wrap to preserve real line breaks */}
+          {/* Center Typography */}
           <main className="my-auto space-y-4 max-w-lg px-4 pointer-events-none">
             <p className={`text-xs uppercase tracking-[3px] ${activeThemeObj.text} font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,1)]`}>
               ✦ To: {recipient || 'Someone Special'} ✦
@@ -526,7 +533,7 @@ export default function CardExperience({
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black text-white select-none flex flex-col justify-between p-4 md:p-8">
       
-      {/* Studio Header - Equally Sized 3-Column Layout */}
+      {/* Studio Header */}
       <header className="w-full max-w-xl mx-auto flex items-center justify-between gap-2 pt-2 z-20">
         <div className={`flex-1 flex items-center justify-center px-2 py-2 rounded-2xl text-[9px] tracking-[1px] uppercase ${activeThemeObj.text} ${activeThemeObj.badgeBg} border ${activeThemeObj.badgeBorder} font-bold backdrop-blur-md text-center h-10`}>
           ✦ GIFT NOTE STUDIO ✦
