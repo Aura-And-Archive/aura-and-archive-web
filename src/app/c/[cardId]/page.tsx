@@ -12,11 +12,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cleanId = decodeURIComponent(cardId || '').trim();
 
   return {
-    title: `Aura & Archive | Luxury Keepsake Sandbox`,
-    description: `Experience and customize your interactive digital keepsake (ID: ${cleanId}).`,
+    title: `Aura & Archive | Luxury Keepsake`,
+    description: `Experience your interactive digital keepsake (ID: ${cleanId}).`,
     openGraph: {
-      title: `Aura & Archive | Luxury Keepsake Sandbox`,
-      description: `Experience and customize your interactive digital keepsake.`,
+      title: `Aura & Archive | Luxury Keepsake`,
+      description: `Experience your interactive digital keepsake.`,
       url: `${SITE_URL}/c/${encodeURIComponent(cleanId)}`,
       siteName: 'Aura & Archive',
       images: [{ url: `${SITE_URL}/logo.png`, width: 800, height: 800, alt: 'Logo' }],
@@ -31,7 +31,7 @@ export default async function DedicatedCardViewer({ params }: Props) {
 
   return (
     <main className="min-h-screen w-full bg-black relative overflow-x-hidden flex flex-col justify-center items-center">
-      <CardExperience cardId={cleanId} isSandbox={true} />
+      <CardExperience cardId={cleanId} isSandbox={false} />
     </main>
   );
 }
